@@ -1,0 +1,190 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  passwordHash String  @map("password_hash")
+  firstName   String?  @map("first_name")
+  lastName    String?  @map("last_name")
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  websites          Website[]
+  contentRequests   ContentRequest[]
+  userSessions      UserSession[]
+  subscriptions     Subscription[]
+
+  @@map("users")
+}
+
+model UserSession {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_sessions")
+}
+
+model Website {
+  id          String   @id @default(cuid())
+  url         String
+  userId      String   @map("user_id")
+  title       String?
+  description String?
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  audits Audit[]
+
+  @@map("websites")
+}
+
+model Audit {
+  id         String    @id @default(cuid())
+  websiteId  String    @map("website_id")
+  auditType  AuditType @map("audit_type")
+  status     AuditStatus @default(PENDING)
+  
+  // Scores (0-100)
+  overallScore     Int?    @map("overall_score")
+  seoScore         Int?    @map("seo_score")
+  performanceScore Int?    @map("performance_score")
+  accessibilityScore Int?  @map("accessibility_score")
+  
+  // Issues found
+  issues      Json?
+  suggestions Json?
+  
+  // Audit metadata
+  auditData   Json?     @map("audit_data")
+  errorMessage String?  @map("error_message")
+  
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  website Website @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+
+  @@map("audits")
+}
+
+model ContentRequest {
+  id            String   @id @default(cuid())
+  userId        String   @map("user_id")
+  businessType  String   @map("business_type")
+  businessName  String   @map("business_name")
+  location      String?
+  targetAudience String? @map("target_audience")
+  businessDescription String? @map("business_description")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  generatedContent GeneratedContent[]
+
+  @@map("content_requests")
+}
+
+model GeneratedContent {
+  id               String        @id @default(cuid())
+  contentRequestId String        @map("content_request_id")
+  contentType      ContentType   @map("content_type")
+  title            String
+  content          String
+  status           ContentStatus @default(GENERATED)
+  metadata         Json?
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  contentRequest ContentRequest @relation(fields: [contentRequestId], references: [id], onDelete: Cascade)
+
+  @@map("generated_content")
+}
+
+model Subscription {
+  id          String           @id @default(cuid())
+  userId      String           @map("user_id")
+  planType    SubscriptionPlan @map("plan_type")
+  status      SubscriptionStatus @default(ACTIVE)
+  stripeCustomerId String?     @map("stripe_customer_id")
+  stripeSubscriptionId String? @map("stripe_subscription_id")
+  currentPeriodStart DateTime? @map("current_period_start")
+  currentPeriodEnd   DateTime? @map("current_period_end")
+  createdAt   DateTime         @default(now()) @map("created_at")
+  updatedAt   DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+// Enums
+enum AuditType {
+  QUICK_SCAN
+  FULL_AUDIT
+  SEO_FOCUS
+  PERFORMANCE_FOCUS
+  ACCESSIBILITY_FOCUS
+}
+
+enum AuditStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+enum ContentType {
+  BLOG_POST_IDEAS
+  BLOG_POST_FULL
+  SOCIAL_MEDIA_POST
+  PRODUCT_DESCRIPTION
+  LANDING_PAGE_COPY
+}
+
+enum ContentStatus {
+  GENERATED
+  EDITED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  PAST_DUE
+}
