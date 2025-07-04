@@ -4,18 +4,17 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 import prisma from './utils/database';
-// import authRoutes from './routes/authRoutes';
 
 // Load environment variables
 dotenv.config();
 
 const app = express();
-const PORT = process.env['PORT'] || 3001;
+const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet());
 app.use(cors({
-  origin: process.env['FRONTEND_URL'] || 'http://localhost:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
 app.use(morgan('combined'));
@@ -23,7 +22,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check endpoint
-app.get('/health', async (_req, res) => {
+app.get('/health', async (req, res) => {
   try {
     // Test database connection
     await prisma.$queryRaw`SELECT 1`;
@@ -33,7 +32,7 @@ app.get('/health', async (_req, res) => {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       database: 'connected',
-      version: process.env['npm_package_version'] || '1.0.0'
+      version: process.env.npm_package_version || '1.0.0'
     });
   } catch (error) {
     res.status(503).json({
@@ -45,34 +44,20 @@ app.get('/health', async (_req, res) => {
   }
 });
 
-// Debug middleware to log all requests
-app.use((req, _res, next) => {
-  console.log(`📨 ${req.method} ${req.path} - ${new Date().toISOString()}`);
-  next();
-});
-
-// Simple test route to verify API routing
-app.get('/api/test-direct', (_req, res) => {
-  res.json({ message: 'Direct API route working!' });
-});
-
 // API Routes
-import auditRoutes from './routes/auditRoutes';
+import authRoutes from './routes/authRoutes';
+app.use('/api/auth', authRoutes);
 
-console.log('🔍 Registering audit routes...');
-app.use('/api/audit', auditRoutes);
-console.log('✅ Audit routes registered successfully');
-
-// Catch-all for unimplemented API routes (must come AFTER specific routes)
-// app.use('/api', (_req, res) => {
-//   res.status(404).json({ 
-//     error: 'API endpoint not found',
-//     message: 'This API endpoint is not yet implemented'
-//   });
-// });
+// Catch-all for unimplemented API routes
+app.use('/api', (req, res) => {
+  res.status(404).json({ 
+    error: 'API endpoint not found',
+    message: 'This API endpoint is not yet implemented'
+  });
+});
 
 // Global error handler
-app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Global error handler:', err);
   
   if (res.headersSent) {
@@ -81,12 +66,12 @@ app.use((err: any, _req: express.Request, res: express.Response, next: express.N
   
   res.status(500).json({
     error: 'Internal server error',
-    message: process.env['NODE_ENV'] === 'development' ? err.message : 'Something went wrong'
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
 });
 
 // 404 handler
-app.use((req, res) => {
+app.use('*', (req, res) => {
   res.status(404).json({ 
     error: 'Route not found',
     message: `The requested route ${req.originalUrl} does not exist`
@@ -97,7 +82,7 @@ app.use((req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`📱 Health check: http://localhost:${PORT}/health`);
-  console.log(`🌍 Environment: ${process.env['NODE_ENV'] || 'development'}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
 });
 
 // Graceful shutdown

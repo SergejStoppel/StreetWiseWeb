@@ -12,17 +12,16 @@
 ## Epic 1: Project Setup and Infrastructure
 **Epic ID**: BE-001  
 **Priority**: High  
-**Status**: Completed ✅  
+**Status**: Not Started  
 **Dependencies**: None  
 **Estimated Time**: 1-2 days
 
 ### Tasks
 
-#### BE-001-01: Initialize Node.js Project ✅
+#### BE-001-01: Initialize Node.js Project
 **Priority**: High  
 **Dependencies**: None  
-**Estimated Time**: 2 hours  
-**Status**: Completed
+**Estimated Time**: 2 hours
 
 **Description**: Set up the basic Node.js project structure with Express.js
 
@@ -62,11 +61,10 @@
 - `src/server.ts`
 - `.env.example`
 
-#### BE-001-02: Database Setup with Prisma ✅
+#### BE-001-02: Database Setup with Prisma
 **Priority**: High  
 **Dependencies**: BE-001-01  
-**Estimated Time**: 3 hours  
-**Status**: Completed
+**Estimated Time**: 3 hours
 
 **Description**: Set up PostgreSQL database with Prisma ORM
 
@@ -128,11 +126,10 @@
 - `src/utils/db.ts`
 - Migration files
 
-#### BE-001-03: Basic Express Server Setup ✅
+#### BE-001-03: Basic Express Server Setup
 **Priority**: High  
 **Dependencies**: BE-001-01  
-**Estimated Time**: 2 hours  
-**Status**: Completed
+**Estimated Time**: 2 hours
 
 **Description**: Create the basic Express server with middleware and routing structure
 
@@ -158,21 +155,107 @@
 
 ---
 
-## Epic 2: Website Audit Engine (Core MVP Feature)
+## Epic 2: User Authentication System
 **Epic ID**: BE-002  
 **Priority**: High  
 **Status**: Not Started  
 **Dependencies**: BE-001  
-**Estimated Time**: 3-4 days
-
-### Overview
-This epic focuses on building the core website auditing functionality that provides immediate value to users without requiring authentication. Users can scan any website and get instant SEO, accessibility, and performance insights.
+**Estimated Time**: 2-3 days
 
 ### Tasks
 
-#### BE-002-01: Website Scanning Service
+#### BE-002-01: JWT Authentication Setup
 **Priority**: High  
-**Dependencies**: BE-001-03  
+**Dependencies**: BE-001-02, BE-001-03  
+**Estimated Time**: 3 hours
+
+**Description**: Implement JWT-based authentication system
+
+**Detailed Instructions**:
+1. Install JWT dependencies:
+   ```bash
+   npm install jsonwebtoken bcryptjs
+   npm install -D @types/jsonwebtoken @types/bcryptjs
+   ```
+2. Create `src/utils/jwt.ts` with token generation and verification
+3. Create `src/utils/password.ts` for password hashing
+4. Create authentication middleware in `src/middleware/auth.ts`
+5. Add JWT_SECRET to environment variables
+
+**Acceptance Criteria**:
+- JWT tokens are generated correctly
+- Password hashing and comparison work
+- Authentication middleware verifies tokens
+- Unauthorized requests are properly rejected
+
+**Files to Create**:
+- `src/utils/jwt.ts`
+- `src/utils/password.ts`
+- `src/middleware/auth.ts`
+
+#### BE-002-02: User Registration Endpoint
+**Priority**: High  
+**Dependencies**: BE-002-01  
+**Estimated Time**: 2 hours
+
+**Description**: Create user registration endpoint with validation
+
+**Detailed Instructions**:
+1. Create `src/controllers/authController.ts` with registration logic
+2. Create validation schema using a validation library
+3. Create `src/routes/auth.ts` with registration route
+4. Add email validation and password strength requirements
+5. Add rate limiting for registration attempts
+
+**Acceptance Criteria**:
+- User can register with valid email and password
+- Duplicate email registration is prevented
+- Password is properly hashed before storing
+- JWT token is returned on successful registration
+- Input validation works correctly
+
+**Files to Create**:
+- `src/controllers/authController.ts`
+- `src/routes/auth.ts`
+- `src/validation/authValidation.ts`
+
+#### BE-002-03: User Login Endpoint
+**Priority**: High  
+**Dependencies**: BE-002-01, BE-002-02  
+**Estimated Time**: 1.5 hours
+
+**Description**: Create user login endpoint with authentication
+
+**Detailed Instructions**:
+1. Add login method to `src/controllers/authController.ts`
+2. Add login route to `src/routes/auth.ts`
+3. Add rate limiting for login attempts
+4. Add login validation
+
+**Acceptance Criteria**:
+- User can login with correct credentials
+- Invalid credentials are rejected
+- JWT token is returned on successful login
+- Rate limiting prevents brute force attacks
+
+**Files to Modify**:
+- `src/controllers/authController.ts`
+- `src/routes/auth.ts`
+
+---
+
+## Epic 3: Website Audit Engine
+**Epic ID**: BE-003  
+**Priority**: High  
+**Status**: Not Started  
+**Dependencies**: BE-002  
+**Estimated Time**: 3-4 days
+
+### Tasks
+
+#### BE-003-01: Website Scanning Service
+**Priority**: High  
+**Dependencies**: BE-002-03  
 **Estimated Time**: 4 hours
 
 **Description**: Create service to scan websites and extract basic information
@@ -180,7 +263,7 @@ This epic focuses on building the core website auditing functionality that provi
 **Detailed Instructions**:
 1. Install required dependencies:
    ```bash
-   npm install puppeteer cheerio url-parse lighthouse
+   npm install puppeteer cheerio url-parse
    npm install -D @types/url-parse
    ```
 2. Create `src/services/websiteScanner.ts` with scanning logic
@@ -198,24 +281,18 @@ This epic focuses on building the core website auditing functionality that provi
 - `src/services/websiteScanner.ts`
 - `src/utils/urlValidator.ts`
 
-#### BE-002-02: SEO Analysis Service
+#### BE-003-02: SEO Analysis Service
 **Priority**: High  
-**Dependencies**: BE-002-01  
+**Dependencies**: BE-003-01  
 **Estimated Time**: 3 hours
 
 **Description**: Create service to analyze SEO aspects of scanned websites
 
 **Detailed Instructions**:
 1. Create `src/services/seoAnalyzer.ts` with SEO analysis logic
-2. Add comprehensive SEO checks:
-   - Title tag optimization (length, uniqueness)
-   - Meta description (presence, length)
-   - Heading hierarchy (H1-H6 structure)
-   - Image alt text analysis
-   - Internal/external link analysis
-   - Page loading speed assessment
+2. Add comprehensive SEO checks (title, meta description, headings, images)
 3. Implement scoring algorithm based on issue severity
-4. Create recommendation engine with actionable suggestions
+4. Create recommendation engine
 
 **Acceptance Criteria**:
 - Identifies common SEO issues accurately
@@ -226,108 +303,68 @@ This epic focuses on building the core website auditing functionality that provi
 **Files to Create**:
 - `src/services/seoAnalyzer.ts`
 
-#### BE-002-03: Accessibility Analysis Service
+#### BE-003-03: Accessibility Analysis Service
 **Priority**: High  
-**Dependencies**: BE-002-01  
+**Dependencies**: BE-003-01  
 **Estimated Time**: 3 hours
 
 **Description**: Create service to analyze accessibility aspects of scanned websites
 
 **Detailed Instructions**:
 1. Create `src/services/accessibilityAnalyzer.ts` with accessibility checks
-2. Implement accessibility checks:
-   - Alt text for images
-   - Heading hierarchy and structure
-   - Color contrast ratios
-   - Form label associations
-   - Keyboard navigation
-   - ARIA attributes usage
+2. Implement accessibility checks (alt text, heading hierarchy, color contrast)
 3. Map issues to WCAG guidelines
-4. Create compliance assessment with severity levels
+4. Create compliance assessment
 
 **Acceptance Criteria**:
 - Identifies accessibility issues based on WCAG guidelines
 - Provides clear suggestions for improvements
-- Calculates accessibility score (0-100)
-- Assesses WCAG compliance levels (A, AA, AAA)
+- Calculates accessibility score
+- Assesses WCAG compliance levels
 
 **Files to Create**:
 - `src/services/accessibilityAnalyzer.ts`
 
-#### BE-002-04: Performance Analysis Service
+#### BE-003-04: Audit Controller and Routes
 **Priority**: High  
-**Dependencies**: BE-002-01  
-**Estimated Time**: 2 hours
-
-**Description**: Create service to analyze website performance metrics
-
-**Detailed Instructions**:
-1. Create `src/services/performanceAnalyzer.ts` using Lighthouse
-2. Analyze key performance metrics:
-   - First Contentful Paint (FCP)
-   - Largest Contentful Paint (LCP)
-   - Time to Interactive (TTI)
-   - Cumulative Layout Shift (CLS)
-   - Total Blocking Time (TBT)
-3. Provide performance optimization recommendations
-4. Calculate performance score based on Core Web Vitals
-
-**Acceptance Criteria**:
-- Runs Lighthouse performance audit
-- Extracts and analyzes Core Web Vitals
-- Provides performance optimization suggestions
-- Calculates performance score (0-100)
-
-**Files to Create**:
-- `src/services/performanceAnalyzer.ts`
-
-#### BE-002-05: Audit Controller and Routes
-**Priority**: High  
-**Dependencies**: BE-002-01, BE-002-02, BE-002-03, BE-002-04  
+**Dependencies**: BE-003-01, BE-003-02, BE-003-03  
 **Estimated Time**: 2 hours
 
 **Description**: Create controller and routes for website audit functionality
 
 **Detailed Instructions**:
 1. Create `src/controllers/auditController.ts` with audit logic
-2. Create `src/routes/audit.ts` with audit routes:
-   - `POST /api/audit/scan` - Scan a website URL
-   - `GET /api/audit/results/:id` - Get audit results
-3. Add rate limiting for audit requests (5 requests per minute)
-4. Add input validation and URL sanitization
+2. Create `src/routes/audit.ts` with audit routes
+3. Add rate limiting for audit requests
+4. Add input validation and sanitization
 5. Add proper error handling and logging
-6. Store audit results temporarily (1 hour TTL) for retrieval
 
 **Acceptance Criteria**:
-- POST /api/audit/scan accepts URL and returns audit results
-- Results include SEO, accessibility, and performance scores
-- Proper error handling for invalid URLs and scan failures
+- POST /api/audits/scan accepts URL and returns audit results
+- Audit results are saved to database
+- Proper error handling for invalid URLs
 - Rate limiting prevents abuse
-- Results can be retrieved via results endpoint
+- Authentication is enforced for registered users
 
 **Files to Create**:
 - `src/controllers/auditController.ts`
 - `src/routes/audit.ts`
-- `src/middleware/rateLimiter.ts`
 
 ---
 
-## Epic 3: Content Generation System
-**Epic ID**: BE-003  
+## Epic 4: Content Generation System
+**Epic ID**: BE-004  
 **Priority**: High  
 **Status**: Not Started  
 **Dependencies**: BE-002  
 **Estimated Time**: 2-3 days
 
-### Overview
-This epic builds the AI-powered content generation features that help users create blog posts, social media content, and website copy based on their business type and audit results.
-
 ### Tasks
 
-#### BE-003-01: OpenAI Integration Service
+#### BE-004-01: OpenAI Integration Service
 **Priority**: High  
-**Dependencies**: BE-002-05  
-**Estimated Time**: 3 hours
+**Dependencies**: BE-002-03  
+**Estimated Time**: 2 hours
 
 **Description**: Create service to integrate with OpenAI API for content generation
 
@@ -335,93 +372,139 @@ This epic builds the AI-powered content generation features that help users crea
 1. Install OpenAI SDK: `npm install openai`
 2. Create `src/services/openaiService.ts` with OpenAI integration
 3. Add OpenAI API key to environment variables
-4. Implement content generation methods:
-   - Blog post ideas generation
-   - Full blog post creation
-   - Social media post generation
-   - Product descriptions
-   - Landing page copy
-5. Add error handling for API failures and rate limits
+4. Add error handling for API failures
+5. Add rate limiting for OpenAI requests
 6. Add cost tracking for API usage
 
 **Acceptance Criteria**:
 - Successfully connects to OpenAI API
-- Generates high-quality content based on prompts
-- Handles API errors and rate limits gracefully
-- Tracks API usage and estimated costs
-- Supports multiple content types
+- Generates blog post ideas based on business type and location
+- Generates full blog posts with proper structure
+- Handles API errors gracefully
+- Tracks API usage and costs
 
 **Files to Create**:
 - `src/services/openaiService.ts`
-- `src/utils/contentPrompts.ts`
 
-#### BE-003-02: Content Generation Controller
+#### BE-004-02: Content Generation Controller
 **Priority**: High  
-**Dependencies**: BE-003-01  
+**Dependencies**: BE-004-01  
 **Estimated Time**: 2 hours
 
 **Description**: Create controller for content generation endpoints
 
 **Detailed Instructions**:
 1. Create `src/controllers/contentController.ts` with content generation logic
-2. Create `src/routes/content.ts` with content routes:
-   - `POST /api/content/blog-ideas` - Generate blog post ideas
-   - `POST /api/content/blog-post` - Generate full blog post
-   - `POST /api/content/social-media` - Generate social media posts
-   - `POST /api/content/product-description` - Generate product descriptions
-3. Add input validation for business type, target audience, etc.
-4. Add rate limiting for content generation (3 requests per minute)
-5. Temporarily store generated content for retrieval
+2. Create `src/routes/content.ts` with content routes
+3. Add input validation and sanitization
+4. Add rate limiting for content generation
+5. Add user authentication middleware
 
 **Acceptance Criteria**:
-- All content generation endpoints work correctly
-- Input validation prevents invalid requests
+- POST /api/content/generate-ideas returns blog post ideas
+- POST /api/content/generate-post creates full blog post
+- GET /api/content/history returns user's content history
+- Proper error handling and validation
 - Rate limiting prevents abuse
-- Generated content is high-quality and relevant
-- Content can be retrieved and downloaded
 
 **Files to Create**:
 - `src/controllers/contentController.ts`
 - `src/routes/content.ts`
 
+#### BE-004-03: Content Request Database Models
+**Priority**: High  
+**Dependencies**: BE-004-01  
+**Estimated Time**: 1 hour
+
+**Description**: Create database models for content generation requests and results
+
+**Detailed Instructions**:
+1. Update `prisma/schema.prisma` to add content models
+2. Update User model to include relationships
+3. Run database migration
+4. Update database client imports where needed
+
+**Acceptance Criteria**:
+- Database models are created successfully
+- Relationships between models work correctly
+- Migration completes without errors
+- Prisma client generates updated types
+
+**Files to Modify**:
+- `prisma/schema.prisma`
+
 ---
 
-## Epic 4: Payment and Subscription System
-**Epic ID**: BE-004  
+## Epic 5: Payment and Subscription System
+**Epic ID**: BE-005  
 **Priority**: High  
 **Status**: Not Started  
-**Dependencies**: BE-002, BE-003  
+**Dependencies**: BE-002  
 **Estimated Time**: 2-3 days
-
-### Overview
-This epic implements Stripe payment processing for subscription management, enabling monetization of the platform with different pricing tiers.
 
 ### Tasks
 
-#### BE-004-01: Stripe Integration Setup
+#### BE-005-01: Stripe Integration Setup
 **Priority**: High  
-**Dependencies**: BE-003-02  
+**Dependencies**: BE-002-03  
 **Estimated Time**: 3 hours
 
 **Description**: Set up Stripe payment processing for subscription management
 
 **Detailed Instructions**:
-1. Install Stripe SDK: `npm install stripe`
-2. Create `src/services/stripeService.ts` with Stripe integration
-3. Create subscription plans in Stripe Dashboard:
-   - **Free**: 5 audits/month, 3 content generations/month
-   - **Essentials** ($19/month): 50 audits/month, 20 content generations/month
-   - **Growth** ($49/month): 200 audits/month, 100 content generations/month
-   - **Pro** ($99/month): Unlimited audits and content generation
-4. Add Stripe webhook handling for subscription events
+1. Install Stripe SDK:
+   ```bash
+   npm install stripe
+   npm install -D @types/stripe
+   ```
+2. Create `src/services/stripeService.ts`:
+   ```typescript
+   import Stripe from 'stripe';
+   
+   export class StripeService {
+     private stripe: Stripe;
+     
+     constructor() {
+       this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+         apiVersion: '2023-10-16',
+       });
+     }
+     
+     async createCustomer(email: string, name?: string): Promise<Stripe.Customer> {
+       return this.stripe.customers.create({
+         email,
+         name,
+       });
+     }
+     
+     async createSubscription(
+       customerId: string,
+       priceId: string
+     ): Promise<Stripe.Subscription> {
+       return this.stripe.subscriptions.create({
+         customer: customerId,
+         items: [{ price: priceId }],
+         payment_behavior: 'default_incomplete',
+         payment_settings: { save_default_payment_method: 'on_subscription' },
+         expand: ['latest_invoice.payment_intent'],
+       });
+     }
+     
+     async cancelSubscription(subscriptionId: string): Promise<Stripe.Subscription> {
+       return this.stripe.subscriptions.cancel(subscriptionId);
+     }
+   }
+   ```
+3. Add Stripe webhook handling
+4. Create subscription plans in Stripe Dashboard
 5. Add environment variables for Stripe keys
 
 **Acceptance Criteria**:
 - Stripe SDK is properly configured
-- Customer creation and management work
-- Subscription creation, updates, and cancellation work
-- Webhook handling processes subscription events
-- Multiple pricing tiers are supported
+- Customer creation works
+- Subscription creation and cancellation work
+- Webhook handling is implemented
+- Environment variables are documented
 
 **Files to Create**:
 - `src/services/stripeService.ts`
@@ -429,203 +512,210 @@ This epic implements Stripe payment processing for subscription management, enab
 - `src/routes/payment.ts`
 - `src/middleware/stripeWebhook.ts`
 
-#### BE-004-02: Subscription Database Models
+#### BE-005-02: Subscription Database Models
 **Priority**: High  
-**Dependencies**: BE-004-01  
+**Dependencies**: BE-005-01  
 **Estimated Time**: 2 hours
 
-**Description**: Create database models for subscription and usage tracking
+**Description**: Create database models for subscription management
 
 **Detailed Instructions**:
-1. Update `prisma/schema.prisma` to add subscription models
-2. Create usage tracking models for audits and content generation
+1. Update `prisma/schema.prisma` to add subscription models:
+   ```prisma
+   model Customer {
+     id               String   @id @default(cuid())
+     userId           String   @unique
+     user             User     @relation(fields: [userId], references: [id])
+     stripeCustomerId String   @unique
+     createdAt        DateTime @default(now())
+     updatedAt        DateTime @updatedAt
+     
+     subscriptions    Subscription[]
+   }
+   
+   model Subscription {
+     id                   String   @id @default(cuid())
+     customerId           String
+     customer             Customer @relation(fields: [customerId], references: [id])
+     stripeSubscriptionId String   @unique
+     status               String   // active, canceled, past_due, etc.
+     planType             String   // essentials, growth, pro
+     currentPeriodStart   DateTime
+     currentPeriodEnd     DateTime
+     createdAt            DateTime @default(now())
+     updatedAt            DateTime @updatedAt
+     
+     invoices             Invoice[]
+   }
+   
+   model Invoice {
+     id              String       @id @default(cuid())
+     subscriptionId  String
+     subscription    Subscription @relation(fields: [subscriptionId], references: [id])
+     stripeInvoiceId String       @unique
+     amount          Int          // Amount in cents
+     currency        String       @default("usd")
+     status          String       // paid, open, void, etc.
+     createdAt       DateTime     @default(now())
+   }
+   ```
+2. Update User model to include customer relationship
 3. Run database migration
 4. Create subscription management utilities
 
 **Acceptance Criteria**:
-- Database models support subscription management
-- Usage tracking works correctly
+- Database models are created successfully
+- Relationships between models work correctly
 - Migration completes without errors
-- Subscription limits are properly enforced
+- Subscription utilities are functional
 
 **Files to Modify**:
 - `prisma/schema.prisma`
 
+#### BE-005-03: Payment Controller and Routes
+**Priority**: High  
+**Dependencies**: BE-005-01, BE-005-02  
+**Estimated Time**: 3 hours
+
+**Description**: Create payment endpoints for subscription management
+
+**Detailed Instructions**:
+1. Create `src/controllers/paymentController.ts`:
+   ```typescript
+   import { Request, Response } from 'express';
+   import { PrismaClient } from '@prisma/client';
+   import { StripeService } from '../services/stripeService';
+   
+   const prisma = new PrismaClient();
+   const stripeService = new StripeService();
+   
+   export const createSubscription = async (req: Request, res: Response) => {
+     try {
+       const { planType } = req.body;
+       const userId = req.user?.userId;
+       
+       // Get or create Stripe customer
+       const user = await prisma.user.findUnique({
+         where: { id: userId },
+         include: { customer: true }
+       });
+       
+       let customer = user?.customer;
+       if (!customer) {
+         const stripeCustomer = await stripeService.createCustomer(user!.email);
+         customer = await prisma.customer.create({
+           data: {
+             userId: userId!,
+             stripeCustomerId: stripeCustomer.id
+           }
+         });
+       }
+       
+       // Create subscription
+       const priceId = getPriceIdForPlan(planType);
+       const subscription = await stripeService.createSubscription(
+         customer.stripeCustomerId,
+         priceId
+       );
+       
+       // Save subscription to database
+       await prisma.subscription.create({
+         data: {
+           customerId: customer.id,
+           stripeSubscriptionId: subscription.id,
+           status: subscription.status,
+           planType,
+           currentPeriodStart: new Date(subscription.current_period_start * 1000),
+           currentPeriodEnd: new Date(subscription.current_period_end * 1000)
+         }
+       });
+       
+       res.json({
+         subscriptionId: subscription.id,
+         clientSecret: subscription.latest_invoice?.payment_intent?.client_secret
+       });
+     } catch (error) {
+       console.error('Subscription creation error:', error);
+       res.status(500).json({ error: 'Failed to create subscription' });
+     }
+   };
+   ```
+2. Create payment routes in `src/routes/payment.ts`
+3. Add webhook endpoint for Stripe events
+4. Add subscription status checking middleware
+5. Create plan pricing configuration
+
+**Acceptance Criteria**:
+- POST /api/payments/subscribe creates subscriptions
+- Webhook endpoint handles Stripe events
+- Subscription status is properly tracked
+- Plan pricing is configurable
+- Authentication is enforced
+
+**Files to Create**:
+- `src/controllers/paymentController.ts`
+- `src/routes/payment.ts`
+- `src/config/pricing.ts`
+
 ---
 
-## Epic 5: User Authentication System
-**Epic ID**: BE-005  
+## Epic 6: Report Generation System
+**Epic ID**: BE-006  
 **Priority**: Medium  
 **Status**: Not Started  
-**Dependencies**: BE-004  
+**Dependencies**: BE-003, BE-004  
 **Estimated Time**: 2-3 days
-
-### Overview
-This epic adds user authentication to enable account creation, login, and personalized features like saving audit history and managing subscriptions. **Note: This is now deprioritized to allow users to test core functionality without creating accounts first.**
 
 ### Tasks
 
-#### BE-005-01: JWT Authentication Setup
+#### BE-006-01: PDF Report Generator
 **Priority**: Medium  
-**Dependencies**: BE-004-02  
+**Dependencies**: BE-003-04  
 **Estimated Time**: 3 hours
 
-**Description**: Implement JWT-based authentication system
+**Description**: Create service to generate PDF reports from audit results
 
 **Detailed Instructions**:
-1. Install JWT dependencies: `npm install jsonwebtoken bcryptjs`
-2. Create `src/utils/jwt.ts` with token generation and verification
-3. Create `src/utils/password.ts` for password hashing
-4. Create authentication middleware in `src/middleware/auth.ts`
-5. Add JWT_SECRET to environment variables
+1. Install PDF generation dependencies: `npm install puppeteer-pdf html-pdf-node`
+2. Create `src/services/reportGenerator.ts` with PDF generation logic
+3. Create report templates directory structure
+4. Add styling and branding to reports
+5. Add error handling for PDF generation
 
 **Acceptance Criteria**:
-- JWT tokens are generated correctly
-- Password hashing and comparison work
-- Authentication middleware verifies tokens
-- Unauthorized requests are properly rejected
+- Generates PDF reports from audit data
+- Reports include SEO and accessibility analysis
+- Professional styling and layout
+- Error handling for generation failures
 
 **Files to Create**:
-- `src/utils/jwt.ts`
-- `src/utils/password.ts`
-- `src/middleware/auth.ts`
+- `src/services/reportGenerator.ts`
+- `src/templates/reportTemplate.html`
 
-#### BE-005-02: User Registration and Login
+#### BE-006-02: Report Download Endpoint
 **Priority**: Medium  
-**Dependencies**: BE-005-01  
-**Estimated Time**: 3 hours
+**Dependencies**: BE-006-01  
+**Estimated Time**: 1.5 hours
 
-**Description**: Create user registration and login endpoints
+**Description**: Create endpoint to download generated reports
 
 **Detailed Instructions**:
-1. Create `src/controllers/authController.ts` with auth logic
-2. Create `src/routes/auth.ts` with authentication routes:
-   - `POST /api/auth/register` - User registration
-   - `POST /api/auth/login` - User login
-   - `POST /api/auth/logout` - User logout
-   - `GET /api/auth/profile` - Get user profile
-3. Add email validation and password strength requirements
-4. Add rate limiting for authentication attempts
-5. Connect user accounts to existing audit and content data
+1. Add report download method to `src/controllers/auditController.ts`
+2. Add route for report download
+3. Add authentication middleware
+4. Add rate limiting for report downloads
 
 **Acceptance Criteria**:
-- Users can register with email and password
-- Login works with valid credentials
-- JWT tokens are properly managed
-- User profiles can be retrieved and updated
-- Rate limiting prevents brute force attacks
-
-**Files to Create**:
-- `src/controllers/authController.ts`
-- `src/routes/auth.ts`
-- `src/validation/authValidation.ts`
-
-#### BE-005-03: Protected Routes and User Data
-**Priority**: Medium  
-**Dependencies**: BE-005-02  
-**Estimated Time**: 2 hours
-
-**Description**: Add authentication to existing routes and enable user data persistence
-
-**Detailed Instructions**:
-1. Add optional authentication to audit and content routes
-2. Enable saving audit history for authenticated users
-3. Enable saving generated content for authenticated users
-4. Add user dashboard endpoints:
-   - `GET /api/user/audits` - Get user's audit history
-   - `GET /api/user/content` - Get user's generated content
-   - `GET /api/user/subscription` - Get subscription status
-
-**Acceptance Criteria**:
-- Existing routes work with or without authentication
-- Authenticated users can save and retrieve their data
-- User dashboard provides usage statistics
-- Subscription status affects feature availability
+- GET /api/audits/:id/report downloads PDF report
+- Authentication is required
+- Proper headers for PDF download
+- Rate limiting prevents abuse
 
 **Files to Modify**:
 - `src/controllers/auditController.ts`
-- `src/controllers/contentController.ts`
 - `src/routes/audit.ts`
-- `src/routes/content.ts`
 
 ---
-
-## Epic 6: Advanced Features and Optimization
-**Epic ID**: BE-006  
-**Priority**: Low  
-**Status**: Not Started  
-**Dependencies**: BE-005  
-**Estimated Time**: 2-3 days
-
-### Overview
-This epic adds advanced features like bulk auditing, API integrations, and performance optimizations.
-
-### Tasks
-
-#### BE-006-01: Bulk Website Auditing
-**Priority**: Low  
-**Dependencies**: BE-005-03  
-**Estimated Time**: 3 hours
-
-**Description**: Enable bulk auditing of multiple websites
-
-**Files to Create**:
-- `src/services/bulkAuditService.ts`
-- `src/controllers/bulkAuditController.ts`
-
-#### BE-006-02: API Rate Limiting and Caching
-**Priority**: Low  
-**Dependencies**: BE-005-03  
-**Estimated Time**: 2 hours
-
-**Description**: Implement Redis caching and advanced rate limiting
-
-**Files to Create**:
-- `src/services/cacheService.ts`
-- `src/middleware/advancedRateLimit.ts`
-
-#### BE-006-03: Webhook Integrations
-**Priority**: Low  
-**Dependencies**: BE-005-03  
-**Estimated Time**: 2 hours
-
-**Description**: Add webhook support for third-party integrations
-
-**Files to Create**:
-- `src/services/webhookService.ts`
-- `src/controllers/webhookController.ts`
-
----
-
-## Development Priority Summary
-
-### **Immediate Priority (Sprint 1-2):**
-1. ✅ **Epic 1**: Project Setup and Infrastructure (Completed)
-2. 🚀 **Epic 2**: Website Audit Engine (Next - Core MVP)
-
-### **High Priority (Sprint 3-4):**
-3. 🎯 **Epic 3**: Content Generation System
-4. 💳 **Epic 4**: Payment and Subscription System
-
-### **Medium Priority (Sprint 5-6):**
-5. 👤 **Epic 5**: User Authentication System
-
-### **Low Priority (Future Sprints):**
-6. ⚡ **Epic 6**: Advanced Features and Optimization
-
-## Key Changes Made:
-
-1. **✅ Moved Website Audit Engine to Epic 2** - This is now the highest priority as it provides immediate user value
-2. **✅ Content Generation moved to Epic 3** - Second highest priority for user engagement  
-3. **✅ Payment System moved to Epic 4** - Required before authentication to define subscription limits
-4. **📉 Authentication moved to Epic 5** - Now lower priority; users can test functionality without accounts
-5. **🎯 Focus on MVP** - Core audit functionality can be built and tested immediately
-
-This reorganization allows you to:
-- ✅ Build and deploy core functionality immediately
-- ✅ Let users test the website audit tool without registration
-- ✅ Add authentication later when you need user accounts for subscriptions
-- ✅ Implement a freemium model (limited free usage, then require account/payment)
 
 ## How to Mark Tickets as Complete
 

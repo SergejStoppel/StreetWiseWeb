@@ -9,8 +9,7 @@
       "Bash(sudo apt:*)",
       "Bash(apt list:*)",
       "Bash(dpkg:*)",
-      "Bash(docker:*)",
-      "Bash(mv:*)"
+      "Bash(docker:*)"
     ],
     "deny": []
   }

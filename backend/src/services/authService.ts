@@ -10,8 +10,8 @@ export class AuthService {
   private readonly JWT_EXPIRES_IN: string;
 
   constructor() {
-    this.JWT_SECRET = process.env['JWT_SECRET'] || 'fallback-secret-key';
-    this.JWT_EXPIRES_IN = process.env['JWT_EXPIRES_IN'] || '7d';
+    this.JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-key';
+    this.JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
   }
 
   async registerUser(userData: CreateUserRequest): Promise<{ user: any; tokens: AuthTokens }> {
@@ -33,8 +33,8 @@ export class AuthService {
       data: {
         email: userData.email.toLowerCase(),
         passwordHash,
-        firstName: userData.firstName || null,
-        lastName: userData.lastName || null,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
       },
       select: {
         id: true,
@@ -100,7 +100,7 @@ export class AuthService {
   async refreshTokens(refreshToken: string): Promise<AuthTokens> {
     try {
       // Verify refresh token
-      jwt.verify(refreshToken, this.JWT_SECRET) as any;
+      const decoded = jwt.verify(refreshToken, this.JWT_SECRET) as any;
 
       // Check if refresh token exists in database
       const storedToken = await prisma.userSession.findUnique({
@@ -158,11 +158,11 @@ export class AuthService {
 
     const accessToken = jwt.sign(payload, this.JWT_SECRET, {
       expiresIn: this.JWT_EXPIRES_IN
-    } as jwt.SignOptions);
+    });
 
     const refreshToken = jwt.sign(payload, this.JWT_SECRET, {
       expiresIn: '30d'
-    } as jwt.SignOptions);
+    });
 
     return {
       accessToken,

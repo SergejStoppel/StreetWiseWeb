@@ -1,43 +1,39 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
 import { AuthenticatedRequest } from '../types';
+import prisma from '../utils/database';
 
-const prisma = new PrismaClient();
-
-interface JwtPayload {
+export interface JwtPayload {
   userId: string;
   email: string;
   iat: number;
   exp: number;
 }
 
-/**
- * Middleware to authenticate JWT tokens
- */
-export const authenticate = async (
+export const authenticateToken = async (
   req: AuthenticatedRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      res.status(401).json({ error: 'Access token required' });
+    if (!token) {
+      res.status(401).json({ 
+        error: 'Access token required',
+        message: 'Please provide a valid access token' 
+      });
       return;
     }
 
-    const token = authHeader.substring(7);
-
-    if (!process.env['JWT_SECRET']) {
-      res.status(500).json({ error: 'JWT secret not configured' });
-      return;
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET is not configured');
     }
 
-    const decoded = jwt.verify(token, process.env['JWT_SECRET']) as JwtPayload;
-
-    // Get user from database
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
+    
+    // Verify user exists and is active
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
@@ -50,58 +46,63 @@ export const authenticate = async (
     });
 
     if (!user) {
-      res.status(401).json({ error: 'User not found' });
+      res.status(401).json({ 
+        error: 'Invalid token',
+        message: 'User not found' 
+      });
       return;
     }
 
     if (!user.isActive) {
-      res.status(401).json({ error: 'User account is deactivated' });
+      res.status(401).json({ 
+        error: 'Account deactivated',
+        message: 'Your account has been deactivated' 
+      });
       return;
     }
 
+    // Attach user to request
     req.user = user;
     next();
   } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
-      res.status(401).json({ error: 'Token expired' });
-      return;
-    }
-    
     if (error instanceof jwt.JsonWebTokenError) {
-      res.status(401).json({ error: 'Invalid token' });
+      res.status(401).json({ 
+        error: 'Invalid token',
+        message: 'The provided token is invalid or expired' 
+      });
       return;
     }
 
-    res.status(500).json({ error: 'Authentication failed' });
+    console.error('Authentication error:', error);
+    res.status(500).json({ 
+      error: 'Authentication failed',
+      message: 'Internal server error during authentication' 
+    });
   }
 };
 
-/**
- * Middleware to authenticate optional JWT tokens
- */
-export const authenticateOptional = async (
+export const optionalAuth = async (
   req: AuthenticatedRequest,
-  _res: Response,
+  res: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
+    const token = authHeader && authHeader.split(' ')[1];
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!token) {
+      // No token provided, continue without authentication
       next();
       return;
     }
 
-    const token = authHeader.substring(7);
-
-    if (!process.env['JWT_SECRET']) {
+    if (!process.env.JWT_SECRET) {
       next();
       return;
     }
 
-    const decoded = jwt.verify(token, process.env['JWT_SECRET']) as JwtPayload;
-
-    // Get user from database
+    const decoded = jwt.verify(token, process.env.JWT_SECRET) as JwtPayload;
+    
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
       select: {
@@ -119,7 +120,7 @@ export const authenticateOptional = async (
 
     next();
   } catch (error) {
-    // If token is invalid, continue without user
+    // If token verification fails, continue without authentication
     next();
   }
 };

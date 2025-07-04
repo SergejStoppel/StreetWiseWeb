@@ -77,7 +77,7 @@ export const validateLength = (
   return null;
 };
 
-export const validateRegister = (req: Request, res: Response, next: NextFunction): void => {
+export const validateRegistration = (req: Request, res: Response, next: NextFunction): void => {
   const { email, password, firstName, lastName } = req.body;
   const errors: ValidationError[] = [];
 
