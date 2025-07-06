@@ -12,12 +12,16 @@ import {
   FaImage,
   FaWpforms,
   FaLink,
-  FaHeading
+  FaHeading,
+  FaCrown,
+  FaLock,
+  FaStar
 } from 'react-icons/fa';
 import ScoreCard from '../components/ScoreCard';
 import ViolationsList from '../components/ViolationsList';
 import RecommendationsList from '../components/RecommendationsList';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { accessibilityAPI } from '../services/api';
 
 const ResultsContainer = styled.div`
   max-width: 1200px;
@@ -56,56 +60,116 @@ const HeaderRight = styled.div`
 `;
 
 const BackButton = styled.button`
-  background: #6b7280;
-  color: white;
+  background: var(--color-neutral-500);
+  color: var(--color-neutral-0);
   padding: 0.5rem 1rem;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-md);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: var(--transition-default);
   display: flex;
   align-items: center;
   gap: 0.5rem;
   
   &:hover {
-    background: #4b5563;
+    background: var(--color-neutral-600);
+    transform: translateY(-1px);
   }
 `;
 
 const DownloadButton = styled.button`
-  background: #2563eb;
-  color: white;
+  background: ${props => props.premium ? 
+    'linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%)' :
+    'var(--color-primary-500)'};
+  color: var(--color-neutral-0);
   padding: 0.5rem 1rem;
   border: none;
-  border-radius: 0.375rem;
+  border-radius: var(--radius-md);
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: var(--transition-default);
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  position: relative;
   
   &:hover {
-    background: #1d4ed8;
+    background: ${props => props.premium ? 
+      'linear-gradient(135deg, var(--color-warning-600) 0%, var(--color-warning-700) 100%)' :
+      'var(--color-primary-600)'};
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  &:disabled {
+    background: var(--color-neutral-300);
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+const UpgradeButton = styled.button`
+  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
+  color: var(--color-neutral-0);
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: var(--radius-lg);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-default);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  box-shadow: var(--shadow-lg);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+  }
+  
+  &:disabled {
+    background: var(--color-neutral-300);
+    cursor: not-allowed;
+    transform: none;
   }
 `;
 
 const Title = styled.h1`
   font-size: 2rem;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--color-neutral-800);
   margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   
   @media (max-width: 768px) {
     font-size: 1.5rem;
   }
 `;
 
+const ReportTypeBadge = styled.span`
+  background: ${props => props.type === 'detailed' ? 
+    'linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%)' :
+    'var(--color-primary-100)'};
+  color: ${props => props.type === 'detailed' ? 
+    'var(--color-neutral-0)' : 
+    'var(--color-primary-700)'};
+  padding: 0.25rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+`;
+
 const Subtitle = styled.p`
-  color: #6b7280;
+  color: var(--color-neutral-500);
   font-size: 1rem;
   margin-bottom: 0.5rem;
 `;
@@ -113,13 +177,104 @@ const Subtitle = styled.p`
 const AnalysisInfo = styled.div`
   display: flex;
   gap: 1rem;
-  color: #6b7280;
+  color: var(--color-neutral-500);
   font-size: 0.875rem;
   
   @media (max-width: 768px) {
     flex-direction: column;
     gap: 0.25rem;
   }
+`;
+
+const UpgradePrompt = styled.div`
+  background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-secondary-50) 100%);
+  border: 2px solid var(--color-primary-200);
+  border-radius: var(--radius-xl);
+  padding: 2rem;
+  margin: 2rem 0;
+  text-align: center;
+`;
+
+const UpgradeTitle = styled.h3`
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-neutral-800);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+`;
+
+const UpgradeDescription = styled.p`
+  color: var(--color-neutral-600);
+  font-size: 1rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+`;
+
+const FeatureList = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 1.5rem 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0.75rem;
+`;
+
+const FeatureItem = styled.li`
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-neutral-700);
+  font-size: 0.875rem;
+  
+  svg {
+    color: var(--color-success-500);
+    flex-shrink: 0;
+  }
+`;
+
+const LimitedContentOverlay = styled.div`
+  position: relative;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 100px;
+    background: linear-gradient(transparent, var(--color-neutral-0));
+    pointer-events: none;
+  }
+`;
+
+const LockedSection = styled.div`
+  background: var(--color-neutral-50);
+  border: 2px dashed var(--color-neutral-300);
+  border-radius: var(--radius-lg);
+  padding: 3rem 2rem;
+  text-align: center;
+  margin: 2rem 0;
+`;
+
+const LockIcon = styled.div`
+  font-size: 3rem;
+  color: var(--color-neutral-400);
+  margin-bottom: 1rem;
+`;
+
+const LockedTitle = styled.h3`
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-neutral-700);
+  margin-bottom: 0.5rem;
+`;
+
+const LockedDescription = styled.p`
+  color: var(--color-neutral-500);
+  margin-bottom: 1.5rem;
 `;
 
 const ScoresSection = styled.section`
@@ -209,6 +364,8 @@ const NoResultsText = styled.p`
 const ResultsPage = () => {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [upgradingToDetailed, setUpgradingToDetailed] = useState(false);
+  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -233,17 +390,66 @@ const ResultsPage = () => {
     navigate('/');
   };
 
+  const handleUpgradeToDetailed = async () => {
+    if (!results) return;
+    
+    setUpgradingToDetailed(true);
+    
+    try {
+      toast.info('Loading detailed report...', { autoClose: 2000 });
+      
+      const detailedResult = await accessibilityAPI.getDetailedReport(results.analysisId);
+      
+      if (detailedResult.success) {
+        setResults(detailedResult.data);
+        sessionStorage.setItem('analysisResult', JSON.stringify(detailedResult.data));
+        toast.success('Detailed report loaded successfully!');
+      } else {
+        toast.error('Failed to load detailed report');
+      }
+    } catch (error) {
+      console.error('Upgrade error:', error);
+      toast.error(error.message || 'Failed to load detailed report');
+    } finally {
+      setUpgradingToDetailed(false);
+    }
+  };
+
+  const handleDownloadPDF = async () => {
+    if (!results) return;
+    
+    setDownloadingPDF(true);
+    
+    try {
+      toast.info('Downloading PDF report...', { autoClose: 2000 });
+      
+      await accessibilityAPI.downloadPDF(results.analysisId);
+      toast.success('PDF report downloaded successfully!');
+    } catch (error) {
+      console.error('PDF download error:', error);
+      toast.error(error.message || 'Failed to download PDF report');
+    } finally {
+      setDownloadingPDF(false);
+    }
+  };
+
   const handleDownload = async () => {
     if (!results) return;
     
+    // For detailed reports, offer PDF download
+    if (results.reportType === 'detailed') {
+      return handleDownloadPDF();
+    }
+    
     try {
-      // Create a simple text report
+      // Create a simple text report for overview
       const reportContent = `
-SITECRAFT ACCESSIBILITY ANALYSIS REPORT
+SITECRAFT ACCESSIBILITY ANALYSIS REPORT (OVERVIEW)
 Generated: ${new Date().toLocaleString()}
 
 Website: ${results.url}
 Analysis ID: ${results.analysisId}
+Report Type: ${results.reportType}
 
 SCORES:
 - Overall Score: ${results.scores.overall}/100
@@ -260,6 +466,13 @@ SUMMARY:
 - Form Fields without Labels: ${results.summary.formsWithoutLabels}
 - Empty Links: ${results.summary.emptyLinks}
 
+TOP VIOLATIONS:
+${(results.topViolations || []).map(violation => `
+- ${violation.help} (${violation.impact?.toUpperCase() || 'UNKNOWN'})
+  ${violation.description}
+  Affected Elements: ${violation.nodes}
+`).join('\n')}
+
 RECOMMENDATIONS:
 ${results.recommendations.map(rec => `
 - ${rec.title} (${rec.priority.toUpperCase()})
@@ -267,12 +480,10 @@ ${results.recommendations.map(rec => `
   Action: ${rec.action}
 `).join('\n')}
 
-VIOLATIONS:
-${results.axeResults.violations.map(violation => `
-- ${violation.help} (${violation.impact?.toUpperCase() || 'UNKNOWN'})
-  ${violation.description}
-  Affected Elements: ${violation.nodes.length}
-`).join('\n')}
+${results.upgradeInfo ? `
+UPGRADE TO DETAILED REPORT FOR:
+${results.upgradeInfo.features.map(feature => `- ${feature}`).join('\n')}
+` : ''}
 
 Report generated by SiteCraft - Website Accessibility Analysis Tool
       `;
@@ -281,13 +492,13 @@ Report generated by SiteCraft - Website Accessibility Analysis Tool
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `sitecraft-accessibility-report-${results.analysisId}.txt`;
+      a.download = `sitecraft-accessibility-overview-${results.analysisId}.txt`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
       
-      toast.success('Report downloaded successfully!');
+      toast.success('Overview report downloaded successfully!');
     } catch (error) {
       console.error('Download error:', error);
       toast.error('Failed to download report');
@@ -326,7 +537,18 @@ Report generated by SiteCraft - Website Accessibility Analysis Tool
     <ResultsContainer>
       <Header>
         <HeaderLeft>
-          <Title>Accessibility Analysis Results</Title>
+          <Title>
+            Accessibility Analysis Results
+            <ReportTypeBadge type={results.reportType}>
+              {results.reportType === 'detailed' ? (
+                <>
+                  <FaCrown /> Premium Report
+                </>
+              ) : (
+                'Overview Report'
+              )}
+            </ReportTypeBadge>
+          </Title>
           <Subtitle>{results.url}</Subtitle>
           <AnalysisInfo>
             <span>Analysis ID: {results.analysisId}</span>
@@ -339,10 +561,49 @@ Report generated by SiteCraft - Website Accessibility Analysis Tool
             <FaArrowLeft />
             Back to Home
           </BackButton>
-          <DownloadButton onClick={handleDownload}>
-            <FaDownload />
-            Download Report
-          </DownloadButton>
+          
+          {results.reportType === 'detailed' ? (
+            <DownloadButton 
+              premium 
+              onClick={handleDownload} 
+              disabled={downloadingPDF}
+            >
+              {downloadingPDF ? (
+                <>
+                  <LoadingSpinner size="small" />
+                  Generating PDF...
+                </>
+              ) : (
+                <>
+                  <FaDownload />
+                  Download PDF Report
+                </>
+              )}
+            </DownloadButton>
+          ) : (
+            <>
+              <DownloadButton onClick={handleDownload}>
+                <FaDownload />
+                Download Overview
+              </DownloadButton>
+              <UpgradeButton 
+                onClick={handleUpgradeToDetailed}
+                disabled={upgradingToDetailed}
+              >
+                {upgradingToDetailed ? (
+                  <>
+                    <LoadingSpinner size="small" />
+                    Upgrading...
+                  </>
+                ) : (
+                  <>
+                    <FaCrown />
+                    Get Detailed Report
+                  </>
+                )}
+              </UpgradeButton>
+            </>
+          )}
         </HeaderRight>
       </Header>
 
@@ -427,10 +688,93 @@ Report generated by SiteCraft - Website Accessibility Analysis Tool
         <RecommendationsList recommendations={results.recommendations} />
       </Section>
 
-      <Section>
-        <SectionTitle>Accessibility Violations</SectionTitle>
-        <ViolationsList violations={results.axeResults.violations} />
-      </Section>
+      {results.reportType === 'detailed' ? (
+        // Detailed report shows full violations list
+        results.axeResults && (
+          <Section>
+            <SectionTitle>Accessibility Violations</SectionTitle>
+            <ViolationsList violations={results.axeResults.violations} />
+          </Section>
+        )
+      ) : (
+        // Overview report shows limited violations and upgrade prompt
+        <>
+          {results.topViolations && results.topViolations.length > 0 && (
+            <Section>
+              <SectionTitle>Top Critical & Serious Issues</SectionTitle>
+              <LimitedContentOverlay>
+                <ViolationsList violations={results.topViolations} />
+              </LimitedContentOverlay>
+            </Section>
+          )}
+          
+          {results.upgradeInfo && (
+            <UpgradePrompt>
+              <UpgradeTitle>
+                <FaCrown />
+                Unlock Complete Analysis
+              </UpgradeTitle>
+              <UpgradeDescription>
+                Get the full detailed report with all violations, code examples, 
+                implementation guidance, and a professional PDF export.
+              </UpgradeDescription>
+              
+              <FeatureList>
+                {results.upgradeInfo.features.map((feature, index) => (
+                  <FeatureItem key={index}>
+                    <FaCheckCircle />
+                    {feature}
+                  </FeatureItem>
+                ))}
+              </FeatureList>
+              
+              <UpgradeButton 
+                onClick={handleUpgradeToDetailed}
+                disabled={upgradingToDetailed}
+              >
+                {upgradingToDetailed ? (
+                  <>
+                    <LoadingSpinner size="small" />
+                    Generating Detailed Report...
+                  </>
+                ) : (
+                  <>
+                    <FaStar />
+                    Upgrade to Detailed Report
+                  </>
+                )}
+              </UpgradeButton>
+            </UpgradePrompt>
+          )}
+          
+          <LockedSection>
+            <LockIcon>
+              <FaLock />
+            </LockIcon>
+            <LockedTitle>Additional Features Locked</LockedTitle>
+            <LockedDescription>
+              Detailed analysis, custom checks, performance metrics, and complete 
+              violation breakdown are available in the detailed report.
+            </LockedDescription>
+            <UpgradeButton 
+              onClick={handleUpgradeToDetailed}
+              disabled={upgradingToDetailed}
+            >
+              {upgradingToDetailed ? (
+                <>
+                  <LoadingSpinner size="small" />
+                  Upgrading...
+                </>
+              ) : (
+                <>
+                  <FaCrown />
+                  Get Detailed Report
+                </>
+              )}
+            </UpgradeButton>
+          </LockedSection>
+        </>
+      )}
     </ResultsContainer>
   );
 };

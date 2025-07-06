@@ -53,12 +53,76 @@ api.interceptors.response.use(
 );
 
 export const accessibilityAPI = {
-  analyzeWebsite: async (url) => {
+  analyzeWebsite: async (url, reportType = 'overview') => {
     try {
-      const response = await api.post('/api/accessibility/analyze', { url });
+      const response = await api.post('/api/accessibility/analyze', { url, reportType });
       return response.data;
     } catch (error) {
       throw error;
+    }
+  },
+
+  getDetailedReport: async (analysisId) => {
+    try {
+      const response = await api.get(`/api/accessibility/detailed/${analysisId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  downloadPDF: async (analysisId) => {
+    try {
+      const response = await api.get(`/api/accessibility/pdf/${analysisId}`, {
+        responseType: 'blob'
+      });
+      
+      // Create blob and download link
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `accessibility-report-${analysisId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      return { success: true };
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  generatePDF: async (analysisId, reportData) => {
+    try {
+      // Try the new cached PDF endpoint first
+      return await accessibilityAPI.downloadPDF(analysisId);
+    } catch (error) {
+      // Fallback to legacy endpoint if needed
+      try {
+        const response = await api.post('/api/accessibility/generate-pdf', {
+          analysisId,
+          reportData
+        }, {
+          responseType: 'blob'
+        });
+        
+        // Create blob and download link
+        const blob = new Blob([response.data], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `accessibility-report-${analysisId}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        return { success: true };
+      } catch (legacyError) {
+        throw legacyError;
+      }
     }
   },
 

@@ -37,3 +37,98 @@
 {"analysisId":"9f613edc-6d9a-472b-a114-76ea13d9b61e","analysisTime":4688,"level":"info","message":"Analysis completed successfully","score":47,"service":"sitecraft-backend","timestamp":"2025-07-05T11:50:53.220Z","url":"https://wolftech.no","violations":6}
 {"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T08:16:44.149Z"}
 {"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T08:16:44.156Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T10:21:42.685Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T10:21:42.688Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T10:24:34.591Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T10:24:34.592Z"}
+{"clientIp":"::1","level":"info","message":"Analysis request received","service":"sitecraft-backend","timestamp":"2025-07-06T10:27:15.338Z","url":"https://wolftech.no","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"}
+{"analysisId":"52d4e399-f83c-45cf-a2f3-aaf1c968041c","level":"info","message":"Starting accessibility analysis for https://wolftech.no","reportType":"overview","service":"sitecraft-backend","timestamp":"2025-07-06T10:27:15.339Z"}
+{"analysisId":"52d4e399-f83c-45cf-a2f3-aaf1c968041c","level":"info","message":"Navigating to https://wolftech.no/","service":"sitecraft-backend","timestamp":"2025-07-06T10:27:17.317Z"}
+{"analysisId":"52d4e399-f83c-45cf-a2f3-aaf1c968041c","level":"info","message":"Running axe-core analysis","service":"sitecraft-backend","timestamp":"2025-07-06T10:27:19.890Z"}
+{"analysisId":"52d4e399-f83c-45cf-a2f3-aaf1c968041c","level":"info","message":"Running custom accessibility checks","service":"sitecraft-backend","timestamp":"2025-07-06T10:27:21.885Z"}
+{"analysisId":"52d4e399-f83c-45cf-a2f3-aaf1c968041c","level":"info","message":"Getting performance metrics","service":"sitecraft-backend","timestamp":"2025-07-06T10:27:21.890Z"}
+{"analysisId":"52d4e399-f83c-45cf-a2f3-aaf1c968041c","level":"info","message":"Analysis completed for https://wolftech.no","service":"sitecraft-backend","timestamp":"2025-07-06T10:27:21.896Z"}
+{"analysisId":"52d4e399-f83c-45cf-a2f3-aaf1c968041c","analysisTime":6573,"level":"info","message":"Analysis completed successfully","reportType":"overview","score":47,"service":"sitecraft-backend","timestamp":"2025-07-06T10:27:21.912Z","url":"https://wolftech.no","violations":6}
+{"clientIp":"::1","level":"info","message":"Analysis request received","service":"sitecraft-backend","timestamp":"2025-07-06T10:31:44.513Z","url":"https://wolftech.no","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"}
+{"analysisId":"26867fc8-1463-49a6-8ede-13a9d4029e99","level":"info","message":"Starting accessibility analysis for https://wolftech.no","reportType":"detailed","service":"sitecraft-backend","timestamp":"2025-07-06T10:31:44.514Z"}
+{"analysisId":"26867fc8-1463-49a6-8ede-13a9d4029e99","level":"info","message":"Navigating to https://wolftech.no/","service":"sitecraft-backend","timestamp":"2025-07-06T10:31:44.557Z"}
+{"analysisId":"26867fc8-1463-49a6-8ede-13a9d4029e99","level":"info","message":"Running axe-core analysis","service":"sitecraft-backend","timestamp":"2025-07-06T10:31:47.276Z"}
+{"analysisId":"26867fc8-1463-49a6-8ede-13a9d4029e99","level":"info","message":"Running custom accessibility checks","service":"sitecraft-backend","timestamp":"2025-07-06T10:31:50.255Z"}
+{"analysisId":"26867fc8-1463-49a6-8ede-13a9d4029e99","level":"info","message":"Getting performance metrics","service":"sitecraft-backend","timestamp":"2025-07-06T10:31:50.260Z"}
+{"analysisId":"26867fc8-1463-49a6-8ede-13a9d4029e99","level":"info","message":"Analysis completed for https://wolftech.no","service":"sitecraft-backend","timestamp":"2025-07-06T10:31:50.264Z"}
+{"analysisId":"26867fc8-1463-49a6-8ede-13a9d4029e99","analysisTime":5761,"level":"info","message":"Analysis completed successfully","reportType":"detailed","score":47,"service":"sitecraft-backend","timestamp":"2025-07-06T10:31:50.275Z","url":"https://wolftech.no","violations":6}
+{"analysisId":"26867fc8-1463-49a6-8ede-13a9d4029e99","level":"info","message":"PDF generation request received","service":"sitecraft-backend","timestamp":"2025-07-06T10:31:54.815Z"}
+{"analysisId":"26867fc8-1463-49a6-8ede-13a9d4029e99","level":"info","message":"Starting PDF generation","service":"sitecraft-backend","timestamp":"2025-07-06T10:31:54.816Z"}
+{"analysisId":"26867fc8-1463-49a6-8ede-13a9d4029e99","error":"switchToPage(0) out of bounds, current buffer covers pages 6 to 6","level":"error","message":"PDF generation failed:","service":"sitecraft-backend","timestamp":"2025-07-06T10:31:54.988Z"}
+{"error":"Failed to generate PDF report: switchToPage(0) out of bounds, current buffer covers pages 6 to 6","level":"error","message":"PDF generation failed:","service":"sitecraft-backend","timestamp":"2025-07-06T10:31:54.991Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T10:50:22.687Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T10:50:22.689Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T10:50:33.980Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T10:50:33.985Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T10:50:50.362Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T10:50:50.364Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T10:51:38.286Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T10:51:38.290Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T10:52:09.437Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T10:52:09.443Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T10:52:24.777Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T10:52:24.779Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T10:54:26.656Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T10:54:26.658Z"}
+{"clientIp":"::1","level":"info","message":"Analysis request received","service":"sitecraft-backend","timestamp":"2025-07-06T11:35:25.246Z","url":"https://wolftech.no","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"Starting accessibility analysis for https://wolftech.no","reportType":"overview","service":"sitecraft-backend","timestamp":"2025-07-06T11:35:25.247Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"Navigating to https://wolftech.no/","service":"sitecraft-backend","timestamp":"2025-07-06T11:35:25.524Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"Running axe-core analysis","service":"sitecraft-backend","timestamp":"2025-07-06T11:35:27.797Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"Running custom accessibility checks","service":"sitecraft-backend","timestamp":"2025-07-06T11:35:29.085Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"Getting performance metrics","service":"sitecraft-backend","timestamp":"2025-07-06T11:35:29.096Z"}
+{"level":"info","message":"Starting background PDF generation for c80c2968-732a-4908-974c-a7f2705e01ea","service":"sitecraft-backend","timestamp":"2025-07-06T11:35:29.105Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"Starting PDF generation","service":"sitecraft-backend","timestamp":"2025-07-06T11:35:29.106Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","error":"switchToPage(0) out of bounds, current buffer covers pages 6 to 6","level":"error","message":"PDF generation failed:","service":"sitecraft-backend","timestamp":"2025-07-06T11:35:29.293Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"Analysis completed for https://wolftech.no","reportType":"overview","score":47,"service":"sitecraft-backend","timestamp":"2025-07-06T11:35:29.296Z"}
+{"level":"error","message":"PDF generation failed for c80c2968-732a-4908-974c-a7f2705e01ea: Failed to generate PDF report: switchToPage(0) out of bounds, current buffer covers pages 6 to 6","service":"sitecraft-backend","stack":"Error: Failed to generate PDF report: switchToPage(0) out of bounds, current buffer covers pages 6 to 6\n    at PDFGenerator.generateAccessibilityReport (C:\\Sergej\\Code\\SiteCraft\\backend\\services\\pdfGenerator.js:61:13)\n    at AccessibilityAnalyzer.generateAndCachePDF (C:\\Sergej\\Code\\SiteCraft\\backend\\services\\accessibilityAnalyzer.js:528:44)\n    at AccessibilityAnalyzer.analyzeWebsite (C:\\Sergej\\Code\\SiteCraft\\backend\\services\\accessibilityAnalyzer.js:154:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async C:\\Sergej\\Code\\SiteCraft\\backend\\routes\\accessibility.js:67:22","timestamp":"2025-07-06T11:35:29.298Z"}
+{"level":"error","message":"PDF generation failed for c80c2968-732a-4908-974c-a7f2705e01ea: Failed to generate PDF report: switchToPage(0) out of bounds, current buffer covers pages 6 to 6","service":"sitecraft-backend","stack":"Error: Failed to generate PDF report: switchToPage(0) out of bounds, current buffer covers pages 6 to 6\n    at PDFGenerator.generateAccessibilityReport (C:\\Sergej\\Code\\SiteCraft\\backend\\services\\pdfGenerator.js:61:13)\n    at AccessibilityAnalyzer.generateAndCachePDF (C:\\Sergej\\Code\\SiteCraft\\backend\\services\\accessibilityAnalyzer.js:528:44)\n    at AccessibilityAnalyzer.analyzeWebsite (C:\\Sergej\\Code\\SiteCraft\\backend\\services\\accessibilityAnalyzer.js:154:12)\n    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)\n    at async C:\\Sergej\\Code\\SiteCraft\\backend\\routes\\accessibility.js:67:22","timestamp":"2025-07-06T11:35:29.300Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","analysisTime":4063,"level":"info","message":"Analysis completed successfully","reportType":"overview","score":47,"service":"sitecraft-backend","timestamp":"2025-07-06T11:35:29.309Z","url":"https://wolftech.no","violations":6}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"Detailed report request received","service":"sitecraft-backend","timestamp":"2025-07-06T11:36:09.527Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"Detailed report sent successfully","service":"sitecraft-backend","timestamp":"2025-07-06T11:36:09.535Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"PDF download request received","service":"sitecraft-backend","timestamp":"2025-07-06T11:36:10.973Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"Generating PDF on demand","service":"sitecraft-backend","timestamp":"2025-07-06T11:36:10.974Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"Starting PDF generation","service":"sitecraft-backend","timestamp":"2025-07-06T11:36:10.975Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","error":"switchToPage(0) out of bounds, current buffer covers pages 6 to 6","level":"error","message":"PDF generation failed:","service":"sitecraft-backend","timestamp":"2025-07-06T11:36:11.004Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","error":"Failed to generate PDF report: switchToPage(0) out of bounds, current buffer covers pages 6 to 6","level":"error","message":"PDF download failed:","service":"sitecraft-backend","timestamp":"2025-07-06T11:36:11.005Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T11:37:31.253Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T11:37:31.255Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T11:37:47.987Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T11:37:47.989Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T11:38:02.607Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T11:38:02.610Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T11:38:14.712Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T11:38:14.714Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T11:38:25.903Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T11:38:25.905Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T11:38:37.421Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T11:38:37.423Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T11:38:48.758Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T11:38:48.760Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T11:39:05.087Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T11:39:05.089Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T11:39:45.151Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T11:39:45.153Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T11:40:02.738Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T11:40:02.740Z"}
+{"analysisId":"c80c2968-732a-4908-974c-a7f2705e01ea","level":"info","message":"PDF download request received","service":"sitecraft-backend","timestamp":"2025-07-06T11:42:55.481Z"}
+{"clientIp":"::1","level":"info","message":"Analysis request received","service":"sitecraft-backend","timestamp":"2025-07-06T11:43:03.832Z","url":"https://wolftech.no","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","level":"info","message":"Starting accessibility analysis for https://wolftech.no","reportType":"overview","service":"sitecraft-backend","timestamp":"2025-07-06T11:43:03.833Z"}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","level":"info","message":"Navigating to https://wolftech.no/","service":"sitecraft-backend","timestamp":"2025-07-06T11:43:04.167Z"}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","level":"info","message":"Running axe-core analysis","service":"sitecraft-backend","timestamp":"2025-07-06T11:43:06.441Z"}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","level":"info","message":"Running custom accessibility checks","service":"sitecraft-backend","timestamp":"2025-07-06T11:43:07.870Z"}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","level":"info","message":"Getting performance metrics","service":"sitecraft-backend","timestamp":"2025-07-06T11:43:07.877Z"}
+{"level":"info","message":"Starting background PDF generation for 63e00f21-944f-4dc8-9cba-4da8ea585661","service":"sitecraft-backend","timestamp":"2025-07-06T11:43:07.885Z"}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","level":"info","message":"Starting PDF generation","service":"sitecraft-backend","timestamp":"2025-07-06T11:43:07.886Z"}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","level":"info","message":"Analysis completed for https://wolftech.no","reportType":"overview","score":47,"service":"sitecraft-backend","timestamp":"2025-07-06T11:43:08.089Z"}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","level":"info","message":"PDF generation completed","service":"sitecraft-backend","timestamp":"2025-07-06T11:43:08.093Z"}
+{"level":"info","message":"PDF cached successfully for 63e00f21-944f-4dc8-9cba-4da8ea585661","service":"sitecraft-backend","size":10012,"timestamp":"2025-07-06T11:43:08.095Z"}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","analysisTime":4276,"level":"info","message":"Analysis completed successfully","reportType":"overview","score":47,"service":"sitecraft-backend","timestamp":"2025-07-06T11:43:08.108Z","url":"https://wolftech.no","violations":6}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","level":"info","message":"Detailed report request received","service":"sitecraft-backend","timestamp":"2025-07-06T11:43:12.180Z"}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","level":"info","message":"Detailed report sent successfully","service":"sitecraft-backend","timestamp":"2025-07-06T11:43:12.186Z"}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","level":"info","message":"PDF download request received","service":"sitecraft-backend","timestamp":"2025-07-06T11:43:13.843Z"}
+{"analysisId":"63e00f21-944f-4dc8-9cba-4da8ea585661","level":"info","message":"Cached PDF sent successfully","service":"sitecraft-backend","size":10012,"timestamp":"2025-07-06T11:43:13.844Z"}
