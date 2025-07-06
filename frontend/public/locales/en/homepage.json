@@ -1,0 +1,38 @@
+{
+  "hero": {
+    "title": "Professional Website Accessibility Analysis",
+    "subtitle": "Get instant insights into your website's accessibility compliance with our AI-powered analysis. Identify issues, improve user experience, and ensure legal compliance.",
+    "formTitle": "Analyze Your Website",
+    "exampleText": "Enter any website (e.g., example.com) • Free overview report • Detailed reports available for purchase"
+  },
+  "features": {
+    "wcagCompliance": {
+      "title": "WCAG Compliance",
+      "description": "Comprehensive analysis using industry-standard Axe-core engine to identify accessibility violations and ensure WCAG 2.1 AA compliance."
+    },
+    "smartScoring": {
+      "title": "Smart Scoring",
+      "description": "Get clear accessibility scores with impact assessment. Understand which issues to prioritize for maximum improvement in user experience."
+    },
+    "professionalReports": {
+      "title": "Professional Reports",
+      "description": "Receive detailed PDF reports with specific recommendations, code examples, and implementation guidance for your development team."
+    }
+  },
+  "whyAccessibility": {
+    "title": "Why Accessibility Matters",
+    "subtitle": "Web accessibility isn't just about compliance—it's about creating inclusive experiences for all users while protecting your business from legal risks.",
+    "stats": {
+      "peopleWithDisabilities": "People with disabilities worldwide",
+      "spendingPower": "Annual spending power",
+      "lawsuitIncrease": "Increase in accessibility lawsuits",
+      "globalDisability": "Of global population has a disability"
+    }
+  },
+  "testimonials": {
+    "title": "Trusted by Businesses",
+    "quote": "SiteCraft's accessibility analysis helped us identify and fix critical issues we didn't even know existed. The detailed report saved our development team weeks of work and helped us avoid potential legal complications.",
+    "author": "Sarah Chen",
+    "role": "CTO, TechStart Inc."
+  }
+}

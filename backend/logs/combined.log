@@ -346,3 +346,7 @@
 {"analysisId":"39440c9b-1fdc-4ff6-bca6-5f29ac6ccaa5","level":"info","message":"Detailed report sent successfully","service":"sitecraft-backend","timestamp":"2025-07-06T13:01:31.109Z"}
 {"analysisId":"39440c9b-1fdc-4ff6-bca6-5f29ac6ccaa5","level":"info","message":"PDF download request received","service":"sitecraft-backend","timestamp":"2025-07-06T13:01:31.513Z"}
 {"analysisId":"39440c9b-1fdc-4ff6-bca6-5f29ac6ccaa5","level":"info","message":"Cached PDF sent successfully","service":"sitecraft-backend","size":25169,"timestamp":"2025-07-06T13:01:31.514Z"}
+{"level":"info","message":"Cleaned up expired PDF cache for 39440c9b-1fdc-4ff6-bca6-5f29ac6ccaa5","service":"sitecraft-backend","timestamp":"2025-07-06T14:21:58.933Z"}
+{"level":"info","message":"Using new modular PDF generator system","service":"sitecraft-backend","timestamp":"2025-07-06T15:41:01.776Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T15:41:01.784Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T15:41:01.784Z"}

@@ -1,0 +1,41 @@
+{
+  "placeholder": {
+    "websiteUrl": "yourwebsite.com",
+    "email": "Enter your email",
+    "name": "Enter your name",
+    "message": "Enter your message"
+  },
+  "labels": {
+    "websiteUrl": "Website URL",
+    "email": "Email Address",
+    "name": "Full Name",
+    "message": "Message",
+    "optional": "Optional"
+  },
+  "buttons": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "analyze": "Start Analysis",
+    "analyzing": "Analyzing...",
+    "download": "Download",
+    "share": "Share",
+    "copy": "Copy",
+    "reset": "Reset"
+  },
+  "validation": {
+    "required": "This field is required",
+    "invalidUrl": "Please enter a valid website URL (e.g., example.com or https://example.com)",
+    "invalidEmail": "Please enter a valid email address",
+    "minLength": "Must be at least {{count}} characters",
+    "maxLength": "Must be no more than {{count}} characters"
+  },
+  "messages": {
+    "enterUrl": "Please enter a website URL",
+    "analysisStarted": "Starting accessibility analysis...",
+    "analysisComplete": "Analysis completed successfully!",
+    "analysisFailed": "Analysis failed. Please try again.",
+    "error": "Failed to analyze website. Please try again.",
+    "success": "Operation completed successfully"
+  }
+}

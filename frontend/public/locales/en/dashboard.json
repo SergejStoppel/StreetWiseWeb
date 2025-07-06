@@ -1,0 +1,19 @@
+{
+  "title": "Dashboard",
+  "subtitle": "Accessibility Analytics Overview",
+  "welcome": "Welcome back",
+  "recentAnalyses": "Recent Analyses",
+  "totalAnalyses": "Total Analyses",
+  "averageScore": "Average Score",
+  "criticalIssues": "Critical Issues",
+  "improvementTrend": "Improvement Trend",
+  "quickActions": "Quick Actions",
+  "newAnalysis": "New Analysis",
+  "viewReports": "View Reports",
+  "manageProjects": "Manage Projects",
+  "accountSettings": "Account Settings",
+  "usage": "Usage",
+  "plan": "Plan",
+  "upgrade": "Upgrade",
+  "support": "Support"
+}

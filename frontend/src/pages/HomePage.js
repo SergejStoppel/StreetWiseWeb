@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import styled from 'styled-components';
-import { FaSearch, FaAccessibleIcon, FaChartLine, FaFileAlt, FaRocket, FaShieldAlt, FaUsers, FaCheckCircle, FaStar } from 'react-icons/fa';
+import { FaAccessibleIcon, FaChartLine, FaFileAlt, FaRocket, FaStar } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
 import { accessibilityAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 
@@ -338,19 +339,20 @@ const HomePage = () => {
   const [url, setUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation(['homepage', 'forms']);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (!url.trim()) {
-      toast.error('Please enter a website URL');
+      toast.error(t('forms:messages.enterUrl'));
       return;
     }
 
     // Basic URL validation - allow domains without protocol
-    const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/i;
+    const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
     if (!urlPattern.test(url.trim())) {
-      toast.error('Please enter a valid website URL (e.g., example.com or https://example.com)');
+      toast.error(t('forms:validation.invalidUrl'));
       return;
     }
 
@@ -363,14 +365,14 @@ const HomePage = () => {
     setIsAnalyzing(true);
     
     try {
-      toast.info('Starting accessibility analysis...', {
+      toast.info(t('forms:messages.analysisStarted'), {
         autoClose: 2000,
       });
       
       const result = await accessibilityAPI.analyzeWebsite(fullUrl);
       
       if (result.success) {
-        toast.success('Analysis completed successfully!');
+        toast.success(t('forms:messages.analysisComplete'));
         
         // Store results in sessionStorage for the results page
         sessionStorage.setItem('analysisResult', JSON.stringify(result.data));
@@ -378,11 +380,11 @@ const HomePage = () => {
         // Navigate to results page
         navigate('/results');
       } else {
-        toast.error('Analysis failed. Please try again.');
+        toast.error(t('forms:messages.analysisFailed'));
       }
     } catch (error) {
       console.error('Analysis error:', error);
-      toast.error(error.message || 'Failed to analyze website. Please try again.');
+      toast.error(error.message || t('forms:messages.error'));
     } finally {
       setIsAnalyzing(false);
     }
@@ -393,19 +395,18 @@ const HomePage = () => {
       <HomeContainer>
         <HeroSection>
           <HeroTitle>
-            Professional Website Accessibility Analysis
+            {t('homepage:hero.title')}
           </HeroTitle>
           <HeroSubtitle>
-            Get instant insights into your website's accessibility compliance with our AI-powered analysis. 
-            Identify issues, improve user experience, and ensure legal compliance.
+            {t('homepage:hero.subtitle')}
           </HeroSubtitle>
           
           <AnalysisForm onSubmit={handleSubmit}>
-            <FormTitle>Analyze Your Website</FormTitle>
+            <FormTitle>{t('homepage:hero.formTitle')}</FormTitle>
             <InputGroup>
               <URLInput
                 type="text"
-                placeholder="yourwebsite.com"
+                placeholder={t('forms:placeholder.websiteUrl')}
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 disabled={isAnalyzing}
@@ -415,18 +416,18 @@ const HomePage = () => {
                 {isAnalyzing ? (
                   <>
                     <LoadingSpinner size="small" />
-                    Analyzing...
+                    {t('forms:buttons.analyzing')}
                   </>
                 ) : (
                   <>
                     <FaRocket aria-hidden="true" />
-                    Start Analysis
+                    {t('forms:buttons.analyze')}
                   </>
                 )}
               </AnalyzeButton>
             </InputGroup>
             <ExampleText>
-              Enter any website (e.g., example.com) • Free overview report • Detailed reports available for purchase
+              {t('homepage:hero.exampleText')}
             </ExampleText>
           </AnalysisForm>
 
@@ -435,10 +436,9 @@ const HomePage = () => {
               <FeatureIcon>
                 <FaAccessibleIcon aria-hidden="true" />
               </FeatureIcon>
-              <FeatureTitle>WCAG Compliance</FeatureTitle>
+              <FeatureTitle>{t('homepage:features.wcagCompliance.title')}</FeatureTitle>
               <FeatureDescription>
-                Comprehensive analysis using industry-standard Axe-core engine to identify 
-                accessibility violations and ensure WCAG 2.1 AA compliance.
+                {t('homepage:features.wcagCompliance.description')}
               </FeatureDescription>
             </FeatureCard>
             
@@ -446,10 +446,9 @@ const HomePage = () => {
               <FeatureIcon>
                 <FaChartLine aria-hidden="true" />
               </FeatureIcon>
-              <FeatureTitle>Smart Scoring</FeatureTitle>
+              <FeatureTitle>{t('homepage:features.smartScoring.title')}</FeatureTitle>
               <FeatureDescription>
-                Get clear accessibility scores with impact assessment. Understand which 
-                issues to prioritize for maximum improvement in user experience.
+                {t('homepage:features.smartScoring.description')}
               </FeatureDescription>
             </FeatureCard>
             
@@ -457,10 +456,9 @@ const HomePage = () => {
               <FeatureIcon>
                 <FaFileAlt aria-hidden="true" />
               </FeatureIcon>
-              <FeatureTitle>Professional Reports</FeatureTitle>
+              <FeatureTitle>{t('homepage:features.professionalReports.title')}</FeatureTitle>
               <FeatureDescription>
-                Receive detailed PDF reports with specific recommendations, code examples, 
-                and implementation guidance for your development team.
+                {t('homepage:features.professionalReports.description')}
               </FeatureDescription>
             </FeatureCard>
           </FeaturesSection>
@@ -469,28 +467,27 @@ const HomePage = () => {
 
       <ContentSection>
         <ContentContainer>
-          <SectionTitle>Why Accessibility Matters</SectionTitle>
+          <SectionTitle>{t('homepage:whyAccessibility.title')}</SectionTitle>
           <SectionSubtitle>
-            Web accessibility isn't just about compliance—it's about creating inclusive experiences 
-            for all users while protecting your business from legal risks.
+            {t('homepage:whyAccessibility.subtitle')}
           </SectionSubtitle>
           
           <StatsGrid>
             <StatCard>
               <StatNumber>1.3B</StatNumber>
-              <StatLabel>People with disabilities worldwide</StatLabel>
+              <StatLabel>{t('homepage:whyAccessibility.stats.peopleWithDisabilities')}</StatLabel>
             </StatCard>
             <StatCard>
               <StatNumber>$75B</StatNumber>
-              <StatLabel>Annual spending power</StatLabel>
+              <StatLabel>{t('homepage:whyAccessibility.stats.spendingPower')}</StatLabel>
             </StatCard>
             <StatCard>
               <StatNumber>400%</StatNumber>
-              <StatLabel>Increase in accessibility lawsuits</StatLabel>
+              <StatLabel>{t('homepage:whyAccessibility.stats.lawsuitIncrease')}</StatLabel>
             </StatCard>
             <StatCard>
               <StatNumber>15%</StatNumber>
-              <StatLabel>Of global population has a disability</StatLabel>
+              <StatLabel>{t('homepage:whyAccessibility.stats.globalDisability')}</StatLabel>
             </StatCard>
           </StatsGrid>
         </ContentContainer>
@@ -498,7 +495,7 @@ const HomePage = () => {
 
       <TestimonialSection>
         <ContentContainer>
-          <SectionTitle>Trusted by Businesses</SectionTitle>
+          <SectionTitle>{t('homepage:testimonials.title')}</SectionTitle>
           <TestimonialCard>
             <StarRating>
               <FaStar />
@@ -508,12 +505,10 @@ const HomePage = () => {
               <FaStar />
             </StarRating>
             <TestimonialText>
-              "SiteCraft's accessibility analysis helped us identify and fix critical issues 
-              we didn't even know existed. The detailed report saved our development team weeks 
-              of work and helped us avoid potential legal complications."
+              "{t('homepage:testimonials.quote')}"
             </TestimonialText>
-            <TestimonialAuthor>Sarah Chen</TestimonialAuthor>
-            <TestimonialRole>CTO, TechStart Inc.</TestimonialRole>
+            <TestimonialAuthor>{t('homepage:testimonials.author')}</TestimonialAuthor>
+            <TestimonialRole>{t('homepage:testimonials.role')}</TestimonialRole>
           </TestimonialCard>
         </ContentContainer>
       </TestimonialSection>

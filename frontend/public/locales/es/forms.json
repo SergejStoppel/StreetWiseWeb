@@ -1,0 +1,41 @@
+{
+  "placeholder": {
+    "websiteUrl": "suwebsite.com",
+    "email": "Ingrese su correo electrónico",
+    "name": "Ingrese su nombre",
+    "message": "Ingrese su mensaje"
+  },
+  "labels": {
+    "websiteUrl": "URL del Sitio Web",
+    "email": "Dirección de Correo Electrónico",
+    "name": "Nombre Completo",
+    "message": "Mensaje",
+    "optional": "Opcional"
+  },
+  "buttons": {
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "analyze": "Iniciar Análisis",
+    "analyzing": "Analizando...",
+    "download": "Descargar",
+    "share": "Compartir",
+    "copy": "Copiar",
+    "reset": "Restablecer"
+  },
+  "validation": {
+    "required": "Este campo es obligatorio",
+    "invalidUrl": "Por favor ingrese una URL válida (ej., ejemplo.com o https://ejemplo.com)",
+    "invalidEmail": "Por favor ingrese una dirección de correo electrónico válida",
+    "minLength": "Debe tener al menos {{count}} caracteres",
+    "maxLength": "No debe tener más de {{count}} caracteres"
+  },
+  "messages": {
+    "enterUrl": "Por favor ingrese una URL del sitio web",
+    "analysisStarted": "Iniciando análisis de accesibilidad...",
+    "analysisComplete": "¡Análisis completado exitosamente!",
+    "analysisFailed": "El análisis falló. Por favor intente de nuevo.",
+    "error": "Error al analizar el sitio web. Por favor intente de nuevo.",
+    "success": "Operación completada exitosamente"
+  }
+}

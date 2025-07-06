@@ -1,0 +1,19 @@
+{
+  "title": "Panel de Control",
+  "subtitle": "Resumen de Análisis de Accesibilidad",
+  "welcome": "Bienvenido de nuevo",
+  "recentAnalyses": "Análisis Recientes",
+  "totalAnalyses": "Análisis Totales",
+  "averageScore": "Puntuación Promedio",
+  "criticalIssues": "Problemas Críticos",
+  "improvementTrend": "Tendencia de Mejora",
+  "quickActions": "Acciones Rápidas",
+  "newAnalysis": "Nuevo Análisis",
+  "viewReports": "Ver Informes",
+  "manageProjects": "Gestionar Proyectos",
+  "accountSettings": "Configuración de Cuenta",
+  "usage": "Uso",
+  "plan": "Plan",
+  "upgrade": "Actualizar",
+  "support": "Soporte"
+}

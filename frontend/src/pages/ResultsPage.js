@@ -12,7 +12,6 @@ import {
   FaImage,
   FaWpforms,
   FaLink,
-  FaHeading,
   FaCrown,
   FaLock,
   FaStar
@@ -235,20 +234,6 @@ const FeatureItem = styled.li`
   }
 `;
 
-const LimitedContentOverlay = styled.div`
-  position: relative;
-  
-  &::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 100px;
-    background: linear-gradient(transparent, var(--color-neutral-0));
-    pointer-events: none;
-  }
-`;
 
 const LockedSection = styled.div`
   background: var(--color-neutral-50);
