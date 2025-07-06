@@ -136,15 +136,6 @@ const Description = styled.p`
   margin-bottom: 1rem;
 `;
 
-const HelpLink = styled.a`
-  color: #2563eb;
-  text-decoration: underline;
-  font-size: 0.875rem;
-  
-  &:hover {
-    color: #1d4ed8;
-  }
-`;
 
 const NodesSection = styled.div`
   margin-top: 1rem;
@@ -254,15 +245,6 @@ const ViolationsList = ({ violations }) => {
               <ViolationDetails>
                 <Description>{violation.description}</Description>
                 
-                {violation.helpUrl && (
-                  <HelpLink 
-                    href={violation.helpUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                  >
-                    Learn more about this issue
-                  </HelpLink>
-                )}
                 
                 {violation.nodes && violation.nodes.length > 0 && (
                   <NodesSection>

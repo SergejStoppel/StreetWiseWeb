@@ -1,6 +1,130 @@
 import { createGlobalStyle } from 'styled-components';
+import { theme } from './theme';
 
 const GlobalStyles = createGlobalStyle`
+  :root {
+    /* Color Variables */
+    --color-primary-50: ${theme.colors.primary[50]};
+    --color-primary-100: ${theme.colors.primary[100]};
+    --color-primary-200: ${theme.colors.primary[200]};
+    --color-primary-300: ${theme.colors.primary[300]};
+    --color-primary-400: ${theme.colors.primary[400]};
+    --color-primary-500: ${theme.colors.primary[500]};
+    --color-primary-600: ${theme.colors.primary[600]};
+    --color-primary-700: ${theme.colors.primary[700]};
+    --color-primary-800: ${theme.colors.primary[800]};
+    --color-primary-900: ${theme.colors.primary[900]};
+    
+    --color-secondary-50: ${theme.colors.secondary[50]};
+    --color-secondary-100: ${theme.colors.secondary[100]};
+    --color-secondary-200: ${theme.colors.secondary[200]};
+    --color-secondary-300: ${theme.colors.secondary[300]};
+    --color-secondary-400: ${theme.colors.secondary[400]};
+    --color-secondary-500: ${theme.colors.secondary[500]};
+    --color-secondary-600: ${theme.colors.secondary[600]};
+    --color-secondary-700: ${theme.colors.secondary[700]};
+    --color-secondary-800: ${theme.colors.secondary[800]};
+    --color-secondary-900: ${theme.colors.secondary[900]};
+    
+    --color-neutral-0: ${theme.colors.neutral[0]};
+    --color-neutral-50: ${theme.colors.neutral[50]};
+    --color-neutral-100: ${theme.colors.neutral[100]};
+    --color-neutral-200: ${theme.colors.neutral[200]};
+    --color-neutral-300: ${theme.colors.neutral[300]};
+    --color-neutral-400: ${theme.colors.neutral[400]};
+    --color-neutral-500: ${theme.colors.neutral[500]};
+    --color-neutral-600: ${theme.colors.neutral[600]};
+    --color-neutral-700: ${theme.colors.neutral[700]};
+    --color-neutral-800: ${theme.colors.neutral[800]};
+    --color-neutral-900: ${theme.colors.neutral[900]};
+    
+    --color-success-50: ${theme.colors.success[50]};
+    --color-success-100: ${theme.colors.success[100]};
+    --color-success-200: ${theme.colors.success[200]};
+    --color-success-300: ${theme.colors.success[300]};
+    --color-success-400: ${theme.colors.success[400]};
+    --color-success-500: ${theme.colors.success[500]};
+    --color-success-600: ${theme.colors.success[600]};
+    --color-success-700: ${theme.colors.success[700]};
+    --color-success-800: ${theme.colors.success[800]};
+    --color-success-900: ${theme.colors.success[900]};
+    
+    --color-warning-50: ${theme.colors.warning[50]};
+    --color-warning-100: ${theme.colors.warning[100]};
+    --color-warning-200: ${theme.colors.warning[200]};
+    --color-warning-300: ${theme.colors.warning[300]};
+    --color-warning-400: ${theme.colors.warning[400]};
+    --color-warning-500: ${theme.colors.warning[500]};
+    --color-warning-600: ${theme.colors.warning[600]};
+    --color-warning-700: ${theme.colors.warning[700]};
+    --color-warning-800: ${theme.colors.warning[800]};
+    --color-warning-900: ${theme.colors.warning[900]};
+    
+    --color-error-50: ${theme.colors.error[50]};
+    --color-error-100: ${theme.colors.error[100]};
+    --color-error-200: ${theme.colors.error[200]};
+    --color-error-300: ${theme.colors.error[300]};
+    --color-error-400: ${theme.colors.error[400]};
+    --color-error-500: ${theme.colors.error[500]};
+    --color-error-600: ${theme.colors.error[600]};
+    --color-error-700: ${theme.colors.error[700]};
+    --color-error-800: ${theme.colors.error[800]};
+    --color-error-900: ${theme.colors.error[900]};
+    
+    --color-info-50: ${theme.colors.info[50]};
+    --color-info-100: ${theme.colors.info[100]};
+    --color-info-200: ${theme.colors.info[200]};
+    --color-info-300: ${theme.colors.info[300]};
+    --color-info-400: ${theme.colors.info[400]};
+    --color-info-500: ${theme.colors.info[500]};
+    --color-info-600: ${theme.colors.info[600]};
+    --color-info-700: ${theme.colors.info[700]};
+    --color-info-800: ${theme.colors.info[800]};
+    --color-info-900: ${theme.colors.info[900]};
+    
+    /* Typography */
+    --font-primary: ${theme.fonts.primary};
+    --font-mono: ${theme.fonts.mono};
+    
+    /* Spacing */
+    --spacing-1: ${theme.spacing[1]};
+    --spacing-2: ${theme.spacing[2]};
+    --spacing-3: ${theme.spacing[3]};
+    --spacing-4: ${theme.spacing[4]};
+    --spacing-5: ${theme.spacing[5]};
+    --spacing-6: ${theme.spacing[6]};
+    --spacing-8: ${theme.spacing[8]};
+    --spacing-10: ${theme.spacing[10]};
+    --spacing-12: ${theme.spacing[12]};
+    --spacing-16: ${theme.spacing[16]};
+    --spacing-20: ${theme.spacing[20]};
+    --spacing-24: ${theme.spacing[24]};
+    --spacing-32: ${theme.spacing[32]};
+    
+    /* Border Radius */
+    --radius-sm: ${theme.borderRadius.sm};
+    --radius-base: ${theme.borderRadius.base};
+    --radius-md: ${theme.borderRadius.md};
+    --radius-lg: ${theme.borderRadius.lg};
+    --radius-xl: ${theme.borderRadius.xl};
+    --radius-2xl: ${theme.borderRadius['2xl']};
+    --radius-3xl: ${theme.borderRadius['3xl']};
+    --radius-full: ${theme.borderRadius.full};
+    
+    /* Shadows */
+    --shadow-sm: ${theme.shadows.sm};
+    --shadow-base: ${theme.shadows.base};
+    --shadow-md: ${theme.shadows.md};
+    --shadow-lg: ${theme.shadows.lg};
+    --shadow-xl: ${theme.shadows.xl};
+    --shadow-2xl: ${theme.shadows['2xl']};
+    
+    /* Transitions */
+    --transition-default: ${theme.transitions.default};
+    --transition-fast: ${theme.transitions.fast};
+    --transition-slow: ${theme.transitions.slow};
+  }
+
   * {
     margin: 0;
     padding: 0;
@@ -13,14 +137,12 @@ const GlobalStyles = createGlobalStyle`
   }
 
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-      sans-serif;
+    font-family: var(--font-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    line-height: 1.6;
-    color: #1a202c;
-    background-color: #f8fafc;
+    line-height: ${theme.lineHeights.normal};
+    color: var(--color-neutral-800);
+    background-color: var(--color-neutral-50);
   }
 
   code {
@@ -122,29 +244,38 @@ const GlobalStyles = createGlobalStyle`
   .text-4xl { font-size: 2.25rem; }
   .text-5xl { font-size: 3rem; }
 
-  .text-gray-500 { color: #6b7280; }
-  .text-gray-600 { color: #4b5563; }
-  .text-gray-700 { color: #374151; }
-  .text-gray-800 { color: #1f2937; }
-  .text-gray-900 { color: #111827; }
+  .text-neutral-400 { color: var(--color-neutral-400); }
+  .text-neutral-500 { color: var(--color-neutral-500); }
+  .text-neutral-600 { color: var(--color-neutral-600); }
+  .text-neutral-700 { color: var(--color-neutral-700); }
+  .text-neutral-800 { color: var(--color-neutral-800); }
+  .text-neutral-900 { color: var(--color-neutral-900); }
 
-  .text-red-500 { color: #ef4444; }
-  .text-red-600 { color: #dc2626; }
-  .text-green-500 { color: #10b981; }
-  .text-green-600 { color: #059669; }
-  .text-blue-500 { color: #3b82f6; }
-  .text-blue-600 { color: #2563eb; }
-  .text-yellow-500 { color: #f59e0b; }
-  .text-yellow-600 { color: #d97706; }
+  .text-primary-500 { color: var(--color-primary-500); }
+  .text-primary-600 { color: var(--color-primary-600); }
+  .text-primary-700 { color: var(--color-primary-700); }
+  
+  .text-error-500 { color: var(--color-error-500); }
+  .text-error-600 { color: var(--color-error-600); }
+  .text-success-500 { color: var(--color-success-500); }
+  .text-success-600 { color: var(--color-success-600); }
+  .text-warning-500 { color: var(--color-warning-500); }
+  .text-warning-600 { color: var(--color-warning-600); }
+  .text-info-500 { color: var(--color-info-500); }
+  .text-info-600 { color: var(--color-info-600); }
 
-  .bg-white { background-color: #ffffff; }
-  .bg-gray-50 { background-color: #f9fafb; }
-  .bg-gray-100 { background-color: #f3f4f6; }
-  .bg-gray-200 { background-color: #e5e7eb; }
+  .bg-white { background-color: var(--color-neutral-0); }
+  .bg-neutral-50 { background-color: var(--color-neutral-50); }
+  .bg-neutral-100 { background-color: var(--color-neutral-100); }
+  .bg-neutral-200 { background-color: var(--color-neutral-200); }
+  .bg-primary-50 { background-color: var(--color-primary-50); }
+  .bg-primary-500 { background-color: var(--color-primary-500); }
+  .bg-primary-600 { background-color: var(--color-primary-600); }
 
-  .border { border: 1px solid #e5e7eb; }
-  .border-gray-200 { border-color: #e5e7eb; }
-  .border-gray-300 { border-color: #d1d5db; }
+  .border { border: 1px solid var(--color-neutral-200); }
+  .border-neutral-200 { border-color: var(--color-neutral-200); }
+  .border-neutral-300 { border-color: var(--color-neutral-300); }
+  .border-primary-500 { border-color: var(--color-primary-500); }
 
   .rounded { border-radius: 0.25rem; }
   .rounded-md { border-radius: 0.375rem; }
@@ -152,10 +283,12 @@ const GlobalStyles = createGlobalStyle`
   .rounded-xl { border-radius: 0.75rem; }
   .rounded-2xl { border-radius: 1rem; }
 
-  .shadow { box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
-  .shadow-md { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06); }
-  .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
-  .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); }
+  .shadow { box-shadow: var(--shadow-base); }
+  .shadow-sm { box-shadow: var(--shadow-sm); }
+  .shadow-md { box-shadow: var(--shadow-md); }
+  .shadow-lg { box-shadow: var(--shadow-lg); }
+  .shadow-xl { box-shadow: var(--shadow-xl); }
+  .shadow-2xl { box-shadow: var(--shadow-2xl); }
 
   .hidden { display: none; }
   .block { display: block; }

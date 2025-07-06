@@ -2,6 +2,7 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
 const accessibilityAnalyzer = require('../services/accessibilityAnalyzer');
+const pdfGenerator = require('../services/pdfGenerator');
 const logger = require('../utils/logger');
 
 const router = express.Router();
@@ -21,14 +22,21 @@ const analysisLimiter = rateLimit({
 // Validation middleware
 const validateAnalysisRequest = [
   body('url')
+    .customSanitizer(value => {
+      // Trim and normalize the URL
+      let cleanUrl = value.trim().replace(/\/+$/, '');
+      
+      // Add https:// if no protocol is specified
+      if (cleanUrl && !cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+        cleanUrl = 'https://' + cleanUrl;
+      }
+      
+      return cleanUrl;
+    })
     .isURL({ require_protocol: true, protocols: ['http', 'https'] })
-    .withMessage('Please provide a valid HTTP or HTTPS URL')
+    .withMessage('Please provide a valid website URL (e.g., example.com or https://example.com)')
     .isLength({ max: 2000 })
     .withMessage('URL is too long')
-    .customSanitizer(value => {
-      // Remove any trailing slashes and normalize
-      return value.trim().replace(/\/+$/, '');
-    })
 ];
 
 // POST /api/accessibility/analyze
@@ -43,7 +51,7 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
       });
     }
 
-    const { url } = req.body;
+    const { url, reportType = 'overview' } = req.body;
     const clientIp = req.ip || req.connection.remoteAddress;
     
     logger.info(`Analysis request received`, { 
@@ -56,7 +64,7 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
     const startTime = Date.now();
     
     try {
-      const report = await accessibilityAnalyzer.analyzeWebsite(url);
+      const report = await accessibilityAnalyzer.analyzeWebsite(url, reportType);
       const analysisTime = Date.now() - startTime;
       
       logger.info(`Analysis completed successfully`, {
@@ -64,7 +72,8 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
         analysisId: report.analysisId,
         score: report.scores.overall,
         analysisTime,
-        violations: report.summary.totalViolations
+        violations: report.summary.totalViolations,
+        reportType
       });
 
       res.json({
@@ -72,7 +81,8 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
         data: report,
         meta: {
           analysisTime,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
+          reportType
         }
       });
 
@@ -140,6 +150,169 @@ router.get('/health', async (req, res) => {
   }
 });
 
+// GET /api/accessibility/detailed/:analysisId
+router.get('/detailed/:analysisId', async (req, res) => {
+  try {
+    const { analysisId } = req.params;
+    
+    if (!analysisId) {
+      return res.status(400).json({
+        error: 'Missing analysis ID',
+        message: 'Please provide a valid analysis ID'
+      });
+    }
+
+    logger.info('Detailed report request received', { analysisId });
+
+    const detailedReport = accessibilityAnalyzer.getDetailedReport(analysisId);
+    
+    if (!detailedReport) {
+      return res.status(404).json({
+        error: 'Report not found',
+        message: 'The requested analysis report was not found or has expired'
+      });
+    }
+    
+    res.json({
+      success: true,
+      data: detailedReport,
+      meta: {
+        timestamp: new Date().toISOString(),
+        reportType: 'detailed'
+      }
+    });
+    
+    logger.info('Detailed report sent successfully', { analysisId });
+
+  } catch (error) {
+    logger.error('Detailed report retrieval failed:', { error: error.message, analysisId: req.params.analysisId });
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Unable to retrieve detailed report. Please try again later.'
+    });
+  }
+});
+
+// GET /api/accessibility/pdf/:analysisId
+router.get('/pdf/:analysisId', async (req, res) => {
+  try {
+    const { analysisId } = req.params;
+    
+    if (!analysisId) {
+      return res.status(400).json({
+        error: 'Missing analysis ID',
+        message: 'Please provide a valid analysis ID'
+      });
+    }
+
+    logger.info('PDF download request received', { analysisId });
+
+    const pdfBuffer = accessibilityAnalyzer.getCachedPDF(analysisId);
+    
+    if (!pdfBuffer) {
+      // Try to get the detailed report and generate PDF on demand
+      const detailedReport = accessibilityAnalyzer.getDetailedReport(analysisId);
+      
+      if (!detailedReport) {
+        return res.status(404).json({
+          error: 'Report not found',
+          message: 'The requested analysis report was not found or has expired'
+        });
+      }
+      
+      logger.info('Generating PDF on demand', { analysisId });
+      const newPdfBuffer = await pdfGenerator.generateAccessibilityReport(detailedReport);
+      accessibilityAnalyzer.pdfCache.set(analysisId, newPdfBuffer);
+      
+      const filename = `accessibility-report-${analysisId}.pdf`;
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', newPdfBuffer.length);
+      
+      res.send(newPdfBuffer);
+      
+      logger.info('PDF generated and sent successfully', { analysisId, size: newPdfBuffer.length });
+      return;
+    }
+    
+    const filename = `accessibility-report-${analysisId}.pdf`;
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    res.send(pdfBuffer);
+    
+    logger.info('Cached PDF sent successfully', { analysisId, size: pdfBuffer.length });
+
+  } catch (error) {
+    logger.error('PDF download failed:', { error: error.message, analysisId: req.params.analysisId });
+    res.status(500).json({
+      error: 'PDF download failed',
+      message: 'Unable to download PDF report. Please try again later.'
+    });
+  }
+});
+
+// POST /api/accessibility/generate-pdf (legacy endpoint for backward compatibility)
+router.post('/generate-pdf', analysisLimiter, async (req, res) => {
+  try {
+    const { analysisId, reportData } = req.body;
+    
+    if (!analysisId) {
+      return res.status(400).json({
+        error: 'Missing required data',
+        message: 'analysisId is required'
+      });
+    }
+
+    // Try to use cached PDF first
+    const cachedPdf = accessibilityAnalyzer.getCachedPDF(analysisId);
+    if (cachedPdf) {
+      const filename = `accessibility-report-${analysisId}.pdf`;
+      
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Length', cachedPdf.length);
+      
+      res.send(cachedPdf);
+      
+      logger.info('Cached PDF sent via legacy endpoint', { analysisId, size: cachedPdf.length });
+      return;
+    }
+
+    // Fallback to generating PDF if reportData is provided
+    if (!reportData) {
+      return res.status(400).json({
+        error: 'Missing required data',
+        message: 'reportData is required when PDF is not cached'
+      });
+    }
+
+    logger.info('PDF generation request received (legacy)', { analysisId });
+
+    const pdfBuffer = await pdfGenerator.generateAccessibilityReport(reportData);
+    
+    const filename = `accessibility-report-${analysisId}.pdf`;
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', pdfBuffer.length);
+    
+    res.send(pdfBuffer);
+    
+    logger.info('PDF generated and sent successfully (legacy)', { analysisId, size: pdfBuffer.length });
+
+  } catch (error) {
+    logger.error('PDF generation failed (legacy):', { error: error.message });
+    res.status(500).json({
+      error: 'PDF generation failed',
+      message: 'Unable to generate PDF report. Please try again later.'
+    });
+  }
+});
+
 // GET /api/accessibility/demo
 router.get('/demo', (req, res) => {
   res.json({
@@ -147,6 +320,9 @@ router.get('/demo', (req, res) => {
     version: '1.0.0',
     endpoints: {
       analyze: 'POST /api/accessibility/analyze',
+      'detailed-report': 'GET /api/accessibility/detailed/:analysisId',
+      'download-pdf': 'GET /api/accessibility/pdf/:analysisId',
+      'generate-pdf': 'POST /api/accessibility/generate-pdf (legacy)',
       health: 'GET /api/accessibility/health'
     },
     documentation: 'https://sitecraft.com/api-docs'
