@@ -333,12 +333,6 @@ class PDFGenerator {
       doc.y += 15;
     }
 
-    if (violation.helpUrl) {
-      doc.fontSize(10)
-         .fillColor(this.primaryColor)
-         .text(`More info: ${violation.helpUrl}`, 60, doc.y);
-      doc.y += 15;
-    }
 
     if (violation.nodes && violation.nodes.length > 0) {
       doc.fontSize(10)

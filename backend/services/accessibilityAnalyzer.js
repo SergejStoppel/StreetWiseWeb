@@ -492,29 +492,28 @@ class AccessibilityAnalyzer {
       baseReport.customChecks = customChecks;
       baseReport.performanceMetrics = performanceMetrics;
     } else {
-      // Overview report - include only top 5 critical/serious violations
-      const topViolations = axeResults.violations
-        .filter(v => v.impact === 'critical' || v.impact === 'serious')
-        .slice(0, 5)
-        .map(v => ({
-          id: v.id,
-          impact: v.impact,
-          description: v.description,
-          help: v.help,
-          helpUrl: v.helpUrl,
-          nodes: v.nodes.length
-        }));
+      // Overview report - show only basic issue counts, no specific violations
+      const criticalCount = axeResults.violations.filter(v => v.impact === 'critical').length;
+      const seriousCount = axeResults.violations.filter(v => v.impact === 'serious').length;
       
-      baseReport.topViolations = topViolations;
+      baseReport.issuePreview = {
+        criticalIssues: criticalCount,
+        seriousIssues: seriousCount,
+        hasViolations: axeResults.violations.length > 0,
+        categories: [...new Set(axeResults.violations.map(v => v.tags[0] || 'other'))].slice(0, 3)
+      };
+      
       baseReport.upgradeInfo = {
         available: true,
         features: [
-          'Complete list of all accessibility violations',
-          'Detailed code examples and solutions',
-          'Performance metrics and optimization suggestions',
-          'Custom accessibility checks beyond WCAG',
-          'Professional PDF report with executive summary',
-          'Priority matrix for development teams'
+          'Complete list of all accessibility violations with specific locations',
+          'Step-by-step fixing instructions with code examples', 
+          'WCAG compliance guidelines and success criteria',
+          'Performance metrics and page load optimization',
+          'Custom accessibility checks for images, forms, and navigation',
+          'Professional PDF report with executive summary and technical details',
+          'Detailed priority matrix for development teams',
+          'Before/after examples and implementation best practices'
         ]
       };
     }
@@ -600,68 +599,87 @@ class AccessibilityAnalyzer {
   generateRecommendations(axeResults, customChecks, reportType = 'overview') {
     const recommendations = [];
     
-    // High priority recommendations
-    if (axeResults.violations.some(v => v.impact === 'critical')) {
-      const criticalCount = axeResults.violations.filter(v => v.impact === 'critical').length;
-      recommendations.push({
-        priority: 'high',
-        category: 'Critical Issues',
-        title: 'Fix Critical Accessibility Violations',
-        description: `Your website has ${criticalCount} critical accessibility ${criticalCount === 1 ? 'issue' : 'issues'} that severely impact users with disabilities.`,
-        action: reportType === 'detailed' 
-          ? 'Review and fix all critical violations immediately. See detailed violation list below.'
-          : 'Purchase detailed report to see specific violations and fixes required.'
-      });
+    if (reportType === 'detailed') {
+      // Detailed recommendations with specific counts and instructions
+      if (axeResults.violations.some(v => v.impact === 'critical')) {
+        const criticalCount = axeResults.violations.filter(v => v.impact === 'critical').length;
+        recommendations.push({
+          priority: 'high',
+          category: 'Critical Issues',
+          title: 'Fix Critical Accessibility Violations',
+          description: `Your website has ${criticalCount} critical accessibility ${criticalCount === 1 ? 'issue' : 'issues'} that severely impact users with disabilities.`,
+          action: 'Review and fix all critical violations immediately. See detailed violation list below.'
+        });
+      }
+      
+      const imagesWithoutAlt = customChecks.images.filter(img => !img.hasAlt && !img.isDecorative);
+      if (imagesWithoutAlt.length > 0) {
+        recommendations.push({
+          priority: 'high',
+          category: 'Images',
+          title: 'Add Alt Text to Images',
+          description: `${imagesWithoutAlt.length} images are missing alt text.`,
+          action: 'Add descriptive alt text to all images that convey information. See specific images in detailed analysis below.'
+        });
+      }
+      
+      const formsWithoutLabels = customChecks.forms.reduce((count, form) => 
+        count + form.inputs.filter(input => !input.hasLabel && !input.hasAriaLabel).length, 0);
+      if (formsWithoutLabels > 0) {
+        recommendations.push({
+          priority: 'medium',
+          category: 'Forms',
+          title: 'Add Labels to Form Fields',
+          description: `${formsWithoutLabels} form fields are missing proper labels.`,
+          action: 'Associate labels with form fields using <label> elements or aria-label attributes. See detailed form analysis below.'
+        });
+      }
+    } else {
+      // Overview - very generic recommendations only
+      if (axeResults.violations.length > 0) {
+        recommendations.push({
+          priority: 'high',
+          category: 'Accessibility Issues',
+          title: 'Address Accessibility Compliance',
+          description: 'Your website has accessibility issues that may impact users with disabilities and legal compliance.',
+          action: 'Get detailed report to see specific issues and step-by-step fixing instructions.'
+        });
+      }
+      
+      if (customChecks.images.some(img => !img.hasAlt) || 
+          customChecks.forms.some(form => form.inputs.some(input => !input.hasLabel))) {
+        recommendations.push({
+          priority: 'medium',
+          category: 'Content & Forms',
+          title: 'Improve Content Accessibility',
+          description: 'Some images and form elements may not be accessible to users with assistive technologies.',
+          action: 'Upgrade to detailed report for specific locations and implementation guidance.'
+        });
+      }
     }
     
-    const imagesWithoutAlt = customChecks.images.filter(img => !img.hasAlt && !img.isDecorative);
-    if (imagesWithoutAlt.length > 0) {
-      recommendations.push({
-        priority: 'high',
-        category: 'Images',
-        title: 'Add Alt Text to Images',
-        description: `${imagesWithoutAlt.length} images are missing alt text.`,
-        action: reportType === 'detailed' 
-          ? 'Add descriptive alt text to all images that convey information. See specific images in detailed analysis below.'
-          : 'Upgrade to detailed report to see which specific images need alt text and get implementation examples.'
-      });
-    }
-    
-    // Medium priority recommendations
-    const formsWithoutLabels = customChecks.forms.reduce((count, form) => 
-      count + form.inputs.filter(input => !input.hasLabel && !input.hasAriaLabel).length, 0);
-    if (formsWithoutLabels > 0) {
-      recommendations.push({
-        priority: 'medium',
-        category: 'Forms',
-        title: 'Add Labels to Form Fields',
-        description: `${formsWithoutLabels} form fields are missing proper labels.`,
-        action: reportType === 'detailed' 
-          ? 'Associate labels with form fields using <label> elements or aria-label attributes. See detailed form analysis below.'
-          : 'Upgrade to detailed report for specific form field locations and label implementation guidance.'
-      });
-    }
-    
-    if (!customChecks.structure.hasH1) {
-      recommendations.push({
-        priority: 'medium',
-        category: 'Structure',
-        title: 'Add Main Heading',
-        description: 'Your page is missing an H1 heading.',
-        action: 'Add a clear H1 heading that describes the main content of the page'
-      });
-    }
-    
-    // Low priority recommendations
-    const emptyLinks = customChecks.links.filter(link => link.isEmpty);
-    if (emptyLinks.length > 0) {
-      recommendations.push({
-        priority: 'low',
-        category: 'Links',
-        title: 'Fix Empty Links',
-        description: `${emptyLinks.length} links have no text content.`,
-        action: 'Add descriptive text to all links or use aria-label for icon links'
-      });
+    if (reportType === 'detailed') {
+      if (!customChecks.structure.hasH1) {
+        recommendations.push({
+          priority: 'medium',
+          category: 'Structure',
+          title: 'Add Main Heading',
+          description: 'Your page is missing an H1 heading.',
+          action: 'Add a clear H1 heading that describes the main content of the page'
+        });
+      }
+      
+      // Low priority recommendations - only in detailed
+      const emptyLinks = customChecks.links.filter(link => link.isEmpty);
+      if (emptyLinks.length > 0) {
+        recommendations.push({
+          priority: 'low',
+          category: 'Links',
+          title: 'Fix Empty Links',
+          description: `${emptyLinks.length} links have no text content.`,
+          action: 'Add descriptive text to all links or use aria-label for icon links'
+        });
+      }
     }
     
     return recommendations;
