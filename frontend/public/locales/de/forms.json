@@ -1,0 +1,41 @@
+{
+  "placeholder": {
+    "websiteUrl": "ihrewebsite.de",
+    "email": "Geben Sie Ihre E-Mail ein",
+    "name": "Geben Sie Ihren Namen ein",
+    "message": "Geben Sie Ihre Nachricht ein"
+  },
+  "labels": {
+    "websiteUrl": "Website-URL",
+    "email": "E-Mail-Adresse",
+    "name": "Vollständiger Name",
+    "message": "Nachricht",
+    "optional": "Optional"
+  },
+  "buttons": {
+    "submit": "Senden",
+    "cancel": "Abbrechen",
+    "save": "Speichern",
+    "analyze": "Analyse Starten",
+    "analyzing": "Analysiere...",
+    "download": "Herunterladen",
+    "share": "Teilen",
+    "copy": "Kopieren",
+    "reset": "Zurücksetzen"
+  },
+  "validation": {
+    "required": "Dieses Feld ist erforderlich",
+    "invalidUrl": "Bitte geben Sie eine gültige Website-URL ein (z.B. beispiel.de oder https://beispiel.de)",
+    "invalidEmail": "Bitte geben Sie eine gültige E-Mail-Adresse ein",
+    "minLength": "Muss mindestens {{count}} Zeichen lang sein",
+    "maxLength": "Darf nicht mehr als {{count}} Zeichen haben"
+  },
+  "messages": {
+    "enterUrl": "Bitte geben Sie eine Website-URL ein",
+    "analysisStarted": "Starte Barrierefreiheits-Analyse...",
+    "analysisComplete": "Analyse erfolgreich abgeschlossen!",
+    "analysisFailed": "Analyse fehlgeschlagen. Bitte versuchen Sie es erneut.",
+    "error": "Fehler beim Analysieren der Website. Bitte versuchen Sie es erneut.",
+    "success": "Operation erfolgreich abgeschlossen"
+  }
+}

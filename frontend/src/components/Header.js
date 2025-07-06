@@ -2,6 +2,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 import { FaAccessibleIcon } from 'react-icons/fa';
+import { useTranslation } from 'react-i18next';
+import LanguageSelector from './LanguageSelector';
 
 const HeaderContainer = styled.header`
   background-color: #ffffff;
@@ -65,6 +67,8 @@ const NavLink = styled(Link)`
 `;
 
 const Header = () => {
+  const { t } = useTranslation('navigation');
+
   return (
     <HeaderContainer>
       <HeaderContent>
@@ -73,8 +77,9 @@ const Header = () => {
           SiteCraft
         </Logo>
         <Navigation>
-          <NavLink to="/">Home</NavLink>
-          <NavLink to="/results">Results</NavLink>
+          <NavLink to="/">{t('home')}</NavLink>
+          <NavLink to="/results">{t('results')}</NavLink>
+          <LanguageSelector />
         </Navigation>
       </HeaderContent>
     </HeaderContainer>

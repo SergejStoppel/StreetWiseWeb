@@ -1,0 +1,19 @@
+{
+  "title": "Dashboard",
+  "subtitle": "Übersicht der Barrierefreiheits-Analysen",
+  "welcome": "Willkommen zurück",
+  "recentAnalyses": "Letzte Analysen",
+  "totalAnalyses": "Gesamtanalysen",
+  "averageScore": "Durchschnittliche Bewertung",
+  "criticalIssues": "Kritische Probleme",
+  "improvementTrend": "Verbesserungstrend",
+  "quickActions": "Schnellaktionen",
+  "newAnalysis": "Neue Analyse",
+  "viewReports": "Berichte Anzeigen",
+  "manageProjects": "Projekte Verwalten",
+  "accountSettings": "Kontoeinstellungen",
+  "usage": "Nutzung",
+  "plan": "Plan",
+  "upgrade": "Upgrade",
+  "support": "Support"
+}

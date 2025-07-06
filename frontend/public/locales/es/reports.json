@@ -1,0 +1,17 @@
+{
+  "title": "Informes",
+  "subtitle": "Informes de Análisis de Accesibilidad",
+  "generateReport": "Generar Informe",
+  "downloadPdf": "Descargar PDF",
+  "shareReport": "Compartir Informe",
+  "reportSummary": "Resumen del Informe",
+  "executiveSummary": "Resumen Ejecutivo",
+  "detailedFindings": "Hallazgos Detallados",
+  "recommendations": "Recomendaciones",
+  "technicalDetails": "Detalles Técnicos",
+  "complianceStatus": "Estado de Cumplimiento",
+  "reportGenerated": "Informe generado el {{date}}",
+  "reportId": "ID del Informe: {{id}}",
+  "pageCount": "{{count}} página analizada",
+  "pageCount_plural": "{{count}} páginas analizadas"
+}

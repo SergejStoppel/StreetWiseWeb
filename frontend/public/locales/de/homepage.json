@@ -1,0 +1,38 @@
+{
+  "hero": {
+    "title": "Professionelle Website-Barrierefreiheitsanalyse",
+    "subtitle": "Erhalten Sie sofortige Einblicke in die Barrierefreiheits-Compliance Ihrer Website mit unserer KI-gestützten Analyse. Identifizieren Sie Probleme, verbessern Sie die Benutzererfahrung und stellen Sie die rechtliche Compliance sicher.",
+    "formTitle": "Analysieren Sie Ihre Website",
+    "exampleText": "Geben Sie eine beliebige Website ein (z.B. beispiel.de) • Kostenloses Übersicht-Berichts • Detaillierte Berichte zum Kauf verfügbar"
+  },
+  "features": {
+    "wcagCompliance": {
+      "title": "WCAG-Konformität",
+      "description": "Umfassende Analyse mit der branchenüblichen Axe-core-Engine zur Identifizierung von Barrierefreiheitsverletzungen und Gewährleistung der WCAG 2.1 AA-Konformität."
+    },
+    "smartScoring": {
+      "title": "Intelligente Bewertung",
+      "description": "Erhalten Sie klare Barrierefreiheitsbewertungen mit Auswirkungsanalyse. Verstehen Sie, welche Probleme Sie priorisieren sollten, um die Benutzererfahrung maximal zu verbessern."
+    },
+    "professionalReports": {
+      "title": "Professionelle Berichte",
+      "description": "Erhalten Sie detaillierte PDF-Berichte mit spezifischen Empfehlungen, Code-Beispielen und Implementierungsanleitungen für Ihr Entwicklungsteam."
+    }
+  },
+  "whyAccessibility": {
+    "title": "Warum Barrierefreiheit Wichtig Ist",
+    "subtitle": "Web-Barrierefreiheit geht nicht nur um Compliance – es geht darum, inklusive Erfahrungen für alle Benutzer zu schaffen und gleichzeitig Ihr Unternehmen vor rechtlichen Risiken zu schützen.",
+    "stats": {
+      "peopleWithDisabilities": "Menschen mit Behinderungen weltweit",
+      "spendingPower": "Jährliche Kaufkraft",
+      "lawsuitIncrease": "Anstieg bei Barrierefreiheitsklagen",
+      "globalDisability": "Der Weltbevölkerung hat eine Behinderung"
+    }
+  },
+  "testimonials": {
+    "title": "Vertraut von Unternehmen",
+    "quote": "SiteCrafts Barrierefreiheitsanalyse half uns dabei, kritische Probleme zu identifizieren und zu beheben, von denen wir nicht einmal wussten, dass sie existierten. Der detaillierte Bericht sparte unserem Entwicklungsteam wochenlange Arbeit und half uns, potenzielle rechtliche Komplikationen zu vermeiden.",
+    "author": "Sarah Chen",
+    "role": "CTO, TechStart Inc."
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "hero": {
+    "title": "Análisis Profesional de Accesibilidad Web",
+    "subtitle": "Obtenga información instantánea sobre el cumplimiento de accesibilidad de su sitio web con nuestro análisis impulsado por IA. Identifique problemas, mejore la experiencia del usuario y asegure el cumplimiento legal.",
+    "formTitle": "Analice Su Sitio Web",
+    "exampleText": "Ingrese cualquier sitio web (ej., ejemplo.com) • Informe general gratuito • Informes detallados disponibles para compra"
+  },
+  "features": {
+    "wcagCompliance": {
+      "title": "Cumplimiento WCAG",
+      "description": "Análisis integral utilizando el motor estándar de la industria Axe-core para identificar violaciones de accesibilidad y asegurar el cumplimiento WCAG 2.1 AA."
+    },
+    "smartScoring": {
+      "title": "Puntuación Inteligente",
+      "description": "Obtenga puntuaciones claras de accesibilidad con evaluación de impacto. Comprenda qué problemas priorizar para la máxima mejora en la experiencia del usuario."
+    },
+    "professionalReports": {
+      "title": "Informes Profesionales",
+      "description": "Reciba informes PDF detallados con recomendaciones específicas, ejemplos de código y orientación de implementación para su equipo de desarrollo."
+    }
+  },
+  "whyAccessibility": {
+    "title": "Por Qué Importa la Accesibilidad",
+    "subtitle": "La accesibilidad web no se trata solo de cumplimiento: se trata de crear experiencias inclusivas para todos los usuarios mientras protege su negocio de riesgos legales.",
+    "stats": {
+      "peopleWithDisabilities": "Personas con discapacidades en todo el mundo",
+      "spendingPower": "Poder adquisitivo anual",
+      "lawsuitIncrease": "Aumento en demandas de accesibilidad",
+      "globalDisability": "De la población mundial tiene una discapacidad"
+    }
+  },
+  "testimonials": {
+    "title": "Confiado por Empresas",
+    "quote": "El análisis de accesibilidad de SiteCraft nos ayudó a identificar y corregir problemas críticos que ni siquiera sabíamos que existían. El informe detallado ahorró a nuestro equipo de desarrollo semanas de trabajo y nos ayudó a evitar posibles complicaciones legales.",
+    "author": "Sarah Chen",
+    "role": "CTO, TechStart Inc."
+  }
+}

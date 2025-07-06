@@ -1,0 +1,17 @@
+{
+  "title": "Berichte",
+  "subtitle": "Barrierefreiheits-Analyseberichte",
+  "generateReport": "Bericht Erstellen",
+  "downloadPdf": "PDF Herunterladen",
+  "shareReport": "Bericht Teilen",
+  "reportSummary": "Berichtszusammenfassung",
+  "executiveSummary": "Zusammenfassung",
+  "detailedFindings": "Detaillierte Ergebnisse",
+  "recommendations": "Empfehlungen",
+  "technicalDetails": "Technische Details",
+  "complianceStatus": "Compliance-Status",
+  "reportGenerated": "Bericht erstellt am {{date}}",
+  "reportId": "Bericht-ID: {{id}}",
+  "pageCount": "{{count}} Seite analysiert",
+  "pageCount_plural": "{{count}} Seiten analysiert"
+}

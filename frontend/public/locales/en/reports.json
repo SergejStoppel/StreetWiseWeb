@@ -1,0 +1,17 @@
+{
+  "title": "Reports",
+  "subtitle": "Accessibility Analysis Reports",
+  "generateReport": "Generate Report",
+  "downloadPdf": "Download PDF",
+  "shareReport": "Share Report",
+  "reportSummary": "Report Summary",
+  "executiveSummary": "Executive Summary",
+  "detailedFindings": "Detailed Findings",
+  "recommendations": "Recommendations",
+  "technicalDetails": "Technical Details",
+  "complianceStatus": "Compliance Status",
+  "reportGenerated": "Report generated on {{date}}",
+  "reportId": "Report ID: {{id}}",
+  "pageCount": "{{count}} page analyzed",
+  "pageCount_plural": "{{count}} pages analyzed"
+}
