@@ -1,204 +1,196 @@
-# SiteCraft Development Plan
+# SiteCraft - Website Accessibility Analysis Tool
 
-## Overview
+A comprehensive web accessibility analysis tool that provides instant insights into website compliance and generates detailed reports with actionable recommendations.
 
-This repository contains the comprehensive development plan for SiteCraft, an AI-powered SaaS platform that helps small businesses improve their online presence through automated audits, AI-generated content, and website optimization services.
+## Features
 
-## Development Strategy
+- **Comprehensive Analysis**: Uses axe-core and custom checks for thorough accessibility evaluation
+- **Real-time Reporting**: Instant analysis results with detailed scoring
+- **WCAG Compliance**: Checks against Web Content Accessibility Guidelines
+- **Actionable Recommendations**: Specific guidance for fixing accessibility issues
+- **Modern UI**: Clean, responsive React frontend
+- **Export Reports**: Download detailed analysis reports
 
-### Phase 1: MVP (Features 1-3)
-We're starting with the core features that provide immediate value:
-- **Feature 1**: Instant Website Audit (Free Tool)
-- **Feature 2**: Full Website Report (Paid or Subscriber)
-- **Feature 3**: AI Blog Content Generator
-
-### Phase 2: Advanced Features (Features 4-5)
-After establishing a functional MVP, we'll add:
-- **Feature 4**: Website Redesign Mockup Generator
-- **Feature 5**: Full Website Redesign & Ongoing Maintenance
-
-## Documentation Structure
-
-### 📋 Planning Documents
-- **[Architecture Overview](ARCHITECTURE.md)** - System architecture, technology stack, and design principles
-- **[Backend Epics](backend-epics.md)** - Detailed backend development tasks and epics
-- **[Frontend Epics](frontend-epics.md)** - Detailed frontend development tasks and epics
-- **[Completion Guide](completion-guide.md)** - Instructions for managing and completing tickets
-- **[API Keys & Secrets](api-keys-secrets.md)** - Required API keys, environment variables, and setup instructions
-- **[Style Guide](style-guide.md)** - Frontend design system, CSS variables, and UI guidelines
-
-### 🎯 Quick Start Guide
-
-1. **Review Architecture**: Start with `ARCHITECTURE.md` to understand the overall system design
-2. **Choose Your Track**: 
-   - Backend developers: Follow `backend-epics.md`
-   - Frontend developers: Follow `frontend-epics.md`
-3. **Follow the Process**: Use `completion-guide.md` for ticket management
-
-## Technology Stack
+## Tech Stack
 
 ### Backend
-- **Runtime**: Node.js 18+ with TypeScript
-- **Framework**: Express.js
-- **Database**: PostgreSQL with Prisma ORM
-- **Authentication**: JWT tokens
-- **AI Integration**: OpenAI API (GPT-4)
-- **Background Jobs**: Bull Queue with Redis
+- Node.js with Express
+- Puppeteer for web scraping
+- axe-core for accessibility analysis
+- Winston for logging
+- Express rate limiting and security
 
 ### Frontend
-- **Framework**: Next.js 14 (App Router)
-- **Styling**: Tailwind CSS
-- **State Management**: Zustand
-- **Forms**: React Hook Form
-- **UI Components**: Headless UI + Custom components
+- React 18 with hooks
+- Styled Components for styling
+- React Router for navigation
+- Axios for API calls
+- React Icons for UI elements
 
-## Development Priorities
+## Installation
 
-### Critical Path (Start Here)
-1. **Backend Setup** (BE-001) - Project foundation
-2. **Authentication** (BE-002) - User management
-3. **Website Audit Engine** (BE-003) - Core functionality
-4. **Content Generation** (BE-004) - AI-powered features
-5. **Payment System** (BE-005) - Subscription management
-6. **Frontend Setup** (FE-001) - UI foundation including global styles
-7. **Landing Page** (FE-002) - User acquisition
-8. **Dashboard** (FE-004) - User interface
+### Prerequisites
+- Node.js (v16 or higher)
+- npm or yarn
 
-### Parallel Development Opportunities
-- Frontend landing page can be built while backend is in development
-- SEO and Accessibility analyzers can be developed in parallel
-- Content generation can be built alongside audit features
-- Payment system can be developed in parallel with audit and content features
-- Global style guide ensures consistent UI development across all components
+### Windows Setup
 
-## Epic Overview
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd Site
+   ```
 
-### Backend Epics (Phase 1)
-| Epic | Description | Priority | Est. Time |
-|------|-------------|----------|-----------|
-| BE-001 | Project Setup & Infrastructure | High | 1-2 days |
-| BE-002 | User Authentication System | High | 2-3 days |
-| BE-003 | Website Audit Engine | High | 3-4 days |
-| BE-004 | Content Generation System | High | 2-3 days |
-| BE-005 | Payment & Subscription System | High | 2-3 days |
-| BE-006 | Report Generation System | Medium | 2-3 days |
+2. **Install Backend Dependencies**
+   ```bash
+   cd backend
+   npm install
+   ```
 
-### Frontend Epics (Phase 1)
-| Epic | Description | Priority | Est. Time |
-|------|-------------|----------|-----------|
-| FE-001 | Project Setup & Foundation | High | 1-2 days |
-| FE-002 | Landing Page & Marketing | High | 2-3 days |
-| FE-003 | User Authentication System | High | 2 days |
-| FE-004 | User Dashboard | High | 3-4 days |
-| FE-005 | Payment & Subscription Interface | High | 2-3 days |
-| FE-006 | Content Generation Interface | High | 2-3 days |
-| FE-007 | Report Display & Download | Medium | 2 days |
+3. **Install Frontend Dependencies**
+   ```bash
+   cd ../frontend
+   npm install
+   ```
 
-## Key Features Implementation
+4. **Environment Setup**
+   ```bash
+   cd ../backend
+   copy .env.example .env
+   ```
+   
+   Edit `.env` file with your configuration:
+   ```
+   NODE_ENV=development
+   PORT=3001
+   FRONTEND_URL=http://localhost:3000
+   LOG_LEVEL=info
+   ```
 
-### 🔍 Feature 1: Instant Website Audit
-- **Backend**: Website scanner, SEO analyzer, accessibility checker
-- **Frontend**: Audit form, results display, score visualization
-- **Integration**: Real-time scanning with progress indicators
+### Running the Application
 
-### 📊 Feature 2: Full Website Report
-- **Backend**: Detailed analysis, PDF generation, email system
-- **Frontend**: Comprehensive report display, download functionality
-- **Integration**: Email capture, user authentication for detailed reports
+1. **Start Backend Server**
+   ```bash
+   cd backend
+   npm run dev
+   ```
+   Backend will run on http://localhost:3001
 
-### ✍️ Feature 3: AI Blog Content Generator
-- **Backend**: OpenAI integration, content management, user tracking
-- **Frontend**: Business info forms, content editor, library management
-- **Integration**: Two-step generation (ideas → full posts)
+2. **Start Frontend Development Server**
+   ```bash
+   cd frontend
+   npm start
+   ```
+   Frontend will run on http://localhost:3000
 
-## Development Guidelines
+3. **Open Browser**
+   Navigate to http://localhost:3000 to use the application
 
-### Code Quality Standards
-- **TypeScript**: Strict typing, no `any` usage
-- **Testing**: Comprehensive error handling and edge case coverage
-- **Security**: Input validation, rate limiting, secure authentication
-- **Performance**: Optimized queries, efficient algorithms, caching
+## Usage
 
-### Architecture Principles
-- **Modularity**: Each feature as independent module
-- **Scalability**: Horizontal scaling capability
-- **Flexibility**: Easy to add new features without refactoring
-- **Lean**: Minimal dependencies, focused functionality
+1. **Enter Website URL**: Input the URL of the website you want to analyze
+2. **Start Analysis**: Click "Analyze Website" to begin the accessibility audit
+3. **View Results**: Review the comprehensive report with scores and recommendations
+4. **Download Report**: Export the analysis results as a text file
 
-## Getting Started
+## API Endpoints
 
-### For Backend Developers
-1. Read `ARCHITECTURE.md` for system overview
-2. Follow `backend-epics.md` starting with BE-001
-3. Set up local development environment
-4. Begin with project initialization tasks
+- `POST /api/accessibility/analyze` - Analyze a website for accessibility issues
+- `GET /api/accessibility/health` - Check API health status
+- `GET /api/accessibility/demo` - Get API information
 
-### For Frontend Developers
-1. Read `ARCHITECTURE.md` for system overview
-2. Follow `frontend-epics.md` starting with FE-001
-3. Set up Next.js development environment
-4. Begin with project setup and UI components
+## Analysis Features
 
-### For Project Managers
-1. Review all documentation for full scope understanding
-2. Use epic documents to track progress
-3. Monitor dependencies between frontend and backend
-4. Coordinate cross-team integration points
+### Accessibility Checks
+- Image alt text validation
+- Form label associations
+- Color contrast analysis
+- Heading structure validation
+- Link accessibility
+- ARIA attributes
+- Keyboard navigation
 
-## Support & Resources
+### Scoring System
+- **Overall Score**: Combined accessibility and usability score (0-100)
+- **Accessibility Score**: WCAG compliance rating
+- **Custom Score**: Additional best practices validation
 
-### Documentation
-- Each epic contains detailed, junior-developer-friendly instructions
-- Acceptance criteria clearly defined for each task
-- Dependencies explicitly listed and tracked
-- Code examples provided for complex implementations
+### Report Contents
+- Executive summary with key metrics
+- Detailed violation descriptions
+- Prioritized recommendations
+- Element-specific guidance
+- Impact assessment
 
-### Best Practices
-- Follow completion guide for consistent ticket management
-- Use provided templates for status updates
-- Maintain clear communication about blockers
-- Document architectural decisions and trade-offs
+## Development
 
-## Success Metrics
+### Backend Structure
+```
+backend/
+├── routes/          # API route handlers
+├── services/        # Business logic
+├── middleware/      # Express middleware
+├── utils/          # Utility functions
+└── logs/           # Application logs
+```
 
-### Phase 1 Success Criteria
-- [ ] Free website audit tool is functional
-- [ ] User registration and authentication work
-- [ ] AI content generation produces quality output
-- [ ] Full reports can be generated and downloaded
-- [ ] Landing page effectively captures leads
-- [ ] Dashboard provides intuitive user experience
+### Frontend Structure
+```
+frontend/
+├── src/
+│   ├── components/  # Reusable UI components
+│   ├── pages/      # Page components
+│   ├── services/   # API services
+│   ├── styles/     # Global styles
+│   └── utils/      # Utility functions
+└── public/         # Static assets
+```
 
-### Quality Gates
-- [ ] All acceptance criteria met for each epic
-- [ ] Code review completed for all components
-- [ ] Security best practices implemented
-- [ ] Performance benchmarks achieved
-- [ ] Mobile responsiveness verified
-- [ ] Accessibility standards met (WCAG 2.1)
+## Windows-Specific Notes
 
-## Next Steps
+- Uses Windows-compatible file paths
+- Puppeteer configured for Windows Chrome
+- CORS settings for local development
+- Windows command examples in documentation
 
-1. **Review** all documentation thoroughly
-2. **Set up** development environments
-3. **Begin** with critical path epics
-4. **Coordinate** between frontend and backend teams
-5. **Track** progress using the epic documents
-6. **Iterate** based on feedback and results
+## Troubleshooting
 
----
+### Common Issues
 
-## Updated Development Summary
+1. **Puppeteer Installation Issues**
+   ```bash
+   npm install puppeteer --force
+   ```
 
-### Total Estimated Time
-- **Backend**: 12-18 days (6 epics including payment system)
-- **Frontend**: 12-15 days (7 epics including payment UI and global styles)
-- **Can be done in parallel** with proper coordination
+2. **Port Already in Use**
+   ```bash
+   netstat -ano | findstr :3001
+   taskkill /PID <PID> /F
+   ```
 
-### New Additions
-- **Stripe Payment System**: Complete subscription management for all pricing tiers
-- **API Keys Documentation**: Comprehensive setup guide for all required services
-- **Global Style Guide**: CSS variables and design system for consistent UI
-- **Enhanced Architecture**: Modular design supporting Phase 2 expansion
+3. **CORS Issues**
+   - Ensure backend is running on port 3001
+   - Check FRONTEND_URL in .env file
 
-*This development plan is designed to be modular and flexible, allowing for efficient development of the MVP while maintaining the ability to scale and add advanced features in Phase 2.* 
+4. **Memory Issues**
+   - Restart both servers
+   - Check Windows Task Manager for resource usage
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+For issues and questions:
+- Check the troubleshooting section
+- Review the console logs
+- Ensure all dependencies are installed correctly

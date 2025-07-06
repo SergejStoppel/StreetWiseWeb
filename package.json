@@ -1,0 +1,21 @@
+{
+  "name": "sitecraft",
+  "version": "1.0.0",
+  "description": "Website Accessibility Analysis Tool",
+  "main": "index.js",
+  "scripts": {
+    "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "backend": "cd backend && npm run dev",
+    "frontend": "cd frontend && npm start",
+    "build": "cd frontend && npm run build",
+    "test": "cd backend && npm test && cd ../frontend && npm test",
+    "start": "cd backend && npm start"
+  },
+  "keywords": ["accessibility", "web", "analysis", "audit", "compliance"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.0"
+  }
+}
