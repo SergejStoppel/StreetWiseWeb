@@ -1,0 +1,39 @@
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-05T11:40:56.883Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-05T11:40:56.887Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-05T11:41:12.884Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-05T11:41:12.888Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-05T11:41:33.099Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-05T11:41:33.102Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-05T11:43:50.479Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-05T11:43:50.483Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-05T11:44:03.523Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-05T11:44:03.526Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-05T11:45:02.951Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-05T11:45:02.955Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-05T11:45:18.624Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-05T11:45:18.628Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-05T11:46:12.247Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-05T11:46:12.252Z"}
+{"clientIp":"::1","level":"info","message":"Analysis request received","service":"sitecraft-backend","timestamp":"2025-07-05T11:47:23.228Z","url":"https://wolftech.no","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"}
+{"analysisId":"7bd7ee76-a22d-448b-be36-59f4ff5308aa","level":"info","message":"Starting accessibility analysis for https://wolftech.no","service":"sitecraft-backend","timestamp":"2025-07-05T11:47:23.230Z"}
+{"analysisId":"7bd7ee76-a22d-448b-be36-59f4ff5308aa","level":"info","message":"Navigating to https://wolftech.no/","service":"sitecraft-backend","timestamp":"2025-07-05T11:47:25.218Z"}
+{"analysisId":"7bd7ee76-a22d-448b-be36-59f4ff5308aa","error":"Navigating frame was detached","level":"error","message":"Analysis failed for https://wolftech.no:","service":"sitecraft-backend","timestamp":"2025-07-05T11:47:28.834Z"}
+{"analysisTime":5608,"error":"Failed to analyze website: Navigating frame was detached","level":"error","message":"Analysis failed","service":"sitecraft-backend","stack":"Error: Failed to analyze website: Navigating frame was detached\n    at AccessibilityAnalyzer.analyzeWebsite (C:\\Sergej\\Code\\Site\\backend\\services\\accessibilityAnalyzer.js:87:13)\n    at async C:\\Sergej\\Code\\Site\\backend\\routes\\accessibility.js:59:22","timestamp":"2025-07-05T11:47:28.837Z","url":"https://wolftech.no"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-05T11:48:49.082Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-05T11:48:49.086Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-05T11:49:07.973Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-05T11:49:07.976Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-05T11:49:24.670Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-05T11:49:24.674Z"}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-05T11:49:43.914Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-05T11:49:43.918Z"}
+{"clientIp":"::1","level":"info","message":"Analysis request received","service":"sitecraft-backend","timestamp":"2025-07-05T11:50:48.529Z","url":"https://wolftech.no","userAgent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36"}
+{"analysisId":"9f613edc-6d9a-472b-a114-76ea13d9b61e","level":"info","message":"Starting accessibility analysis for https://wolftech.no","service":"sitecraft-backend","timestamp":"2025-07-05T11:50:48.532Z"}
+{"analysisId":"9f613edc-6d9a-472b-a114-76ea13d9b61e","level":"info","message":"Navigating to https://wolftech.no/","service":"sitecraft-backend","timestamp":"2025-07-05T11:50:48.965Z"}
+{"analysisId":"9f613edc-6d9a-472b-a114-76ea13d9b61e","level":"info","message":"Running axe-core analysis","service":"sitecraft-backend","timestamp":"2025-07-05T11:50:51.371Z"}
+{"analysisId":"9f613edc-6d9a-472b-a114-76ea13d9b61e","level":"info","message":"Running custom accessibility checks","service":"sitecraft-backend","timestamp":"2025-07-05T11:50:53.187Z"}
+{"analysisId":"9f613edc-6d9a-472b-a114-76ea13d9b61e","level":"info","message":"Getting performance metrics","service":"sitecraft-backend","timestamp":"2025-07-05T11:50:53.195Z"}
+{"analysisId":"9f613edc-6d9a-472b-a114-76ea13d9b61e","level":"info","message":"Analysis completed for https://wolftech.no","service":"sitecraft-backend","timestamp":"2025-07-05T11:50:53.200Z"}
+{"analysisId":"9f613edc-6d9a-472b-a114-76ea13d9b61e","analysisTime":4688,"level":"info","message":"Analysis completed successfully","score":47,"service":"sitecraft-backend","timestamp":"2025-07-05T11:50:53.220Z","url":"https://wolftech.no","violations":6}
+{"level":"info","message":"Server running on port 3001","service":"sitecraft-backend","timestamp":"2025-07-06T08:16:44.149Z"}
+{"level":"info","message":"Environment: development","service":"sitecraft-backend","timestamp":"2025-07-06T08:16:44.156Z"}

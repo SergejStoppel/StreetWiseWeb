@@ -2,14 +2,10 @@
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
-      "Bash(npm init:*)",
-      "Bash(npm install:*)",
-      "Bash(npx prisma:*)",
+      "Bash(copy .env.example .env)",
       "Bash(cp:*)",
-      "Bash(sudo apt:*)",
-      "Bash(apt list:*)",
-      "Bash(dpkg:*)",
-      "Bash(docker:*)"
+      "Bash(find:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }
