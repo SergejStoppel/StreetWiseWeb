@@ -185,13 +185,14 @@ class AccessibilityAnalyzer {
       }, language);
 
       // Final consistency check
-      logger.info(`Final report summary`, {
+      logger.info(`Final report summary (axe-core standardized)`, {
         analysisId,
         requestedReportType: reportType,
         actualReportType: report.reportType,
         imagesWithoutAlt: report.summary.imagesWithoutAlt,
         totalViolations: report.summary.totalViolations,
-        detailedReportImages: detailedReport.summary.imagesWithoutAlt
+        detailedReportImages: detailedReport.summary.imagesWithoutAlt,
+        dataSource: report.summary.dataSource
       });
       
       logger.info(`Analysis completed for ${url}`, { analysisId, score: report.scores.overall, reportType });
@@ -525,14 +526,14 @@ class AccessibilityAnalyzer {
   generateReport(data, language = 'en') {
     const { url, analysisId, metadata, axeResults, customChecks, performanceMetrics, timestamp, reportType = 'overview' } = data;
     
-    // Calculate accessibility score
+    // Calculate accessibility score based on axe-core results
     const totalViolations = axeResults.violations.length;
     const criticalViolations = axeResults.violations.filter(v => v.impact === 'critical').length;
     const seriousViolations = axeResults.violations.filter(v => v.impact === 'serious').length;
     const moderateViolations = axeResults.violations.filter(v => v.impact === 'moderate').length;
     const minorViolations = axeResults.violations.filter(v => v.impact === 'minor').length;
     
-    // Scoring algorithm (0-100)
+    // Scoring algorithm (0-100) - primarily based on axe-core
     let accessibilityScore = 100;
     accessibilityScore -= (criticalViolations * 20);
     accessibilityScore -= (seriousViolations * 10);
@@ -540,30 +541,20 @@ class AccessibilityAnalyzer {
     accessibilityScore -= (minorViolations * 2);
     accessibilityScore = Math.max(0, accessibilityScore);
     
-    // Custom checks scoring - images with missing or meaningless alt text
-    const imagesWithInadequateAlt = customChecks.images.filter(img => 
-      !img.isDecorative && 
-      img.isLoaded && // Only count loaded images
-      img.naturalWidth > 16 && // Exclude very small images (likely icons)
-      img.naturalHeight > 16 &&
-      img.src && // Must have a source
-      !img.src.includes('data:') && // Exclude data URLs (often decorative)
-      (!img.hasAlt || img.hasMeaninglessAlt) // Missing alt OR meaningless alt
-    );
+    // Extract image-related data from axe-core violations instead of custom checks
+    const imageAltViolations = axeResults.violations.filter(v => v.id === 'image-alt');
+    const imagesWithoutAlt = imageAltViolations.reduce((count, violation) => count + violation.nodes.length, 0);
     
-    const formsWithoutLabels = customChecks.forms.reduce((count, form) => 
-      count + form.inputs.filter(input => !input.hasLabel && !input.hasAriaLabel).length, 0);
-    const emptyLinks = customChecks.links.filter(link => link.isEmpty).length;
+    // Extract form-related data from axe-core violations
+    const labelViolations = axeResults.violations.filter(v => v.id === 'label');
+    const formsWithoutLabels = labelViolations.reduce((count, violation) => count + violation.nodes.length, 0);
     
-    let customScore = 100;
-    // Penalties for usability issues
-    customScore -= (imagesWithInadequateAlt.length * 4); // Increased since this includes meaningful content
-    customScore -= (formsWithoutLabels * 5);
-    customScore -= (emptyLinks * 2);
-    customScore = Math.max(0, customScore);
+    // Extract link-related data from axe-core violations  
+    const linkNameViolations = axeResults.violations.filter(v => v.id === 'link-name');
+    const emptyLinks = linkNameViolations.reduce((count, violation) => count + violation.nodes.length, 0);
     
-    // Overall score
-    const overallScore = Math.round((accessibilityScore + customScore) / 2);
+    // Single unified score based on axe-core violations
+    const overallScore = Math.round(accessibilityScore);
     
     // Generate recommendations
     const recommendations = this.generateRecommendations(axeResults, customChecks, reportType, language);
@@ -573,40 +564,39 @@ class AccessibilityAnalyzer {
       criticalViolations === 0 && 
       seriousViolations === 0 && 
       moderateViolations <= 1 && 
-      imagesWithInadequateAlt.length === 0 &&
+      imagesWithoutAlt === 0 &&
       formsWithoutLabels === 0 &&
       emptyLinks === 0;
 
     // Log scoring details for debugging
-    logger.info('Accessibility scoring details', {
+    logger.info('Accessibility scoring details (axe-core based)', {
       analysisId,
       url,
       criticalViolations,
       seriousViolations,
       moderateViolations,
       minorViolations,
-      imagesWithInadequateAlt: imagesWithInadequateAlt.length,
-      totalImagesAnalyzed: customChecks.images.length,
-      imagesWithMeaninglessAlt: customChecks.images.filter(img => img.hasMeaninglessAlt).length,
-      imagesWithoutAltAttribute: customChecks.images.filter(img => !img.hasAlt).length,
+      imagesWithoutAlt,
+      imageAltViolationsCount: imageAltViolations.length,
       formsWithoutLabels,
+      labelViolationsCount: labelViolations.length,
       emptyLinks,
+      linkNameViolationsCount: linkNameViolations.length,
       accessibilityScore: Math.round(accessibilityScore),
-      customScore: Math.round(customScore),
       overallScore,
       hasExcellentAccessibility
     });
     
     // Log data consistency for debugging
-    logger.info(`Report generation for ${reportType}`, {
+    logger.info(`Report generation for ${reportType} (axe-core standardized)`, {
       analysisId,
       url,
       reportType,
-      imagesWithInadequateAlt: imagesWithInadequateAlt.length,
-      totalImagesAnalyzed: customChecks.images.length,
+      imagesWithoutAlt,
       totalViolations,
       criticalViolations,
-      seriousViolations
+      seriousViolations,
+      dataSource: 'axe-core'
     });
 
     const baseReport = {
@@ -616,9 +606,7 @@ class AccessibilityAnalyzer {
       reportType,
       metadata,
       scores: {
-        overall: overallScore,
-        accessibility: Math.round(accessibilityScore),
-        custom: Math.round(customScore)
+        overall: overallScore
       },
       summary: {
         totalViolations,
@@ -626,10 +614,11 @@ class AccessibilityAnalyzer {
         seriousViolations,
         moderateViolations,
         minorViolations,
-        imagesWithoutAlt: imagesWithInadequateAlt.length, // Use new comprehensive count
-        formsWithoutLabels,
-        emptyLinks,
-        hasExcellentAccessibility // Flag for frontend to show appropriate messaging
+        imagesWithoutAlt, // From axe-core violations
+        formsWithoutLabels, // From axe-core violations
+        emptyLinks, // From axe-core violations
+        hasExcellentAccessibility,
+        dataSource: 'axe-core' // Flag to indicate data source
       },
       recommendations,
       reportGenerated: new Date().toISOString()
@@ -762,61 +751,49 @@ class AccessibilityAnalyzer {
         });
       }
       
-      // Check for images with missing or meaningless alt text
-      const imagesWithInadequateAlt = customChecks.images.filter(img => 
-        !img.isDecorative && 
-        img.isLoaded && 
-        img.naturalWidth > 16 && 
-        img.naturalHeight > 16 &&
-        img.src && 
-        !img.src.includes('data:') &&
-        (!img.hasAlt || img.hasMeaninglessAlt)
-      );
+      // Use axe-core image-alt violations for consistency
+      const imageAltViolations = axeResults.violations.filter(v => v.id === 'image-alt');
+      const imagesWithoutAlt = imageAltViolations.reduce((count, violation) => count + violation.nodes.length, 0);
       
-      if (imagesWithInadequateAlt.length > 0) {
-        const missingAlt = imagesWithInadequateAlt.filter(img => !img.hasAlt).length;
-        const meaninglessAlt = imagesWithInadequateAlt.filter(img => img.hasMeaninglessAlt).length;
-        
-        let description = '';
-        if (missingAlt > 0 && meaninglessAlt > 0) {
-          description = i18n.t('reports:recommendations.descriptions.imagesMissingAndMeaninglessAlt', language, { 
-            missing: missingAlt, 
-            meaningless: meaninglessAlt,
-            total: imagesWithInadequateAlt.length
-          });
-        } else if (meaninglessAlt > 0) {
-          description = i18n.t('reports:recommendations.descriptions.imagesMeaninglessAlt', language, { count: meaninglessAlt });
-        } else {
-          description = i18n.t('reports:recommendations.descriptions.imagesMissingAltText', language, { count: missingAlt });
-        }
-        
+      if (imagesWithoutAlt > 0) {
         recommendations.push({
           priority: 'high',
           category: i18n.t('reports:recommendations.categories.images', language),
           title: i18n.t('reports:recommendations.titles.improveImageAltText', language),
-          description,
+          description: i18n.t('reports:recommendations.descriptions.imagesMissingAltText', language, { count: imagesWithoutAlt }),
           action: i18n.t('reports:recommendations.actions.addDescriptiveAltText', language),
           details: {
-            imagesWithIssues: imagesWithInadequateAlt.map(img => ({
-              src: img.src,
-              alt: img.alt,
-              issue: img.hasAlt ? 'meaningless' : 'missing',
-              selector: img.selector,
-              context: img.context
+            violationCount: imagesWithoutAlt,
+            axeViolations: imageAltViolations.map(v => ({
+              description: v.description,
+              help: v.help,
+              helpUrl: v.helpUrl,
+              nodeCount: v.nodes.length
             }))
           }
         });
       }
       
-      const formsWithoutLabels = customChecks.forms.reduce((count, form) => 
-        count + form.inputs.filter(input => !input.hasLabel && !input.hasAriaLabel).length, 0);
+      // Use axe-core label violations for consistency
+      const labelViolations = axeResults.violations.filter(v => v.id === 'label');
+      const formsWithoutLabels = labelViolations.reduce((count, violation) => count + violation.nodes.length, 0);
+      
       if (formsWithoutLabels > 0) {
         recommendations.push({
           priority: 'medium',
           category: i18n.t('reports:recommendations.categories.forms', language),
           title: i18n.t('reports:recommendations.titles.addLabelsToFormFields', language),
           description: i18n.t('reports:recommendations.descriptions.formFieldsMissingLabels', language, { count: formsWithoutLabels }),
-          action: i18n.t('reports:recommendations.actions.associateLabelsWithFormFields', language)
+          action: i18n.t('reports:recommendations.actions.associateLabelsWithFormFields', language),
+          details: {
+            violationCount: formsWithoutLabels,
+            axeViolations: labelViolations.map(v => ({
+              description: v.description,
+              help: v.help,
+              helpUrl: v.helpUrl,
+              nodeCount: v.nodes.length
+            }))
+          }
         });
       }
     } else {
@@ -831,8 +808,11 @@ class AccessibilityAnalyzer {
         });
       }
       
-      if (customChecks.images.some(img => !img.hasAlt) || 
-          customChecks.forms.some(form => form.inputs.some(input => !input.hasLabel))) {
+      // Use axe-core violations for overview recommendations
+      const imageViolations = axeResults.violations.filter(v => v.id === 'image-alt');
+      const labelViolations = axeResults.violations.filter(v => v.id === 'label');
+      
+      if (imageViolations.length > 0 || labelViolations.length > 0) {
         recommendations.push({
           priority: 'medium',
           category: i18n.t('reports:recommendations.categories.contentAndForms', language),
@@ -854,15 +834,26 @@ class AccessibilityAnalyzer {
         });
       }
       
-      // Low priority recommendations - only in detailed
-      const emptyLinks = customChecks.links.filter(link => link.isEmpty);
-      if (emptyLinks.length > 0) {
+      // Low priority recommendations - only in detailed - use axe-core data
+      const linkNameViolations = axeResults.violations.filter(v => v.id === 'link-name');
+      const emptyLinks = linkNameViolations.reduce((count, violation) => count + violation.nodes.length, 0);
+      
+      if (emptyLinks > 0) {
         recommendations.push({
           priority: 'low',
           category: i18n.t('reports:recommendations.categories.links', language),
           title: i18n.t('reports:recommendations.titles.fixEmptyLinks', language),
-          description: i18n.t('reports:recommendations.descriptions.emptyLinksNoTextContent', language, { count: emptyLinks.length }),
-          action: i18n.t('reports:recommendations.actions.addDescriptiveTextToLinks', language)
+          description: i18n.t('reports:recommendations.descriptions.emptyLinksNoTextContent', language, { count: emptyLinks }),
+          action: i18n.t('reports:recommendations.actions.addDescriptiveTextToLinks', language),
+          details: {
+            violationCount: emptyLinks,
+            axeViolations: linkNameViolations.map(v => ({
+              description: v.description,
+              help: v.help,
+              helpUrl: v.helpUrl,
+              nodeCount: v.nodes.length
+            }))
+          }
         });
       }
     }

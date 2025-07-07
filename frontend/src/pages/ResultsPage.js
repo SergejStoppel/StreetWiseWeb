@@ -567,22 +567,10 @@ const ResultsPage = () => {
       <ScoresSection>
         <ScoresGrid>
           <ScoreCard
-            title={t('results.scores.overallTitle')}
-            score={results.scores.overall}
-            description={t('results.scores.overallDescription')}
-            color={results.scores.overall >= 80 ? '#10b981' : results.scores.overall >= 60 ? '#f59e0b' : '#ef4444'}
-          />
-          <ScoreCard
             title={t('results.scores.accessibilityTitle')}
-            score={results.scores.accessibility}
+            score={results.scores.overall}
             description={t('results.scores.accessibilityDescription')}
-            color={results.scores.accessibility >= 80 ? '#10b981' : results.scores.accessibility >= 60 ? '#f59e0b' : '#ef4444'}
-          />
-          <ScoreCard
-            title={t('results.scores.customTitle')}
-            score={results.scores.custom}
-            description={t('results.scores.customDescription')}
-            color={results.scores.custom >= 80 ? '#10b981' : results.scores.custom >= 60 ? '#f59e0b' : '#ef4444'}
+            color={results.scores.overall >= 80 ? '#10b981' : results.scores.overall >= 60 ? '#f59e0b' : '#ef4444'}
           />
         </ScoresGrid>
       </ScoresSection>
