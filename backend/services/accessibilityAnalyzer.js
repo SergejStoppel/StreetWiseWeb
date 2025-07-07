@@ -3,6 +3,7 @@ const { AxePuppeteer } = require('@axe-core/puppeteer');
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
 const pdfGenerator = require('./pdfGenerator');
+const i18n = require('../utils/i18n');
 
 class AccessibilityAnalyzer {
   constructor() {
@@ -58,7 +59,7 @@ class AccessibilityAnalyzer {
     }
   }
 
-  async analyzeWebsite(url, reportType = 'overview') {
+  async analyzeWebsite(url, reportType = 'overview', language = 'en') {
     const analysisId = uuidv4();
     logger.info(`Starting accessibility analysis for ${url}`, { analysisId, reportType });
 
@@ -142,7 +143,7 @@ class AccessibilityAnalyzer {
         performanceMetrics,
         timestamp: new Date().toISOString(),
         reportType: 'detailed'
-      });
+      }, language);
       
       // Store full analysis data in cache with timestamp
       this.analysisCache.set(analysisId, {
@@ -151,7 +152,7 @@ class AccessibilityAnalyzer {
       });
       
       // Generate PDF asynchronously and cache it
-      this.generateAndCachePDF(detailedReport).catch(error => {
+      this.generateAndCachePDF(detailedReport, language).catch(error => {
         logger.error(`PDF generation failed for ${analysisId}:`, error);
       });
       
@@ -165,7 +166,7 @@ class AccessibilityAnalyzer {
         performanceMetrics,
         timestamp: new Date().toISOString(),
         reportType: 'overview'
-      });
+      }, language);
       
       logger.info(`Analysis completed for ${url}`, { analysisId, score: report.scores.overall, reportType });
       
@@ -425,7 +426,7 @@ class AccessibilityAnalyzer {
     }
   }
 
-  generateReport(data) {
+  generateReport(data, language = 'en') {
     const { url, analysisId, metadata, axeResults, customChecks, performanceMetrics, timestamp, reportType = 'overview' } = data;
     
     // Calculate accessibility score
@@ -459,7 +460,7 @@ class AccessibilityAnalyzer {
     const overallScore = Math.round((accessibilityScore + customScore) / 2);
     
     // Generate recommendations
-    const recommendations = this.generateRecommendations(axeResults, customChecks, reportType);
+    const recommendations = this.generateRecommendations(axeResults, customChecks, reportType, language);
     
     const baseReport = {
       analysisId,
@@ -521,15 +522,16 @@ class AccessibilityAnalyzer {
     return baseReport;
   }
 
-  async generateAndCachePDF(reportData) {
+  async generateAndCachePDF(reportData, language = 'en') {
     try {
-      logger.info(`Starting background PDF generation for ${reportData.analysisId}`);
-      const pdfBuffer = await pdfGenerator.generateAccessibilityReport(reportData);
-      this.pdfCache.set(reportData.analysisId, {
+      logger.info(`Starting background PDF generation for ${reportData.analysisId}`, { language });
+      const pdfBuffer = await pdfGenerator.generateAccessibilityReport(reportData, language);
+      const cacheKey = `${reportData.analysisId}_${language}`;
+      this.pdfCache.set(cacheKey, {
         buffer: pdfBuffer,
         timestamp: Date.now()
       });
-      logger.info(`PDF cached successfully for ${reportData.analysisId}`, { size: pdfBuffer.length });
+      logger.info(`PDF cached successfully for ${reportData.analysisId}`, { size: pdfBuffer.length, language });
     } catch (error) {
       logger.error(`PDF generation failed for ${reportData.analysisId}:`, error);
       throw error;
@@ -596,7 +598,7 @@ class AccessibilityAnalyzer {
     logger.debug(`Cache cleanup completed. Analysis cache size: ${this.analysisCache.size}, PDF cache size: ${this.pdfCache.size}`);
   }
 
-  generateRecommendations(axeResults, customChecks, reportType = 'overview') {
+  generateRecommendations(axeResults, customChecks, reportType = 'overview', language = 'en') {
     const recommendations = [];
     
     if (reportType === 'detailed') {
@@ -605,10 +607,10 @@ class AccessibilityAnalyzer {
         const criticalCount = axeResults.violations.filter(v => v.impact === 'critical').length;
         recommendations.push({
           priority: 'high',
-          category: 'Critical Issues',
-          title: 'Fix Critical Accessibility Violations',
-          description: `Your website has ${criticalCount} critical accessibility ${criticalCount === 1 ? 'issue' : 'issues'} that severely impact users with disabilities.`,
-          action: 'Review and fix all critical violations immediately. See detailed violation list below.'
+          category: i18n.t('reports:recommendations.categories.criticalIssues', language),
+          title: i18n.t('reports:recommendations.titles.fixCriticalViolations', language),
+          description: i18n.t('reports:recommendations.descriptions.criticalAccessibilityIssues', language, { count: criticalCount }),
+          action: i18n.t('reports:recommendations.actions.reviewCriticalViolations', language)
         });
       }
       
@@ -616,10 +618,10 @@ class AccessibilityAnalyzer {
       if (imagesWithoutAlt.length > 0) {
         recommendations.push({
           priority: 'high',
-          category: 'Images',
-          title: 'Add Alt Text to Images',
-          description: `${imagesWithoutAlt.length} images are missing alt text.`,
-          action: 'Add descriptive alt text to all images that convey information. See specific images in detailed analysis below.'
+          category: i18n.t('reports:recommendations.categories.images', language),
+          title: i18n.t('reports:recommendations.titles.addAltTextToImages', language),
+          description: i18n.t('reports:recommendations.descriptions.imagesMissingAltText', language, { count: imagesWithoutAlt.length }),
+          action: i18n.t('reports:recommendations.actions.addDescriptiveAltText', language)
         });
       }
       
@@ -628,10 +630,10 @@ class AccessibilityAnalyzer {
       if (formsWithoutLabels > 0) {
         recommendations.push({
           priority: 'medium',
-          category: 'Forms',
-          title: 'Add Labels to Form Fields',
-          description: `${formsWithoutLabels} form fields are missing proper labels.`,
-          action: 'Associate labels with form fields using <label> elements or aria-label attributes. See detailed form analysis below.'
+          category: i18n.t('reports:recommendations.categories.forms', language),
+          title: i18n.t('reports:recommendations.titles.addLabelsToFormFields', language),
+          description: i18n.t('reports:recommendations.descriptions.formFieldsMissingLabels', language, { count: formsWithoutLabels }),
+          action: i18n.t('reports:recommendations.actions.associateLabelsWithFormFields', language)
         });
       }
     } else {
@@ -639,10 +641,10 @@ class AccessibilityAnalyzer {
       if (axeResults.violations.length > 0) {
         recommendations.push({
           priority: 'high',
-          category: 'Accessibility Issues',
-          title: 'Address Accessibility Compliance',
-          description: 'Your website has accessibility issues that may impact users with disabilities and legal compliance.',
-          action: 'Get detailed report to see specific issues and step-by-step fixing instructions.'
+          category: i18n.t('reports:recommendations.categories.accessibilityIssues', language),
+          title: i18n.t('reports:recommendations.titles.addressAccessibilityCompliance', language),
+          description: i18n.t('reports:recommendations.descriptions.accessibilityIssuesOverview', language),
+          action: i18n.t('reports:recommendations.actions.getDetailedReport', language)
         });
       }
       
@@ -650,10 +652,10 @@ class AccessibilityAnalyzer {
           customChecks.forms.some(form => form.inputs.some(input => !input.hasLabel))) {
         recommendations.push({
           priority: 'medium',
-          category: 'Content & Forms',
-          title: 'Improve Content Accessibility',
-          description: 'Some images and form elements may not be accessible to users with assistive technologies.',
-          action: 'Upgrade to detailed report for specific locations and implementation guidance.'
+          category: i18n.t('reports:recommendations.categories.contentAndForms', language),
+          title: i18n.t('reports:recommendations.titles.improveContentAccessibility', language),
+          description: i18n.t('reports:recommendations.descriptions.contentFormsAccessibility', language),
+          action: i18n.t('reports:recommendations.actions.upgradeToDetailedReport', language)
         });
       }
     }
@@ -662,10 +664,10 @@ class AccessibilityAnalyzer {
       if (!customChecks.structure.hasH1) {
         recommendations.push({
           priority: 'medium',
-          category: 'Structure',
-          title: 'Add Main Heading',
-          description: 'Your page is missing an H1 heading.',
-          action: 'Add a clear H1 heading that describes the main content of the page'
+          category: i18n.t('reports:recommendations.categories.structure', language),
+          title: i18n.t('reports:recommendations.titles.addMainHeading', language),
+          description: i18n.t('reports:recommendations.descriptions.missingH1Heading', language),
+          action: i18n.t('reports:recommendations.actions.addClearH1Heading', language)
         });
       }
       
@@ -674,10 +676,10 @@ class AccessibilityAnalyzer {
       if (emptyLinks.length > 0) {
         recommendations.push({
           priority: 'low',
-          category: 'Links',
-          title: 'Fix Empty Links',
-          description: `${emptyLinks.length} links have no text content.`,
-          action: 'Add descriptive text to all links or use aria-label for icon links'
+          category: i18n.t('reports:recommendations.categories.links', language),
+          title: i18n.t('reports:recommendations.titles.fixEmptyLinks', language),
+          description: i18n.t('reports:recommendations.descriptions.emptyLinksNoTextContent', language, { count: emptyLinks.length }),
+          action: i18n.t('reports:recommendations.actions.addDescriptiveTextToLinks', language)
         });
       }
     }

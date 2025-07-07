@@ -32,23 +32,35 @@ class PDFGenerator extends HeaderComponent {
   /**
    * Generate a complete accessibility report PDF
    */
-  async generateAccessibilityReport(reportData) {
+  async generateAccessibilityReport(reportData, language = 'en') {
     try {
-      logger.info('Starting modular PDF generation', { analysisId: reportData.analysisId });
+      logger.info('Starting modular PDF generation', { analysisId: reportData.analysisId, language });
+      console.log('DEBUG: PDFGenerator received language:', language);
+      
+      // Test translation system
+      const testTranslation = this.t('reports:pdf.documentTitle', language);
+      console.log('DEBUG: Test translation for documentTitle:', testTranslation);
+      console.log('DEBUG: Expected German:', 'Website-Barrierefreiheits-Analysebericht');
 
-      // Set reportData for all components
+      // Set reportData and language for all components
       this.reportData = reportData;
+      this.language = language;
       this.executiveSummary.reportData = reportData;
+      this.executiveSummary.language = language;
       this.scoreVisualization.reportData = reportData;
+      this.scoreVisualization.language = language;
       this.violations.reportData = reportData;
+      this.violations.language = language;
       this.recommendations.reportData = reportData;
+      this.recommendations.language = language;
       this.appendix.reportData = reportData;
+      this.appendix.language = language;
 
       // Create new document
-      const doc = this.createDocument(reportData);
+      const doc = this.createDocument(reportData, language);
 
       // Generate all sections
-      this.generateDocumentSections(doc, reportData);
+      this.generateDocumentSections(doc, reportData, language);
 
       // Return PDF buffer
       return this.generateBuffer(doc);
@@ -56,7 +68,8 @@ class PDFGenerator extends HeaderComponent {
     } catch (error) {
       logger.error('PDF generation failed:', { 
         error: error.message, 
-        analysisId: reportData ? reportData.analysisId : 'unknown'
+        analysisId: reportData ? reportData.analysisId : 'unknown',
+        language
       });
       throw new Error(`Failed to generate PDF report: ${error.message}`);
     }
@@ -65,99 +78,104 @@ class PDFGenerator extends HeaderComponent {
   /**
    * Generate all document sections in proper order
    */
-  generateDocumentSections(doc, reportData) {
+  generateDocumentSections(doc, reportData, language = 'en') {
     // 1. Document Header and Branding
-    this.addDocumentHeader(doc, reportData);
+    this.addDocumentHeader(doc, reportData, language);
     
     // 2. Executive Summary
     this.executiveSummary.reportData = reportData;
-    this.executiveSummary.addExecutiveSummary(doc, reportData);
+    this.executiveSummary.language = language;
+    this.executiveSummary.addExecutiveSummary(doc, reportData, language);
     
     // 3. Score Visualization and Metrics
     this.scoreVisualization.reportData = reportData;
-    this.scoreVisualization.addScoreOverview(doc, reportData);
+    this.scoreVisualization.language = language;
+    this.scoreVisualization.addScoreOverview(doc, reportData, language);
     
     // 4. Priority Violations Analysis
     this.violations.reportData = reportData;
-    this.violations.addTopViolations(doc, reportData);
+    this.violations.language = language;
+    this.violations.addTopViolations(doc, reportData, language);
     
     // 5. Strategic Recommendations (starts new page)
     this.recommendations.reportData = reportData;
-    this.recommendations.addRecommendations(doc, reportData);
+    this.recommendations.language = language;
+    this.recommendations.addRecommendations(doc, reportData, language);
     
     // 6. Detailed Findings (if detailed report)
     if (reportData.reportType === 'detailed') {
-      this.addDetailedFindings(doc, reportData);
+      this.addDetailedFindings(doc, reportData, language);
     }
     
     // 7. Technical Appendix (starts new page)
     this.appendix.reportData = reportData;
-    this.appendix.addAppendix(doc, reportData);
+    this.appendix.language = language;
+    this.appendix.addAppendix(doc, reportData, language);
   }
 
   /**
    * Add detailed findings section for comprehensive reports
    */
-  addDetailedFindings(doc, reportData) {
+  addDetailedFindings(doc, reportData, language = 'en') {
     this.addPage(doc);
-    this.addSectionHeader(doc, 'Detailed Technical Analysis');
+    this.addSectionHeader(doc, this.t('reports:pdf.detailedTechnicalAnalysis', language));
     
     // Detailed violations analysis
-    this.violations.addDetailedViolations(doc, reportData);
+    this.violations.addDetailedViolations(doc, reportData, language);
     
     // Custom checks results
     if (reportData.customChecks) {
-      this.addCustomChecksDetails(doc, reportData.customChecks);
+      this.addCustomChecksDetails(doc, reportData.customChecks, language);
     }
     
     // Performance metrics
     if (reportData.performanceMetrics) {
-      this.addPerformanceMetrics(doc, reportData.performanceMetrics);
+      this.addPerformanceMetrics(doc, reportData.performanceMetrics, language);
     }
   }
 
   /**
    * Add custom accessibility checks details
    */
-  addCustomChecksDetails(doc, customChecks) {
+  addCustomChecksDetails(doc, customChecks, language = 'en') {
     this.checkPageBreak(doc, 100);
     
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Custom Accessibility Checks', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.customChecks.title', language), this.margins.left, doc.y);
     
     doc.y += 25;
     
     // Images analysis
     if (customChecks.images && customChecks.images.length > 0) {
-      this.addImageAnalysis(doc, customChecks.images);
+      this.addImageAnalysis(doc, customChecks.images, language);
     }
     
     // Forms analysis
     if (customChecks.forms && customChecks.forms.length > 0) {
-      this.addFormAnalysis(doc, customChecks.forms);
+      this.addFormAnalysis(doc, customChecks.forms, language);
     }
     
     // Heading structure analysis
     if (customChecks.headings && customChecks.headings.length > 0) {
-      this.addHeadingAnalysis(doc, customChecks.headings);
+      this.addHeadingAnalysis(doc, customChecks.headings, language);
     }
     
     // Links analysis
     if (customChecks.links && customChecks.links.length > 0) {
-      this.addLinksAnalysis(doc, customChecks.links);
+      this.addLinksAnalysis(doc, customChecks.links, language);
     }
   }
 
   /**
    * Add image accessibility analysis
    */
-  addImageAnalysis(doc, images) {
+  addImageAnalysis(doc, images, language = 'en') {
     this.checkPageBreak(doc, 80);
     
     doc.fontSize(12)
        .fillColor(this.textColor)
-       .text('Image Accessibility Analysis', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.customChecks.imageAnalysis', language), this.margins.left, doc.y);
     
     doc.y += 20;
     
@@ -168,9 +186,9 @@ class PDFGenerator extends HeaderComponent {
     
     doc.fontSize(10)
        .fillColor(this.textColor)
-       .text(`Total images analyzed: ${images.length}`, this.margins.left + 20, doc.y + 15)
-       .text(`Images without alt text: ${imagesWithoutAlt.length}`, this.margins.left + 20, doc.y + 30)
-       .text(`Decorative images (properly marked): ${decorativeImages.length}`, this.margins.left + 20, doc.y + 45);
+       .text(`${this.t('reports:pdf.customChecks.totalImages', language)}: ${this.formatNumber(images.length, language)}`, this.margins.left + 20, doc.y + 15)
+       .text(`${this.t('reports:pdf.customChecks.imagesWithoutAlt', language)}: ${this.formatNumber(imagesWithoutAlt.length, language)}`, this.margins.left + 20, doc.y + 30)
+       .text(`${this.t('reports:pdf.customChecks.decorativeImages', language)}: ${this.formatNumber(decorativeImages.length, language)}`, this.margins.left + 20, doc.y + 45);
     
     doc.y += 80;
   }
@@ -178,12 +196,12 @@ class PDFGenerator extends HeaderComponent {
   /**
    * Add form accessibility analysis
    */
-  addFormAnalysis(doc, forms) {
+  addFormAnalysis(doc, forms, language = 'en') {
     this.checkPageBreak(doc, 80);
     
     doc.fontSize(12)
        .fillColor(this.textColor)
-       .text('Form Accessibility Analysis', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.customChecks.formAnalysis', language), this.margins.left, doc.y);
     
     doc.y += 20;
     
@@ -195,9 +213,9 @@ class PDFGenerator extends HeaderComponent {
     
     doc.fontSize(10)
        .fillColor(this.textColor)
-       .text(`Total forms analyzed: ${forms.length}`, this.margins.left + 20, doc.y + 15)
-       .text(`Total form inputs: ${totalInputs}`, this.margins.left + 20, doc.y + 30)
-       .text(`Inputs without proper labels: ${unlabeledInputs}`, this.margins.left + 20, doc.y + 45);
+       .text(`${this.t('reports:pdf.customChecks.totalForms', language)}: ${this.formatNumber(forms.length, language)}`, this.margins.left + 20, doc.y + 15)
+       .text(`${this.t('reports:pdf.customChecks.totalInputs', language)}: ${this.formatNumber(totalInputs, language)}`, this.margins.left + 20, doc.y + 30)
+       .text(`${this.t('reports:pdf.customChecks.unlabeledInputs', language)}: ${this.formatNumber(unlabeledInputs, language)}`, this.margins.left + 20, doc.y + 45);
     
     doc.y += 80;
   }
@@ -205,12 +223,12 @@ class PDFGenerator extends HeaderComponent {
   /**
    * Add heading structure analysis
    */
-  addHeadingAnalysis(doc, headings) {
+  addHeadingAnalysis(doc, headings, language = 'en') {
     this.checkPageBreak(doc, 80);
     
     doc.fontSize(12)
        .fillColor(this.textColor)
-       .text('Heading Structure Analysis', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.customChecks.headingAnalysis', language), this.margins.left, doc.y);
     
     doc.y += 20;
     
@@ -221,9 +239,9 @@ class PDFGenerator extends HeaderComponent {
     
     doc.fontSize(10)
        .fillColor(this.textColor)
-       .text(`Total headings found: ${headings.length}`, this.margins.left + 20, doc.y + 15)
-       .text(`H1 headings: ${h1Count}`, this.margins.left + 20, doc.y + 30)
-       .text(`Empty headings: ${emptyHeadings}`, this.margins.left + 20, doc.y + 45);
+       .text(`${this.t('reports:pdf.customChecks.totalHeadings', language)}: ${this.formatNumber(headings.length, language)}`, this.margins.left + 20, doc.y + 15)
+       .text(`${this.t('reports:pdf.customChecks.h1Headings', language)}: ${this.formatNumber(h1Count, language)}`, this.margins.left + 20, doc.y + 30)
+       .text(`${this.t('reports:pdf.customChecks.emptyHeadings', language)}: ${this.formatNumber(emptyHeadings, language)}`, this.margins.left + 20, doc.y + 45);
     
     doc.y += 80;
   }
@@ -231,12 +249,12 @@ class PDFGenerator extends HeaderComponent {
   /**
    * Add links accessibility analysis
    */
-  addLinksAnalysis(doc, links) {
+  addLinksAnalysis(doc, links, language = 'en') {
     this.checkPageBreak(doc, 80);
     
     doc.fontSize(12)
        .fillColor(this.textColor)
-       .text('Links Accessibility Analysis', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.customChecks.linksAnalysis', language), this.margins.left, doc.y);
     
     doc.y += 20;
     
@@ -247,9 +265,9 @@ class PDFGenerator extends HeaderComponent {
     
     doc.fontSize(10)
        .fillColor(this.textColor)
-       .text(`Total links analyzed: ${links.length}`, this.margins.left + 20, doc.y + 15)
-       .text(`Empty links (no text): ${emptyLinks.length}`, this.margins.left + 20, doc.y + 30)
-       .text(`Links opening new windows: ${newWindowLinks.length}`, this.margins.left + 20, doc.y + 45);
+       .text(`${this.t('reports:pdf.customChecks.totalLinks', language)}: ${this.formatNumber(links.length, language)}`, this.margins.left + 20, doc.y + 15)
+       .text(`${this.t('reports:pdf.customChecks.emptyLinks', language)}: ${this.formatNumber(emptyLinks.length, language)}`, this.margins.left + 20, doc.y + 30)
+       .text(`${this.t('reports:pdf.customChecks.newWindowLinks', language)}: ${this.formatNumber(newWindowLinks.length, language)}`, this.margins.left + 20, doc.y + 45);
     
     doc.y += 80;
   }
@@ -257,22 +275,22 @@ class PDFGenerator extends HeaderComponent {
   /**
    * Add performance metrics section
    */
-  addPerformanceMetrics(doc, performanceMetrics) {
+  addPerformanceMetrics(doc, performanceMetrics, language = 'en') {
     this.checkPageBreak(doc, 100);
     
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Performance Impact Analysis', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.performanceMetrics.title', language), this.margins.left, doc.y);
     
     doc.y += 25;
     
     const metrics = [
-      { label: 'Page Load Time', value: `${Math.round(performanceMetrics.loadTime || 0)}ms` },
-      { label: 'DOM Content Loaded', value: `${Math.round(performanceMetrics.domContentLoaded || 0)}ms` },
-      { label: 'First Contentful Paint', value: `${Math.round(performanceMetrics.firstContentfulPaint || 0)}ms` },
-      { label: 'Total Elements', value: performanceMetrics.totalElements || 0 },
-      { label: 'Images Count', value: performanceMetrics.imageCount || 0 },
-      { label: 'Scripts Count', value: performanceMetrics.scriptCount || 0 }
+      { label: this.t('reports:pdf.performanceMetrics.pageLoadTime', language), value: `${Math.round(performanceMetrics.loadTime || 0)}ms` },
+      { label: this.t('reports:pdf.performanceMetrics.domContentLoaded', language), value: `${Math.round(performanceMetrics.domContentLoaded || 0)}ms` },
+      { label: this.t('reports:pdf.performanceMetrics.firstContentfulPaint', language), value: `${Math.round(performanceMetrics.firstContentfulPaint || 0)}ms` },
+      { label: this.t('reports:pdf.performanceMetrics.totalElements', language), value: this.formatNumber(performanceMetrics.totalElements || 0, language) },
+      { label: this.t('reports:pdf.performanceMetrics.imageCount', language), value: this.formatNumber(performanceMetrics.imageCount || 0, language) },
+      { label: this.t('reports:pdf.performanceMetrics.scriptCount', language), value: this.formatNumber(performanceMetrics.scriptCount || 0, language) }
     ];
     
     let xPos = this.margins.left;

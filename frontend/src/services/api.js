@@ -53,27 +53,27 @@ api.interceptors.response.use(
 );
 
 export const accessibilityAPI = {
-  analyzeWebsite: async (url, reportType = 'overview') => {
+  analyzeWebsite: async (url, reportType = 'overview', language = 'en') => {
     try {
-      const response = await api.post('/api/accessibility/analyze', { url, reportType });
+      const response = await api.post('/api/accessibility/analyze', { url, reportType, language });
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  getDetailedReport: async (analysisId) => {
+  getDetailedReport: async (analysisId, language = 'en') => {
     try {
-      const response = await api.get(`/api/accessibility/detailed/${analysisId}`);
+      const response = await api.get(`/api/accessibility/detailed/${analysisId}?language=${language}`);
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  downloadPDF: async (analysisId) => {
+  downloadPDF: async (analysisId, language = 'en') => {
     try {
-      const response = await api.get(`/api/accessibility/pdf/${analysisId}`, {
+      const response = await api.get(`/api/accessibility/pdf/${analysisId}?language=${language}`, {
         responseType: 'blob'
       });
       
@@ -94,16 +94,17 @@ export const accessibilityAPI = {
     }
   },
 
-  generatePDF: async (analysisId, reportData) => {
+  generatePDF: async (analysisId, reportData, language = 'en') => {
     try {
       // Try the new cached PDF endpoint first
-      return await accessibilityAPI.downloadPDF(analysisId);
+      return await accessibilityAPI.downloadPDF(analysisId, language);
     } catch (error) {
       // Fallback to legacy endpoint if needed
       try {
         const response = await api.post('/api/accessibility/generate-pdf', {
           analysisId,
-          reportData
+          reportData,
+          language
         }, {
           responseType: 'blob'
         });

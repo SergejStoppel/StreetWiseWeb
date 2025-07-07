@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { FaChevronDown, FaExclamationTriangle, FaTimesCircle, FaInfoCircle, FaExclamationCircle } from 'react-icons/fa';
 
@@ -187,7 +188,39 @@ const getImpactIcon = (impact) => {
 };
 
 const ViolationsList = ({ violations }) => {
+  const { t } = useTranslation('dashboard');
   const [expandedViolations, setExpandedViolations] = useState(new Set());
+
+  // Helper function to translate Axe-core violation messages
+  const translateViolation = (violation) => {
+    const ruleId = violation.id;
+    
+    // Try to get translated version, fallback to original if not found
+    let translatedHelp = violation.help;
+    let translatedDescription = violation.description;
+    
+    try {
+      const helpKey = `violations.axeViolations.${ruleId}`;
+      const descKey = `violations.axeViolations.${ruleId}-desc`;
+      
+      // Check if translation exists before using it
+      if (t(helpKey) !== helpKey) {
+        translatedHelp = t(helpKey);
+      }
+      if (t(descKey) !== descKey) {
+        translatedDescription = t(descKey);
+      }
+    } catch (error) {
+      // If translation fails, use original text
+      console.log(`Translation not found for violation ${ruleId}`);
+    }
+    
+    return {
+      ...violation,
+      help: translatedHelp,
+      description: translatedDescription
+    };
+  };
 
   const toggleViolation = (violationId) => {
     const newExpanded = new Set(expandedViolations);
@@ -203,9 +236,9 @@ const ViolationsList = ({ violations }) => {
     return (
       <Container>
         <EmptyState>
-          <EmptyTitle>No Accessibility Violations Found</EmptyTitle>
+          <EmptyTitle>{t('violations.noViolations.title')}</EmptyTitle>
           <EmptyDescription>
-            Great! No accessibility violations were detected in the analysis.
+            {t('violations.noViolations.description')}
           </EmptyDescription>
         </EmptyState>
       </Container>
@@ -215,6 +248,7 @@ const ViolationsList = ({ violations }) => {
   return (
     <Container>
       {violations.map((violation, index) => {
+        const translatedViolation = translateViolation(violation);
         const isExpanded = expandedViolations.has(violation.id);
         
         return (
@@ -225,13 +259,13 @@ const ViolationsList = ({ violations }) => {
                   {getImpactIcon(violation.impact)}
                 </ImpactIcon>
                 <div>
-                  <ViolationTitle>{violation.help}</ViolationTitle>
+                  <ViolationTitle>{translatedViolation.help}</ViolationTitle>
                   <ViolationMeta>
                     <ImpactBadge impact={violation.impact}>
-                      {violation.impact || 'Unknown'}
+                      {t('violations.impact.' + (violation.impact || 'unknown'))}
                     </ImpactBadge>
                     <ElementCount>
-                      {violation.nodes.length} element{violation.nodes.length !== 1 ? 's' : ''}
+                      {t('violations.elementCount', { count: violation.nodes.length })}
                     </ElementCount>
                   </ViolationMeta>
                 </div>
@@ -243,12 +277,12 @@ const ViolationsList = ({ violations }) => {
             
             {isExpanded && (
               <ViolationDetails>
-                <Description>{violation.description}</Description>
+                <Description>{translatedViolation.description}</Description>
                 
                 
                 {violation.nodes && violation.nodes.length > 0 && (
                   <NodesSection>
-                    <NodesTitle>Affected Elements:</NodesTitle>
+                    <NodesTitle>{t('violations.affectedElements')}:</NodesTitle>
                     {violation.nodes.slice(0, 5).map((node, nodeIndex) => (
                       <NodeItem key={nodeIndex}>
                         {node.target && (
@@ -263,7 +297,7 @@ const ViolationsList = ({ violations }) => {
                     ))}
                     {violation.nodes.length > 5 && (
                       <NodeMessage>
-                        ... and {violation.nodes.length - 5} more element{violation.nodes.length - 5 !== 1 ? 's' : ''}
+                        {t('violations.moreElements', { count: violation.nodes.length - 5 })}
                       </NodeMessage>
                     )}
                   </NodesSection>

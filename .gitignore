@@ -130,4 +130,3 @@ coverage/
 # Local configuration files
 config.local.js
 config.local.json 
-backend/logs/combined.log

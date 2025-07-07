@@ -13,5 +13,428 @@
   "reportGenerated": "Informe generado el {{date}}",
   "reportId": "ID del Informe: {{id}}",
   "pageCount": "{{count}} página analizada",
-  "pageCount_plural": "{{count}} páginas analizadas"
+  "pageCount_plural": "{{count}} páginas analizadas",
+  "pdf": {
+    "documentTitle": "Informe de Análisis de Accesibilidad Web",
+    "generatedBy": "Generado por SiteCraft",
+    "analysisDate": "Fecha de Análisis",
+    "websiteUrl": "URL del Sitio Web",
+    "overallScore": "Puntuación General de Accesibilidad",
+    "scoreExplanation": "Explicación de la Puntuación",
+    "executiveSummary": "Resumen Ejecutivo",
+    "keyFindings": "Hallazgos Clave",
+    "accessibilityOverview": "Resumen de Accesibilidad",
+    "scoreBreakdown": "Desglose de Puntuación",
+    "priorityViolations": "Violaciones Prioritarias",
+    "strategicRecommendations": "Recomendaciones Estratégicas",
+    "detailedTechnicalAnalysis": "Análisis Técnico Detallado",
+    "technicalAppendix": "Apéndice Técnico",
+    "wcagCompliance": "Cumplimiento WCAG 2.1 AA",
+    "implementationGuidance": "Guía de Implementación",
+    "nextSteps": "Próximos Pasos",
+    "contactInfo": "Información de Contacto",
+    "violationCount": "{{count}} violación encontrada",
+    "violationCount_plural": "{{count}} violaciones encontradas",
+    "criticalIssues": "Problemas Críticos",
+    "seriousIssues": "Problemas Graves",
+    "moderateIssues": "Problemas Moderados",
+    "minorIssues": "Problemas Menores",
+    "noIssues": "No se Encontraron Problemas",
+    "impact": "Impacto",
+    "priority": "Prioridad",
+    "description": "Descripción",
+    "solution": "Solución",
+    "codeExample": "Ejemplo de Código",
+    "learnMore": "Aprende Más",
+    "wcagReference": "Referencia WCAG",
+    "estimatedEffort": "Esfuerzo Estimado",
+    "businessImpact": "Impacto Empresarial",
+    "userImpact": "Impacto en el Usuario",
+    "quickFix": "Solución Rápida",
+    "detailedFix": "Solución Detallada",
+    "testingGuidance": "Guía de Pruebas",
+    "priorityHigh": "Alta Prioridad",
+    "priorityMedium": "Prioridad Media",
+    "priorityLow": "Baja Prioridad",
+    "timeline": "Cronograma",
+    "resources": "Recursos",
+    "scoreRating": {
+      "excellent": "Excelente",
+      "good": "Bueno",
+      "fair": "Aceptable",
+      "needsWork": "Necesita Trabajo",
+      "critical": "Crítico"
+    },
+    "customChecks": {
+      "imageAnalysis": "Análisis de Accesibilidad de Imágenes",
+      "formAnalysis": "Análisis de Accesibilidad de Formularios",
+      "headingAnalysis": "Análisis de Estructura de Encabezados",
+      "linksAnalysis": "Análisis de Accesibilidad de Enlaces",
+      "totalImages": "Total de imágenes analizadas",
+      "imagesWithoutAlt": "Imágenes sin texto alternativo",
+      "decorativeImages": "Imágenes decorativas (correctamente marcadas)",
+      "totalForms": "Total de formularios analizados",
+      "totalInputs": "Total de campos de formulario",
+      "unlabeledInputs": "Campos sin etiquetas apropiadas",
+      "totalHeadings": "Total de encabezados encontrados",
+      "h1Headings": "Encabezados H1",
+      "emptyHeadings": "Encabezados vacíos",
+      "totalLinks": "Total de enlaces analizados",
+      "emptyLinks": "Enlaces vacíos (sin texto)",
+      "newWindowLinks": "Enlaces que abren nuevas ventanas"
+    },
+    "performanceMetrics": {
+      "title": "Análisis de Impacto en el Rendimiento",
+      "pageLoadTime": "Tiempo de Carga de Página",
+      "domContentLoaded": "DOM Contenido Cargado",
+      "firstContentfulPaint": "Primera Pintura de Contenido",
+      "totalElements": "Total de Elementos",
+      "imageCount": "Cantidad de Imágenes",
+      "scriptCount": "Cantidad de Scripts"
+    },
+    "executiveSummaryContent": {
+      "totalViolationsFound": "{{count}} violaciones totales encontradas",
+      "criticalIssuesFound": "{{count}} problemas críticos",
+      "seriousIssuesFound": "{{count}} problemas graves",
+      "wcagCompliance": "Cumplimiento WCAG 2.1 AA: {{percentage}}%",
+      "businessImpactTitle": "Impacto Empresarial y Beneficios",
+      "businessImpactPoint1": "Experiencia de usuario mejorada para el 15% de la población con discapacidades",
+      "businessImpactPoint2": "Rendimiento SEO mejorado a través de mejor marcado semántico",
+      "businessImpactPoint3": "Riesgo de cumplimiento legal reducido y exposición a demandas ADA",
+      "summaryHigh": "Este sitio web demuestra sólidas prácticas de accesibilidad con una puntuación de {{score}}/100. Aunque hay {{violations}} áreas de mejora, el sitio muestra un buen compromiso con el diseño inclusivo. Enfócate en abordar los {{critical}} problemas críticos para lograr excelentes estándares de accesibilidad.",
+      "summaryMedium": "Este sitio web muestra implementación moderada de accesibilidad con una puntuación de {{score}}/100. Hay {{violations}} violaciones que necesitan atención, incluyendo {{critical}} problemas críticos que deben priorizarse. Las mejoras sistemáticas mejorarán significativamente la experiencia del usuario para personas con discapacidades.",
+      "summaryLow": "Este sitio web requiere mejoras significativas de accesibilidad con una puntuación de {{score}}/100. Las {{violations}} violaciones identificadas, incluyendo {{critical}} problemas críticos, presentan barreras para usuarios con discapacidades. Se recomienda acción inmediata para asegurar cumplimiento legal y experiencia inclusiva del usuario.",
+      "urgentActionRequired": "ACCIÓN URGENTE REQUERIDA",
+      "attentionNeeded": "ATENCIÓN NECESARIA"
+    },
+    "scoreVisualization": {
+      "accessibilityScoreBreakdown": "Desglose de Puntuación de Accesibilidad",
+      "scoreInterpretation": "Interpretación de Puntuación",
+      "detailedMetricsBreakdown": "Desglose Detallado de Métricas",
+      "scoreCards": {
+        "overallScore": "Puntuación General",
+        "overallDescription": "Calificación combinada de accesibilidad",
+        "wcagCompliance": "Cumplimiento WCAG",
+        "wcagDescription": "Calificación de cumplimiento de estándares",
+        "customChecks": "Verificaciones Personalizadas",
+        "customDescription": "Métricas adicionales de calidad"
+      },
+      "performanceRatings": {
+        "excellent": "EXCELENTE",
+        "good": "BUENO", 
+        "fair": "ACEPTABLE",
+        "needsWork": "NECESITA TRABAJO",
+        "critical": "CRÍTICO"
+      },
+      "interpretations": {
+        "excellentTitle": "Excelente Accesibilidad - Líder de la Industria",
+        "excellentDescription": "Su sitio web demuestra estándares excepcionales de accesibilidad y sirve como modelo para el diseño inclusivo.",
+        "goodTitle": "Buena Accesibilidad - Por Encima del Promedio",
+        "goodDescription": "Su sitio web cumple con la mayoría de los estándares de accesibilidad con espacio para optimización para lograr la excelencia.",
+        "moderateTitle": "Accesibilidad Moderada - Mejora Necesaria",
+        "moderateDescription": "Su sitio web tiene fundamentos de accesibilidad pero requiere atención a problemas críticos para cumplimiento completo.",
+        "poorTitle": "Accesibilidad Deficiente - Acción Inmediata Requerida",
+        "poorDescription": "Su sitio web tiene barreras significativas de accesibilidad que impiden a usuarios con discapacidades acceder al contenido."
+      },
+      "metrics": {
+        "totalIssues": "Total de Problemas",
+        "critical": "Críticos",
+        "serious": "Graves",
+        "moderate": "Moderados",
+        "minor": "Menores",
+        "imagesWithoutAlt": "Imágenes sin Alt"
+      }
+    },
+    "violations": {
+      "priorityIssuesTitle": "Problemas Prioritarios - Acción Inmediata Requerida",
+      "noCriticalIssuesTitle": "🎉 ¡Excelente! No se Encontraron Problemas Críticos",
+      "noCriticalIssuesDescription": "Su sitio web cumple con los más altos estándares de accesibilidad para violaciones críticas y graves.",
+      "impactLabel": "IMPACTO",
+      "elementsAffected": "{{count}} elemento afectado",
+      "elementsAffected_plural": "{{count}} elementos afectados",
+      "quickFixLabel": "💡 Solución Rápida: ",
+      "completeAnalysisTitle": "Análisis Completo de Violaciones",
+      "noDetailedViolations": "✓ ¡No se detectaron violaciones de accesibilidad en el análisis detallado!",
+      "affectedElementsLabel": "Elementos afectados ({{count}}):",
+      "summaryByImpactTitle": "Resumen de Violaciones por Nivel de Impacto",
+      "impactLevels": {
+        "critical": "Críticos",
+        "serious": "Graves",
+        "moderate": "Moderados",
+        "minor": "Menores"
+      },
+      "quickFixes": {
+        "colorContrast": "Aumentar el contraste del color del texto para cumplir con la relación 4.5:1 para texto normal, 3:1 para texto grande",
+        "imageAlt": "Agregar atributos alt descriptivos a las imágenes: <img src=\"...\" alt=\"Descripción clara\">",
+        "label": "Asociar etiquetas con inputs de formulario: <label for=\"email\">Email</label><input id=\"email\">",
+        "headingOrder": "Usar encabezados en orden lógico: h1 > h2 > h3, no saltar niveles",
+        "linkName": "Proporcionar texto de enlace descriptivo o aria-label para contexto significativo",
+        "buttonName": "Agregar contenido de texto o aria-label a botones para lectores de pantalla",
+        "focusOrder": "Asegurar que elementos interactivos tengan indicadores de foco apropiados y orden de tabulación lógico",
+        "keyboard": "Hacer todos los elementos interactivos accesibles vía navegación por teclado",
+        "ariaAllowed": "Usar solo atributos ARIA válidos según los roles de elementos",
+        "ariaRequired": "Agregar atributos ARIA requeridos para semántica de accesibilidad apropiada",
+        "default": "Revisar las pautas WCAG para detalles específicos de implementación"
+      }
+    },
+    "recommendations": {
+      "strategicRecommendationsTitle": "Recomendaciones Estratégicas y Plan de Acción",
+      "priorityMatrixTitle": "Matriz de Implementación por Prioridad",
+      "categoryLabel": "Categoría",
+      "actionRequiredLabel": "→ Acción Requerida: ",
+      "implementationTimelineTitle": "Cronograma de Implementación y Ejemplos de Código",
+      "codeExamplesTitle": "Ejemplos Comunes de Implementación",
+      "bestPracticesTitle": "Mejores Prácticas de Implementación",
+      "resourcesTitle": "Herramientas y Recursos Recomendados",
+      "priorityLevels": {
+        "high": "ALTA",
+        "medium": "MEDIA",
+        "low": "BAJA"
+      },
+      "timeframes": {
+        "immediate": "Inmediato (1-2 semanas)",
+        "shortTerm": "Corto plazo (2-4 semanas)",
+        "longTerm": "Largo plazo (1-3 meses)"
+      },
+      "descriptions": {
+        "critical": "Barreras críticas de accesibilidad",
+        "important": "Mejoras importantes",
+        "enhancement": "Oportunidades de mejora"
+      },
+      "phases": {
+        "phase1": "Fase 1: Problemas Críticos (Semana 1-2)",
+        "phase2": "Fase 2: Mejoras Importantes (Semana 3-6)",
+        "phase3": "Fase 3: Mejora y Optimización (Mes 2-3)"
+      },
+      "codeLabels": {
+        "before": "Antes (Inaccesible):",
+        "after": "Después (Accesible):"
+      },
+      "examples": {
+        "imageAlt": {
+          "title": "Agregar Texto Alt a Imágenes",
+          "explanation": "Proporcionar texto alternativo descriptivo para lectores de pantalla"
+        },
+        "formLabeling": {
+          "title": "Etiquetado Adecuado de Formularios",
+          "explanation": "Asociar etiquetas con controles de formulario para accesibilidad"
+        },
+        "keyboardNav": {
+          "title": "Soporte de Navegación por Teclado",
+          "explanation": "Usar elementos HTML semánticos para soporte adecuado de teclado"
+        },
+        "colorContrast": {
+          "title": "Mejora del Contraste de Color",
+          "explanation": "Asegurar contraste suficiente para legibilidad del texto"
+        }
+      },
+      "bestPractices": {
+        "screenReaders": "Probar con lectores de pantalla reales (NVDA, JAWS, VoiceOver)",
+        "keyboardTesting": "Implementar pruebas de navegación por teclado en tu flujo de trabajo",
+        "automatedTesting": "Usar herramientas de pruebas automatizadas como parte del pipeline CI/CD",
+        "userTesting": "Involucrar usuarios con discapacidades en las pruebas cuando sea posible",
+        "documentation": "Documentar decisiones y patrones de accesibilidad",
+        "training": "Capacitar al equipo de desarrollo en principios de accesibilidad"
+      },
+      "resourceCategories": {
+        "testing": "Herramientas de Prueba",
+        "design": "Herramientas de Diseño",
+        "development": "Desarrollo"
+      }
+    },
+    "appendix": {
+      "title": "Apéndice y Referencia Técnica",
+      "methodology": {
+        "title": "Metodología de Pruebas y Herramientas",
+        "description": "Nuestro análisis integral de accesibilidad emplea herramientas y metodologías líderes en la industria:",
+        "tools": {
+          "axeCore": "• Axe-core v4.7+ - Motor de pruebas de accesibilidad de Deque Systems",
+          "wcagValidation": "• Validación de cumplimiento WCAG 2.1 Nivel AA",
+          "browserTesting": "• Pruebas automatizadas de navegador con Puppeteer",
+          "heuristicEvaluation": "• Evaluación heurística personalizada para usabilidad",
+          "colorContrast": "• Análisis y medición de contraste de color",
+          "keyboardTesting": "• Pruebas de rutas de navegación por teclado",
+          "screenReaderTesting": "• Evaluación de compatibilidad con lectores de pantalla"
+        }
+      },
+      "wcag": {
+        "title": "Referencia de Pautas WCAG 2.1 Nivel AA",
+        "principles": {
+          "perceivable": {
+            "title": "Perceptible",
+            "description": "La información y los componentes de la interfaz deben ser presentables a los usuarios de maneras que puedan percibir",
+            "guidelines": {
+              "textAlternatives": "Alternativas de texto para imágenes y contenido no textual",
+              "multimedia": "Subtítulos y alternativas para multimedia",
+              "adaptable": "El contenido puede presentarse sin perder significado",
+              "distinguishable": "Contraste suficiente de color entre texto y fondo"
+            }
+          },
+          "operable": {
+            "title": "Operable",
+            "description": "Los componentes de la interfaz de usuario y la navegación deben ser operables",
+            "guidelines": {
+              "keyboard": "Toda la funcionalidad disponible vía teclado",
+              "timing": "Los usuarios tienen tiempo suficiente para leer el contenido",
+              "seizures": "El contenido no causa convulsiones o reacciones físicas",
+              "navigable": "Los usuarios pueden navegar y encontrar contenido"
+            }
+          },
+          "understandable": {
+            "title": "Comprensible",
+            "description": "La información y el funcionamiento de la interfaz de usuario deben ser comprensibles",
+            "guidelines": {
+              "readable": "El texto es legible y comprensible",
+              "predictable": "Las páginas web aparecen y operan de manera predecible",
+              "inputAssistance": "Se ayuda a los usuarios a evitar y corregir errores"
+            }
+          },
+          "robust": {
+            "title": "Robusto",
+            "description": "El contenido debe ser lo suficientemente robusto para la interpretación por tecnologías de asistencia",
+            "guidelines": {
+              "compatible": "Maximizar la compatibilidad con tecnologías de asistencia",
+              "semantic": "Marcado HTML válido y semántico",
+              "futureProof": "Implementaciones de accesibilidad a prueba de futuro"
+            }
+          }
+        }
+      },
+      "compliance": {
+        "title": "Cumplimiento Legal y Estándares",
+        "importantConsiderations": "Consideraciones Legales Importantes:",
+        "points": {
+          "ada": "Requisitos de cumplimiento de la Ley de Estadounidenses con Discapacidades (ADA)",
+          "section508": "Estándares federales de accesibilidad de la Sección 508",
+          "eaa": "Ley de Accesibilidad Europea (EAA) para empresas de la UE",
+          "wcag": "WCAG 2.1 AA como el estándar internacional reconocido"
+        },
+        "standards": {
+          "ada": {
+            "description": "Se aplica a empresas abiertas al público, requiriendo sitios web accesibles para acceso igualitario"
+          },
+          "section508": {
+            "description": "Las agencias federales deben asegurar que la información electrónica sea accesible para personas con discapacidades"
+          },
+          "en301549": {
+            "description": "Estándar europeo para requisitos de accesibilidad de TIC en contratación pública"
+          },
+          "aoda": {
+            "description": "Ley de Accesibilidad para Habitantes de Ontario con Discapacidades - se aplica a empresas de Ontario"
+          }
+        }
+      },
+      "resources": {
+        "title": "Recursos Recomendados y Próximos Pasos",
+        "professionalTitle": "Recursos de Desarrollo Profesional:",
+        "testingTitle": "Herramientas de Prueba y Software:",
+        "professional": {
+          "webaim": "WebAIM (webaim.org) - Capacitación integral en accesibilidad y recursos",
+          "a11yProject": "Proyecto A11y (a11yproject.com) - Lista de verificación de accesibilidad impulsada por la comunidad",
+          "dequeUniversity": "Universidad Deque - Cursos profesionales de capacitación en accesibilidad",
+          "iaap": "Certificación IAAP - Asociación Internacional de Profesionales en Accesibilidad",
+          "mdn": "Documentos de Accesibilidad MDN - Guía de accesibilidad de Mozilla Developer Network"
+        },
+        "testing": {
+          "colorContrast": "Analizador de Contraste de Color - Aplicación de escritorio gratuita para pruebas de contraste",
+          "nvda": "Lector de Pantalla NVDA - Lector de pantalla gratuito para pruebas en Windows",
+          "voiceOver": "VoiceOver - Lector de pantalla integrado de macOS para pruebas",
+          "chromeDevTools": "Panel de Accesibilidad de Chrome DevTools - Herramientas de prueba integradas del navegador",
+          "axeDevTools": "Extensión de Navegador axe DevTools - Pruebas de accesibilidad basadas en navegador"
+        }
+      },
+      "contact": {
+        "title": "¿Preguntas sobre este informe?",
+        "description1": "Contacta a nuestros expertos en accesibilidad para soporte de implementación, capacitación y servicios de consultoría.",
+        "description2": "Proporcionamos soporte continuo para ayudar a tu equipo a lograr y mantener el cumplimiento de accesibilidad."
+      },
+      "techSpecs": {
+        "title": "Especificaciones Técnicas",
+        "analysisEngine": "Motor de Análisis",
+        "browserEngine": "Motor de Navegador",
+        "standardsCompliance": "Cumplimiento de Estándares",
+        "reportGeneration": "Generación de Informe",
+        "analysisScope": "Alcance de Análisis",
+        "analysisScopeValue": "Escaneo automatizado de página única",
+        "manualTesting": "Pruebas Manuales",
+        "manualTestingValue": "Evaluación heurística incluida"
+      },
+      "glossary": {
+        "title": "Glosario de Accesibilidad",
+        "terms": {
+          "altText": {
+            "term": "Texto Alt",
+            "definition": "Texto alternativo que describe imágenes para lectores de pantalla"
+          },
+          "aria": {
+            "term": "ARIA",
+            "definition": "Aplicaciones de Internet Enriquecidas Accesibles - atributos que mejoran la semántica HTML"
+          },
+          "focusManagement": {
+            "term": "Gestión de Foco",
+            "definition": "Controlar dónde se mueve el foco del teclado a través de elementos interactivos"
+          },
+          "screenReader": {
+            "term": "Lector de Pantalla",
+            "definition": "Tecnología de asistencia que lee el contenido web en voz alta para usuarios ciegos"
+          },
+          "semanticHtml": {
+            "term": "HTML Semántico",
+            "definition": "HTML que usa elementos significativos para describir la estructura del contenido"
+          },
+          "skipLinks": {
+            "term": "Enlaces de Salto",
+            "definition": "Enlaces ocultos que permiten a usuarios de teclado saltar al contenido principal"
+          }
+        }
+      }
+    }
+  },
+  "recommendations": {
+    "categories": {
+      "criticalIssues": "Problemas Críticos",
+      "images": "Imágenes",
+      "forms": "Formularios",
+      "accessibilityIssues": "Problemas de Accesibilidad",
+      "contentAndForms": "Contenido y Formularios",
+      "structure": "Estructura",
+      "links": "Enlaces"
+    },
+    "titles": {
+      "fixCriticalViolations": "Corregir Violaciones Críticas de Accesibilidad",
+      "addAltTextToImages": "Agregar Texto Alt a Imágenes",
+      "addLabelsToFormFields": "Agregar Etiquetas a Campos de Formulario",
+      "addressAccessibilityCompliance": "Abordar el Cumplimiento de Accesibilidad",
+      "improveContentAccessibility": "Mejorar la Accesibilidad del Contenido",
+      "addMainHeading": "Agregar Encabezado Principal",
+      "fixEmptyLinks": "Corregir Enlaces Vacíos"
+    },
+    "descriptions": {
+      "criticalAccessibilityIssues": "Su sitio web tiene {{count}} problema crítico de accesibilidad que impacta severamente a usuarios con discapacidades.",
+      "criticalAccessibilityIssues_plural": "Su sitio web tiene {{count}} problemas críticos de accesibilidad que impactan severamente a usuarios con discapacidades.",
+      "imagesMissingAltText": "{{count}} imagen no tiene texto alt.",
+      "imagesMissingAltText_plural": "{{count}} imágenes no tienen texto alt.",
+      "formFieldsMissingLabels": "{{count}} campo de formulario no tiene etiquetas apropiadas.",
+      "formFieldsMissingLabels_plural": "{{count}} campos de formulario no tienen etiquetas apropiadas.",
+      "accessibilityIssuesOverview": "Su sitio web tiene problemas de accesibilidad que pueden impactar a usuarios con discapacidades y el cumplimiento legal.",
+      "contentFormsAccessibility": "Algunas imágenes y elementos de formulario pueden no ser accesibles para usuarios con tecnologías de asistencia.",
+      "missingH1Heading": "Su página no tiene un encabezado H1.",
+      "emptyLinksNoTextContent": "{{count}} enlace no tiene contenido de texto.",
+      "emptyLinksNoTextContent_plural": "{{count}} enlaces no tienen contenido de texto."
+    },
+    "actions": {
+      "reviewCriticalViolations": "Revise y corrija todas las violaciones críticas inmediatamente. Vea la lista detallada de violaciones abajo.",
+      "addDescriptiveAltText": "Agregue texto alt descriptivo a todas las imágenes que transmiten información. Vea imágenes específicas en el análisis detallado abajo.",
+      "associateLabelsWithFormFields": "Asocie etiquetas con campos de formulario usando elementos <label> o atributos aria-label. Vea el análisis detallado de formularios abajo.",
+      "getDetailedReport": "Obtenga un informe detallado para ver problemas específicos e instrucciones paso a paso para solucionarlos.",
+      "upgradeToDetailedReport": "Actualice a informe detallado para ubicaciones específicas y guía de implementación.",
+      "addClearH1Heading": "Agregue un encabezado H1 claro que describa el contenido principal de la página",
+      "addDescriptiveTextToLinks": "Agregue texto descriptivo a todos los enlaces o use aria-label para enlaces de iconos"
+    }
+  },
+  "footer": {
+    "poweredBy": "Desarrollado por SiteCraft - Análisis Profesional de Accesibilidad Web",
+    "contactUs": "Contacta a nuestro equipo para soporte de implementación y consultoría continua de accesibilidad.",
+    "website": "Visita sitecraft.com para más información"
+  }
 }

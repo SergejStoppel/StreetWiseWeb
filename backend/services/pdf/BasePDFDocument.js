@@ -8,6 +8,7 @@
 
 const PDFDocument = require('pdfkit');
 const logger = require('../../utils/logger');
+const i18n = require('../../utils/i18n');
 
 class BasePDFDocument {
   constructor() {
@@ -53,21 +54,47 @@ class BasePDFDocument {
     // Page tracking
     this.currentPageNumber = 1;
     this.reportData = null;
+    this.language = 'en';
+  }
+
+  /**
+   * Translation helper method
+   */
+  t(key, language = null, params = {}) {
+    const lang = language || this.language || 'en';
+    return i18n.t(key, lang, params);
+  }
+
+  /**
+   * Format date for current language
+   */
+  formatDate(date, language = null) {
+    const lang = language || this.language || 'en';
+    return i18n.formatDate(date, lang);
+  }
+
+  /**
+   * Format number for current language
+   */
+  formatNumber(number, language = null) {
+    const lang = language || this.language || 'en';
+    return i18n.formatNumber(number, lang);
   }
 
   /**
    * Initialize a new PDF document with standard settings
    */
-  createDocument(reportData) {
+  createDocument(reportData, language = 'en') {
     this.reportData = reportData;
+    this.language = language;
     
     const doc = new PDFDocument({
       margin: this.margins.top,
       size: 'A4',
       info: {
-        Title: `Accessibility Report - ${reportData.url}`,
+        Title: `${this.t('reports:pdf.documentTitle', language)} - ${reportData.url}`,
         Author: 'SiteCraft',
-        Subject: 'Website Accessibility Analysis',
+        Subject: this.t('reports:pdf.documentTitle', language),
         Creator: 'SiteCraft Accessibility Analyzer'
       }
     });

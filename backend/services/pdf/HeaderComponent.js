@@ -12,7 +12,8 @@ class HeaderComponent extends BasePDFDocument {
   /**
    * Add the main document header with branding and report information
    */
-  addDocumentHeader(doc, reportData) {
+  addDocumentHeader(doc, reportData, language = 'en') {
+    this.language = language;
     // Professional header background
     doc.rect(0, 0, this.pageWidth, 120)
        .fill(this.primaryColor);
@@ -23,7 +24,7 @@ class HeaderComponent extends BasePDFDocument {
        .text('SiteCraft', this.margins.left, 30, { align: 'left' })
        .fontSize(16)
        .fillColor('white')
-       .text('Professional Accessibility Analysis', this.margins.left, 65);
+       .text(this.t('reports:pdf.generatedBy', language), this.margins.left, 65);
     
     // Report type badge
     const badgeX = 400;
@@ -31,7 +32,7 @@ class HeaderComponent extends BasePDFDocument {
        .fill('white')
        .fontSize(12)
        .fillColor(this.primaryColor)
-       .text('DETAILED REPORT', badgeX + 10, 43, { width: 100, align: 'center' });
+       .text(reportData.reportType === 'detailed' ? this.t('reports:detailedFindings', language) : this.t('reports:reportSummary', language), badgeX + 10, 43, { width: 100, align: 'center' });
     
     // Website information section
     doc.rect(0, 120, this.pageWidth, 80)
@@ -39,12 +40,12 @@ class HeaderComponent extends BasePDFDocument {
     
     doc.fontSize(20)
        .fillColor(this.textColor)
-       .text('Website Analysis Report', this.margins.left, 140)
+       .text(this.t('reports:pdf.documentTitle', language), this.margins.left, 140)
        .fontSize(12)
        .fillColor(this.grayColor)
-       .text(`URL: ${reportData.url}`, this.margins.left, 170)
-       .text(`Generated: ${this.formatDate(reportData.timestamp)}`, 300, 170)
-       .text(`Analysis ID: ${reportData.analysisId}`, this.margins.left, 185);
+       .text(`${this.t('reports:pdf.websiteUrl', language)}: ${reportData.url}`, this.margins.left, 170)
+       .text(`${this.t('reports:pdf.analysisDate', language)}: ${this.formatDate(new Date(reportData.timestamp), language)}`, 300, 170)
+       .text(`${this.t('reports:reportId', language, { id: reportData.analysisId })}`, this.margins.left, 185);
     
     // Decorative border
     doc.rect(this.margins.left, 220, this.contentWidth, 2)
@@ -81,18 +82,6 @@ class HeaderComponent extends BasePDFDocument {
     return doc.y;
   }
 
-  /**
-   * Format timestamp for display
-   */
-  formatDate(timestamp) {
-    return new Date(timestamp).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric', 
-      hour: '2-digit', 
-      minute: '2-digit'
-    });
-  }
 
   /**
    * Add company watermark (subtle branding for professional appearance)

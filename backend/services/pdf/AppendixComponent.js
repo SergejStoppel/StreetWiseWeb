@@ -12,11 +12,12 @@ class AppendixComponent extends BasePDFDocument {
   /**
    * Add the complete appendix section
    */
-  addAppendix(doc, reportData) {
+  addAppendix(doc, reportData, language = 'en') {
     // Temporarily set reportData for footer generation
     this.reportData = reportData;
+    this.language = language;
     this.addPage(doc);
-    this.addSectionHeader(doc, 'Appendix & Technical Reference');
+    this.addSectionHeader(doc, this.t('reports:pdf.appendix.title', language));
     
     // Testing methodology
     this.addMethodologySection(doc);
@@ -39,7 +40,7 @@ class AppendixComponent extends BasePDFDocument {
   addMethodologySection(doc) {
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Testing Methodology & Tools', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.appendix.methodology.title', this.language), this.margins.left, doc.y);
     
     doc.y += 25;
 
@@ -48,17 +49,17 @@ class AppendixComponent extends BasePDFDocument {
 
     doc.fontSize(11)
        .fillColor(this.textColor)
-       .text('Our comprehensive accessibility analysis employs industry-leading tools and methodologies:', 
+       .text(this.t('reports:pdf.appendix.methodology.description', this.language), 
              this.margins.left + 20, doc.y + 15);
 
     const tools = [
-      '• Axe-core v4.7+ - Deque Systems\' accessibility testing engine',
-      '• WCAG 2.1 Level AA compliance validation',
-      '• Automated browser testing with Puppeteer',
-      '• Custom heuristic evaluation for usability',
-      '• Color contrast analysis and measurement',
-      '• Keyboard navigation pathway testing',
-      '• Screen reader compatibility assessment'
+      this.t('reports:pdf.appendix.methodology.tools.axeCore', this.language),
+      this.t('reports:pdf.appendix.methodology.tools.wcagValidation', this.language),
+      this.t('reports:pdf.appendix.methodology.tools.browserTesting', this.language),
+      this.t('reports:pdf.appendix.methodology.tools.heuristicEvaluation', this.language),
+      this.t('reports:pdf.appendix.methodology.tools.colorContrast', this.language),
+      this.t('reports:pdf.appendix.methodology.tools.keyboardTesting', this.language),
+      this.t('reports:pdf.appendix.methodology.tools.screenReaderTesting', this.language)
     ];
 
     tools.forEach((tool, index) => {
@@ -76,47 +77,47 @@ class AppendixComponent extends BasePDFDocument {
   addWCAGReference(doc) {
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('WCAG 2.1 Level AA Guidelines Reference', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.appendix.wcag.title', this.language), this.margins.left, doc.y);
     
     doc.y += 25;
 
     const principles = [
       {
-        title: 'Perceivable',
-        description: 'Information and UI components must be presentable to users in ways they can perceive',
+        title: this.t('reports:pdf.appendix.wcag.principles.perceivable.title', this.language),
+        description: this.t('reports:pdf.appendix.wcag.principles.perceivable.description', this.language),
         guidelines: [
-          'Text alternatives for images and non-text content',
-          'Captions and alternatives for multimedia',
-          'Content can be presented without losing meaning',
-          'Sufficient color contrast between text and background'
+          this.t('reports:pdf.appendix.wcag.principles.perceivable.guidelines.textAlternatives', this.language),
+          this.t('reports:pdf.appendix.wcag.principles.perceivable.guidelines.multimedia', this.language),
+          this.t('reports:pdf.appendix.wcag.principles.perceivable.guidelines.adaptable', this.language),
+          this.t('reports:pdf.appendix.wcag.principles.perceivable.guidelines.distinguishable', this.language)
         ]
       },
       {
-        title: 'Operable', 
-        description: 'User interface components and navigation must be operable',
+        title: this.t('reports:pdf.appendix.wcag.principles.operable.title', this.language), 
+        description: this.t('reports:pdf.appendix.wcag.principles.operable.description', this.language),
         guidelines: [
-          'All functionality available via keyboard',
-          'Users have enough time to read content',
-          'Content does not cause seizures or physical reactions',
-          'Users can navigate and find content'
+          this.t('reports:pdf.appendix.wcag.principles.operable.guidelines.keyboard', this.language),
+          this.t('reports:pdf.appendix.wcag.principles.operable.guidelines.timing', this.language),
+          this.t('reports:pdf.appendix.wcag.principles.operable.guidelines.seizures', this.language),
+          this.t('reports:pdf.appendix.wcag.principles.operable.guidelines.navigable', this.language)
         ]
       },
       {
-        title: 'Understandable',
-        description: 'Information and the operation of user interface must be understandable',
+        title: this.t('reports:pdf.appendix.wcag.principles.understandable.title', this.language),
+        description: this.t('reports:pdf.appendix.wcag.principles.understandable.description', this.language),
         guidelines: [
-          'Text is readable and understandable',
-          'Web pages appear and operate predictably',
-          'Users are helped to avoid and correct mistakes'
+          this.t('reports:pdf.appendix.wcag.principles.understandable.guidelines.readable', this.language),
+          this.t('reports:pdf.appendix.wcag.principles.understandable.guidelines.predictable', this.language),
+          this.t('reports:pdf.appendix.wcag.principles.understandable.guidelines.inputAssistance', this.language)
         ]
       },
       {
-        title: 'Robust',
-        description: 'Content must be robust enough for interpretation by assistive technologies',
+        title: this.t('reports:pdf.appendix.wcag.principles.robust.title', this.language),
+        description: this.t('reports:pdf.appendix.wcag.principles.robust.description', this.language),
         guidelines: [
-          'Maximize compatibility with assistive technologies',
-          'Valid, semantic HTML markup',
-          'Future-proof accessibility implementations'
+          this.t('reports:pdf.appendix.wcag.principles.robust.guidelines.compatible', this.language),
+          this.t('reports:pdf.appendix.wcag.principles.robust.guidelines.semantic', this.language),
+          this.t('reports:pdf.appendix.wcag.principles.robust.guidelines.futureProof', this.language)
         ]
       }
     ];
@@ -168,7 +169,7 @@ class AppendixComponent extends BasePDFDocument {
 
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Legal Compliance & Standards', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.appendix.compliance.title', this.language), this.margins.left, doc.y);
     
     doc.y += 25;
 
@@ -177,13 +178,13 @@ class AppendixComponent extends BasePDFDocument {
 
     doc.fontSize(11)
        .fillColor(this.textColor)
-       .text('Important Legal Considerations:', this.margins.left + 20, doc.y + 15);
+       .text(this.t('reports:pdf.appendix.compliance.importantConsiderations', this.language), this.margins.left + 20, doc.y + 15);
 
     const legalPoints = [
-      'Americans with Disabilities Act (ADA) compliance requirements',
-      'Section 508 federal accessibility standards',
-      'European Accessibility Act (EAA) for EU businesses',
-      'WCAG 2.1 AA as the recognized international standard'
+      this.t('reports:pdf.appendix.compliance.points.ada', this.language),
+      this.t('reports:pdf.appendix.compliance.points.section508', this.language),
+      this.t('reports:pdf.appendix.compliance.points.eaa', this.language),
+      this.t('reports:pdf.appendix.compliance.points.wcag', this.language)
     ];
 
     legalPoints.forEach((point, index) => {
@@ -205,19 +206,19 @@ class AppendixComponent extends BasePDFDocument {
     const complianceInfo = [
       {
         standard: 'ADA Title III',
-        description: 'Applies to businesses open to the public, requiring accessible websites for equal access'
+        description: this.t('reports:pdf.appendix.compliance.standards.ada.description', this.language)
       },
       {
         standard: 'Section 508',
-        description: 'Federal agencies must ensure electronic information is accessible to people with disabilities'
+        description: this.t('reports:pdf.appendix.compliance.standards.section508.description', this.language)
       },
       {
         standard: 'EN 301 549',
-        description: 'European standard for ICT accessibility requirements in public procurement'
+        description: this.t('reports:pdf.appendix.compliance.standards.en301549.description', this.language)
       },
       {
         standard: 'AODA',
-        description: 'Accessibility for Ontarians with Disabilities Act - applies to Ontario businesses'
+        description: this.t('reports:pdf.appendix.compliance.standards.aoda.description', this.language)
       }
     ];
 
@@ -243,7 +244,7 @@ class AppendixComponent extends BasePDFDocument {
 
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Recommended Resources & Next Steps', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.appendix.resources.title', this.language), this.margins.left, doc.y);
     
     doc.y += 25;
 
@@ -262,16 +263,16 @@ class AppendixComponent extends BasePDFDocument {
    */
   addProfessionalResources(doc) {
     const resources = [
-      'WebAIM (webaim.org) - Comprehensive accessibility training and resources',
-      'A11y Project (a11yproject.com) - Community-driven accessibility checklist',
-      'Deque University - Professional accessibility training courses',
-      'IAAP Certification - International Association of Accessibility Professionals',
-      'MDN Accessibility Docs - Mozilla Developer Network accessibility guide'
+      this.t('reports:pdf.appendix.resources.professional.webaim', this.language),
+      this.t('reports:pdf.appendix.resources.professional.a11yProject', this.language),
+      this.t('reports:pdf.appendix.resources.professional.dequeUniversity', this.language),
+      this.t('reports:pdf.appendix.resources.professional.iaap', this.language),
+      this.t('reports:pdf.appendix.resources.professional.mdn', this.language)
     ];
 
     doc.fontSize(11)
        .fillColor(this.textColor)
-       .text('Professional Development Resources:', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.appendix.resources.professionalTitle', this.language), this.margins.left, doc.y);
 
     doc.y += 20;
 
@@ -291,16 +292,16 @@ class AppendixComponent extends BasePDFDocument {
   addTestingResources(doc) {
     doc.fontSize(11)
        .fillColor(this.textColor)
-       .text('Testing Tools & Software:', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.appendix.resources.testingTitle', this.language), this.margins.left, doc.y);
 
     doc.y += 20;
 
     const testingTools = [
-      'Color Contrast Analyzer - Free desktop application for contrast testing',
-      'NVDA Screen Reader - Free screen reader for Windows testing',
-      'VoiceOver - Built-in macOS screen reader for testing',
-      'Chrome DevTools Accessibility Panel - Built-in browser testing tools',
-      'axe DevTools Browser Extension - Browser-based accessibility testing'
+      this.t('reports:pdf.appendix.resources.testing.colorContrast', this.language),
+      this.t('reports:pdf.appendix.resources.testing.nvda', this.language),
+      this.t('reports:pdf.appendix.resources.testing.voiceOver', this.language),
+      this.t('reports:pdf.appendix.resources.testing.chromeDevTools', this.language),
+      this.t('reports:pdf.appendix.resources.testing.axeDevTools', this.language)
     ];
 
     testingTools.forEach(tool => {
@@ -322,12 +323,12 @@ class AppendixComponent extends BasePDFDocument {
 
     doc.fontSize(12)
        .fillColor(this.textColor)
-       .text('Questions about this report?', this.margins.left + 20, doc.y + 15)
+       .text(this.t('reports:pdf.appendix.contact.title', this.language), this.margins.left + 20, doc.y + 15)
        .fontSize(10)
        .fillColor(this.grayColor)
-       .text('Contact our accessibility experts for implementation support, training, and consulting services.', 
+       .text(this.t('reports:pdf.appendix.contact.description1', this.language), 
              this.margins.left + 20, doc.y + 35)
-       .text('We provide ongoing support to help your team achieve and maintain accessibility compliance.', 
+       .text(this.t('reports:pdf.appendix.contact.description2', this.language), 
              this.margins.left + 20, doc.y + 55);
 
     doc.y += 100;
@@ -341,17 +342,17 @@ class AppendixComponent extends BasePDFDocument {
 
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Technical Specifications', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.appendix.techSpecs.title', this.language), this.margins.left, doc.y);
     
     doc.y += 25;
 
     const specs = [
-      { label: 'Analysis Engine', value: 'Axe-core v4.7+' },
-      { label: 'Browser Engine', value: 'Chromium (Puppeteer)' },
-      { label: 'Standards Compliance', value: 'WCAG 2.1 Level AA' },
-      { label: 'Report Generation', value: new Date().toLocaleDateString() },
-      { label: 'Analysis Scope', value: 'Single page automated scan' },
-      { label: 'Manual Testing', value: 'Heuristic evaluation included' }
+      { label: this.t('reports:pdf.appendix.techSpecs.analysisEngine', this.language), value: 'Axe-core v4.7+' },
+      { label: this.t('reports:pdf.appendix.techSpecs.browserEngine', this.language), value: 'Chromium (Puppeteer)' },
+      { label: this.t('reports:pdf.appendix.techSpecs.standardsCompliance', this.language), value: 'WCAG 2.1 Level AA' },
+      { label: this.t('reports:pdf.appendix.techSpecs.reportGeneration', this.language), value: new Date().toLocaleDateString() },
+      { label: this.t('reports:pdf.appendix.techSpecs.analysisScope', this.language), value: this.t('reports:pdf.appendix.techSpecs.analysisScopeValue', this.language) },
+      { label: this.t('reports:pdf.appendix.techSpecs.manualTesting', this.language), value: this.t('reports:pdf.appendix.techSpecs.manualTestingValue', this.language) }
     ];
 
     specs.forEach(spec => {
@@ -374,17 +375,17 @@ class AppendixComponent extends BasePDFDocument {
 
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Accessibility Glossary', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.appendix.glossary.title', this.language), this.margins.left, doc.y);
     
     doc.y += 25;
 
     const terms = [
-      { term: 'Alt Text', definition: 'Alternative text that describes images for screen readers' },
-      { term: 'ARIA', definition: 'Accessible Rich Internet Applications - attributes that enhance HTML semantics' },
-      { term: 'Focus Management', definition: 'Controlling where keyboard focus moves through interactive elements' },
-      { term: 'Screen Reader', definition: 'Assistive technology that reads web content aloud for blind users' },
-      { term: 'Semantic HTML', definition: 'HTML that uses meaningful elements to describe content structure' },
-      { term: 'Skip Links', definition: 'Hidden links that allow keyboard users to skip to main content' }
+      { term: this.t('reports:pdf.appendix.glossary.terms.altText.term', this.language), definition: this.t('reports:pdf.appendix.glossary.terms.altText.definition', this.language) },
+      { term: this.t('reports:pdf.appendix.glossary.terms.aria.term', this.language), definition: this.t('reports:pdf.appendix.glossary.terms.aria.definition', this.language) },
+      { term: this.t('reports:pdf.appendix.glossary.terms.focusManagement.term', this.language), definition: this.t('reports:pdf.appendix.glossary.terms.focusManagement.definition', this.language) },
+      { term: this.t('reports:pdf.appendix.glossary.terms.screenReader.term', this.language), definition: this.t('reports:pdf.appendix.glossary.terms.screenReader.definition', this.language) },
+      { term: this.t('reports:pdf.appendix.glossary.terms.semanticHtml.term', this.language), definition: this.t('reports:pdf.appendix.glossary.terms.semanticHtml.definition', this.language) },
+      { term: this.t('reports:pdf.appendix.glossary.terms.skipLinks.term', this.language), definition: this.t('reports:pdf.appendix.glossary.terms.skipLinks.definition', this.language) }
     ];
 
     terms.forEach(item => {

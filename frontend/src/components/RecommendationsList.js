@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { FaExclamationTriangle, FaInfoCircle, FaCheckCircle } from 'react-icons/fa';
 
@@ -154,13 +155,14 @@ const getPriorityIcon = (priority) => {
 };
 
 const RecommendationsList = ({ recommendations }) => {
+  const { t } = useTranslation('dashboard');
   if (!recommendations || recommendations.length === 0) {
     return (
       <Container>
         <EmptyState>
-          <EmptyTitle>No Recommendations Available</EmptyTitle>
+          <EmptyTitle>{t('recommendations.noRecommendations.title')}</EmptyTitle>
           <EmptyDescription>
-            No specific recommendations were generated for this analysis.
+            {t('recommendations.noRecommendations.description')}
           </EmptyDescription>
         </EmptyState>
       </Container>
@@ -185,7 +187,7 @@ const RecommendationsList = ({ recommendations }) => {
               <RecommendationTitle>{recommendation.title}</RecommendationTitle>
               <RecommendationMeta>
                 <PriorityBadge priority={recommendation.priority}>
-                  {recommendation.priority} Priority
+                  {t('recommendations.priority.' + recommendation.priority)} {t('recommendations.priorityLabel')}
                 </PriorityBadge>
                 {recommendation.category && (
                   <CategoryBadge>{recommendation.category}</CategoryBadge>
@@ -193,7 +195,7 @@ const RecommendationsList = ({ recommendations }) => {
               </RecommendationMeta>
               <Description>{recommendation.description}</Description>
               <ActionSection priority={recommendation.priority}>
-                <ActionTitle>Recommended Action</ActionTitle>
+                <ActionTitle>{t('recommendations.recommendedAction')}</ActionTitle>
                 <ActionText>{recommendation.action}</ActionText>
               </ActionSection>
             </RecommendationContent>
