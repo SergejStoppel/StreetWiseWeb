@@ -116,6 +116,30 @@
     "elementCount_plural": "{{count}} elementos",
     "affectedElements": "Elementos Afectados",
     "moreElements": "... y {{count}} elemento más",
-    "moreElements_plural": "... y {{count}} elementos más"
+    "moreElements_plural": "... y {{count}} elementos más",
+    "axeViolations": {
+      "color-contrast": "Los elementos deben cumplir con los umbrales mínimos de relación de contraste de color",
+      "color-contrast-desc": "Asegúrese de que el contraste entre los colores de primer plano y fondo cumple con los umbrales mínimos de relación de contraste WCAG 2 AA",
+      "heading-order": "Los niveles de encabezado solo deben aumentar de uno en uno",
+      "heading-order-desc": "Asegúrese de que el orden de los encabezados sea semánticamente correcto",
+      "link-name": "Los enlaces deben tener texto discernible",
+      "link-name-desc": "Asegúrese de que los enlaces tengan texto discernible",
+      "meta-viewport": "El zoom y la escala no deben estar deshabilitados",
+      "meta-viewport-desc": "Asegúrese de que <meta name=\"viewport\"> no deshabilite el escalado de texto y el zoom",
+      "region": "Todo el contenido de la página debe estar contenido por landmarks",
+      "region-desc": "Asegúrese de que todo el contenido de la página esté contenido por landmarks",
+      "tabindex": "Los elementos no deben tener tabindex mayor que cero",
+      "tabindex-desc": "Asegúrese de que los valores del atributo tabindex no sean mayores que 0",
+      "image-alt": "Las imágenes deben tener texto alternativo",
+      "image-alt-desc": "Asegúrese de que los elementos <img> tengan texto alternativo o un rol de none o presentation",
+      "label": "Los elementos de formulario deben tener etiquetas",
+      "label-desc": "Asegúrese de que cada elemento de formulario tenga una etiqueta",
+      "button-name": "Los botones deben tener texto discernible",
+      "button-name-desc": "Asegúrese de que los botones tengan texto discernible",
+      "aria-allowed-attr": "Los atributos ARIA deben ser válidos",
+      "aria-allowed-attr-desc": "Asegúrese de que los atributos ARIA estén permitidos para el rol de un elemento",
+      "aria-required-attr": "Los atributos ARIA requeridos deben ser proporcionados",
+      "aria-required-attr-desc": "Asegúrese de que los elementos con roles ARIA tengan todos los atributos ARIA requeridos"
+    }
   }
 }

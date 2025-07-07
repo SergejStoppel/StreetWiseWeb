@@ -191,6 +191,37 @@ const ViolationsList = ({ violations }) => {
   const { t } = useTranslation('dashboard');
   const [expandedViolations, setExpandedViolations] = useState(new Set());
 
+  // Helper function to translate Axe-core violation messages
+  const translateViolation = (violation) => {
+    const ruleId = violation.id;
+    
+    // Try to get translated version, fallback to original if not found
+    let translatedHelp = violation.help;
+    let translatedDescription = violation.description;
+    
+    try {
+      const helpKey = `violations.axeViolations.${ruleId}`;
+      const descKey = `violations.axeViolations.${ruleId}-desc`;
+      
+      // Check if translation exists before using it
+      if (t(helpKey) !== helpKey) {
+        translatedHelp = t(helpKey);
+      }
+      if (t(descKey) !== descKey) {
+        translatedDescription = t(descKey);
+      }
+    } catch (error) {
+      // If translation fails, use original text
+      console.log(`Translation not found for violation ${ruleId}`);
+    }
+    
+    return {
+      ...violation,
+      help: translatedHelp,
+      description: translatedDescription
+    };
+  };
+
   const toggleViolation = (violationId) => {
     const newExpanded = new Set(expandedViolations);
     if (newExpanded.has(violationId)) {
@@ -217,6 +248,7 @@ const ViolationsList = ({ violations }) => {
   return (
     <Container>
       {violations.map((violation, index) => {
+        const translatedViolation = translateViolation(violation);
         const isExpanded = expandedViolations.has(violation.id);
         
         return (
@@ -227,7 +259,7 @@ const ViolationsList = ({ violations }) => {
                   {getImpactIcon(violation.impact)}
                 </ImpactIcon>
                 <div>
-                  <ViolationTitle>{violation.help}</ViolationTitle>
+                  <ViolationTitle>{translatedViolation.help}</ViolationTitle>
                   <ViolationMeta>
                     <ImpactBadge impact={violation.impact}>
                       {t('violations.impact.' + (violation.impact || 'unknown'))}
@@ -245,7 +277,7 @@ const ViolationsList = ({ violations }) => {
             
             {isExpanded && (
               <ViolationDetails>
-                <Description>{violation.description}</Description>
+                <Description>{translatedViolation.description}</Description>
                 
                 
                 {violation.nodes && violation.nodes.length > 0 && (

@@ -116,6 +116,30 @@
     "elementCount_plural": "{{count}} Elemente",
     "affectedElements": "Betroffene Elemente",
     "moreElements": "... und {{count}} weiteres Element",
-    "moreElements_plural": "... und {{count}} weitere Elemente"
+    "moreElements_plural": "... und {{count}} weitere Elemente",
+    "axeViolations": {
+      "color-contrast": "Elemente müssen minimale Farbkontrast-Verhältnis-Schwellenwerte erfüllen",
+      "color-contrast-desc": "Stellen Sie sicher, dass der Kontrast zwischen Vordergrund- und Hintergrundfarben die WCAG 2 AA minimalen Kontrastverhältnis-Schwellenwerte erfüllt",
+      "heading-order": "Überschriften-Ebenen sollten nur um eins erhöht werden",
+      "heading-order-desc": "Stellen Sie sicher, dass die Reihenfolge der Überschriften semantisch korrekt ist",
+      "link-name": "Links müssen erkennbaren Text haben",
+      "link-name-desc": "Stellen Sie sicher, dass Links erkennbaren Text haben",
+      "meta-viewport": "Zoomen und Skalieren dürfen nicht deaktiviert sein",
+      "meta-viewport-desc": "Stellen Sie sicher, dass <meta name=\"viewport\"> Textskalierung und Zoomen nicht deaktiviert",
+      "region": "Alle Seiteninhalte sollten von Landmarks enthalten sein",
+      "region-desc": "Stellen Sie sicher, dass alle Seiteninhalte von Landmarks enthalten sind",
+      "tabindex": "Elemente sollten keinen tabindex größer als null haben",
+      "tabindex-desc": "Stellen Sie sicher, dass tabindex-Attributwerte nicht größer als 0 sind",
+      "image-alt": "Bilder müssen Alternativtext haben",
+      "image-alt-desc": "Stellen Sie sicher, dass <img>-Elemente Alternativtext oder eine Rolle von none oder presentation haben",
+      "label": "Formularelemente müssen Beschriftungen haben",
+      "label-desc": "Stellen Sie sicher, dass jedes Formularelement eine Beschriftung hat",
+      "button-name": "Schaltflächen müssen erkennbaren Text haben",
+      "button-name-desc": "Stellen Sie sicher, dass Schaltflächen erkennbaren Text haben",
+      "aria-allowed-attr": "ARIA-Attribute müssen gültig sein",
+      "aria-allowed-attr-desc": "Stellen Sie sicher, dass ARIA-Attribute für die Rolle eines Elements erlaubt sind",
+      "aria-required-attr": "Erforderliche ARIA-Attribute müssen bereitgestellt werden",
+      "aria-required-attr-desc": "Stellen Sie sicher, dass Elemente mit ARIA-Rollen alle erforderlichen ARIA-Attribute haben"
+    }
   }
 }

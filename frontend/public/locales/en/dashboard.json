@@ -116,6 +116,30 @@
     "elementCount_plural": "{{count}} elements",
     "affectedElements": "Affected Elements",
     "moreElements": "... and {{count}} more element",
-    "moreElements_plural": "... and {{count}} more elements"
+    "moreElements_plural": "... and {{count}} more elements",
+    "axeViolations": {
+      "color-contrast": "Elements must meet minimum color contrast ratio thresholds",
+      "color-contrast-desc": "Ensure the contrast between foreground and background colors meets WCAG 2 AA minimum contrast ratio thresholds",
+      "heading-order": "Heading levels should only increase by one",
+      "heading-order-desc": "Ensure the order of headings is semantically correct",
+      "link-name": "Links must have discernible text",
+      "link-name-desc": "Ensure links have discernible text",
+      "meta-viewport": "Zooming and scaling must not be disabled",
+      "meta-viewport-desc": "Ensure <meta name=\"viewport\"> does not disable text scaling and zooming",
+      "region": "All page content should be contained by landmarks",
+      "region-desc": "Ensure all page content is contained by landmarks",
+      "tabindex": "Elements should not have tabindex greater than zero",
+      "tabindex-desc": "Ensure tabindex attribute values are not greater than 0",
+      "image-alt": "Images must have alternate text",
+      "image-alt-desc": "Ensure <img> elements have alternate text or a role of none or presentation",
+      "label": "Form elements must have labels",
+      "label-desc": "Ensure every form element has a label",
+      "button-name": "Buttons must have discernible text",
+      "button-name-desc": "Ensure buttons have discernible text",
+      "aria-allowed-attr": "ARIA attributes must be valid",
+      "aria-allowed-attr-desc": "Ensure ARIA attributes are allowed for an element's role",
+      "aria-required-attr": "Required ARIA attributes must be provided",
+      "aria-required-attr-desc": "Ensure elements with ARIA roles have all required ARIA attributes"
+    }
   }
 }
