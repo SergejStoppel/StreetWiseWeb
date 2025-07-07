@@ -188,7 +188,8 @@ router.get('/detailed/:analysisId', async (req, res) => {
         detailedReport.axeResults,
         detailedReport.customChecks,
         detailedReport.reportType,
-        language
+        language,
+        detailedReport.colorContrastAnalysis
       );
     }
     

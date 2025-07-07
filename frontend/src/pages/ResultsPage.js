@@ -13,6 +13,7 @@ import {
   FaImage,
   FaWpforms,
   FaLink,
+  FaPalette,
   FaCrown,
   FaLock,
   FaStar
@@ -383,6 +384,143 @@ const NoResultsText = styled.p`
   margin-bottom: 2rem;
 `;
 
+// Color Contrast Analysis Components
+const ColorContrastOverview = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+`;
+
+const ContrastCard = styled.div`
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+`;
+
+const ContrastValue = styled.div`
+  font-size: 2rem;
+  font-weight: bold;
+  color: ${props => props.color || '#374151'};
+  margin-bottom: 0.5rem;
+`;
+
+const ContrastLabel = styled.div`
+  font-size: 0.875rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+`;
+
+const ContrastDescription = styled.div`
+  font-size: 0.75rem;
+  color: #9ca3af;
+`;
+
+const ViolationExample = styled.div`
+  background: #fef7f7;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 1rem;
+  margin: 0.5rem 0;
+`;
+
+const ViolationMessage = styled.div`
+  font-size: 0.875rem;
+  color: #374151;
+  margin-bottom: 0.5rem;
+`;
+
+const ViolationRatio = styled.div`
+  font-size: 0.75rem;
+  color: #dc2626;
+  font-family: 'Courier New', monospace;
+`;
+
+const ColorContrastSection = ({ analysis }) => {
+  const { t } = useTranslation('dashboard');
+  
+  if (!analysis || analysis.totalViolations === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      <ColorContrastOverview>
+        <ContrastCard>
+          <ContrastValue color="#dc2626">{analysis.totalViolations}</ContrastValue>
+          <ContrastLabel>{t('colorContrast.totalViolations')}</ContrastLabel>
+          <ContrastDescription>{t('colorContrast.totalDescription')}</ContrastDescription>
+        </ContrastCard>
+        
+        <ContrastCard>
+          <ContrastValue color="#dc2626">{analysis.aaViolations}</ContrastValue>
+          <ContrastLabel>{t('colorContrast.aaViolations')}</ContrastLabel>
+          <ContrastDescription>{t('colorContrast.aaDescription')}</ContrastDescription>
+        </ContrastCard>
+        
+        <ContrastCard>
+          <ContrastValue color="#f59e0b">{analysis.aaaViolations || 0}</ContrastValue>
+          <ContrastLabel>{t('colorContrast.aaaViolations')}</ContrastLabel>
+          <ContrastDescription>{t('colorContrast.aaaDescription')}</ContrastDescription>
+        </ContrastCard>
+        
+        {analysis.summary && (
+          <ContrastCard>
+            <ContrastValue color={analysis.summary.aaComplianceLevel >= 90 ? '#10b981' : '#dc2626'}>
+              {analysis.summary.aaComplianceLevel}%
+            </ContrastValue>
+            <ContrastLabel>{t('colorContrast.aaCompliance')}</ContrastLabel>
+            <ContrastDescription>{t('colorContrast.complianceDescription')}</ContrastDescription>
+          </ContrastCard>
+        )}
+      </ColorContrastOverview>
+
+      {/* Simplified actionable guidance instead of repetitive examples */}
+      {analysis.violations && analysis.violations.colorContrast && analysis.violations.colorContrast.length > 0 && (
+        <div style={{ marginTop: '1.5rem' }}>
+          <h4 style={{ marginBottom: '1rem', color: '#374151' }}>
+            {t('colorContrast.actionGuidance')}
+          </h4>
+          <div style={{ 
+            background: '#fef7f7', 
+            border: '1px solid #fecaca', 
+            borderRadius: '8px', 
+            padding: '1.5rem',
+            marginBottom: '1rem'
+          }}>
+            <div style={{ fontSize: '0.875rem', color: '#dc2626', fontWeight: '600', marginBottom: '0.5rem' }}>
+              {t('colorContrast.mainIssue')}
+            </div>
+            <div style={{ fontSize: '0.875rem', color: '#374151', marginBottom: '1rem' }}>
+              {t('colorContrast.elementsToFixWeb', { count: analysis.aaViolations })}
+            </div>
+            <div style={{ fontSize: '0.8125rem', color: '#6b7280', lineHeight: '1.5' }}>
+              {t('colorContrast.howToFixWeb')}
+            </div>
+          </div>
+          
+          <div style={{ 
+            background: '#f0f9ff', 
+            border: '1px solid #bfdbfe', 
+            borderRadius: '6px', 
+            padding: '1rem'
+          }}>
+            <div style={{ fontSize: '0.8125rem', color: '#1e40af', fontWeight: '600', marginBottom: '0.5rem' }}>
+              💡 {t('colorContrast.quickTip')}
+            </div>
+            <div style={{ fontSize: '0.75rem', color: '#475569' }}>
+              {t('colorContrast.quickTipDetails')}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
 const ResultsPage = () => {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -625,6 +763,14 @@ const ResultsPage = () => {
             <SummaryValue>{results.summary.emptyLinks}</SummaryValue>
             <SummaryLabel>{t('results.summary.emptyLinks')}</SummaryLabel>
           </SummaryCard>
+          
+          <SummaryCard>
+            <SummaryIcon color="#dc2626">
+              <FaPalette />
+            </SummaryIcon>
+            <SummaryValue>{results.summary.colorContrastViolations || 0}</SummaryValue>
+            <SummaryLabel>{t('results.summary.colorContrastIssues')}</SummaryLabel>
+          </SummaryCard>
         </SummaryGrid>
       </SummarySection>
 
@@ -634,13 +780,23 @@ const ResultsPage = () => {
       </Section>
 
       {results.reportType === 'detailed' ? (
-        // Detailed report shows full violations list
-        results.axeResults && (
-          <Section>
-            <SectionTitle>{t('results.sections.accessibilityViolations')}</SectionTitle>
-            <ViolationsList violations={results.axeResults.violations} />
-          </Section>
-        )
+        <>
+          {/* Color Contrast Analysis for detailed reports */}
+          {results.colorContrastAnalysis && results.colorContrastAnalysis.totalViolations > 0 && (
+            <Section>
+              <SectionTitle>{t('results.sections.colorContrastAnalysis')}</SectionTitle>
+              <ColorContrastSection analysis={results.colorContrastAnalysis} />
+            </Section>
+          )}
+          
+          {/* Full violations list */}
+          {results.axeResults && (
+            <Section>
+              <SectionTitle>{t('results.sections.accessibilityViolations')}</SectionTitle>
+              <ViolationsList violations={results.axeResults.violations} />
+            </Section>
+          )}
+        </>
       ) : (
         // Overview report shows very limited information
         <>

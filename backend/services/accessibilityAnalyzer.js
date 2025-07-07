@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
 const pdfGenerator = require('./pdfGenerator');
 const i18n = require('../utils/i18n');
+const colorContrastAnalyzer = require('./analysis/colorContrastAnalyzer');
 
 class AccessibilityAnalyzer {
   constructor() {
@@ -146,6 +147,13 @@ class AccessibilityAnalyzer {
       // Run custom accessibility checks
       const customChecks = await this.runCustomChecks(page, analysisId);
       
+      // Run comprehensive color contrast analysis
+      const colorContrastAnalysis = colorContrastAnalyzer.analyzeColorContrast(
+        axeResults, 
+        customChecks.colors, 
+        analysisId
+      );
+      
       // Get performance metrics
       const performanceMetrics = await this.getPerformanceMetrics(page, analysisId);
       
@@ -156,6 +164,7 @@ class AccessibilityAnalyzer {
         metadata,
         axeResults,
         customChecks,
+        colorContrastAnalysis,
         performanceMetrics,
         timestamp: new Date().toISOString(),
         reportType: 'detailed'
@@ -179,6 +188,7 @@ class AccessibilityAnalyzer {
         metadata,
         axeResults,
         customChecks,
+        colorContrastAnalysis,
         performanceMetrics,
         timestamp: new Date().toISOString(),
         reportType: 'overview'
@@ -524,7 +534,7 @@ class AccessibilityAnalyzer {
   }
 
   generateReport(data, language = 'en') {
-    const { url, analysisId, metadata, axeResults, customChecks, performanceMetrics, timestamp, reportType = 'overview' } = data;
+    const { url, analysisId, metadata, axeResults, customChecks, colorContrastAnalysis, performanceMetrics, timestamp, reportType = 'overview' } = data;
     
     // Calculate accessibility score based on axe-core results
     const totalViolations = axeResults.violations.length;
@@ -557,7 +567,7 @@ class AccessibilityAnalyzer {
     const overallScore = Math.round(accessibilityScore);
     
     // Generate recommendations
-    const recommendations = this.generateRecommendations(axeResults, customChecks, reportType, language);
+    const recommendations = this.generateRecommendations(axeResults, customChecks, reportType, language, colorContrastAnalysis);
     
     // Determine if site has excellent accessibility (very few/no real issues)
     const hasExcellentAccessibility = 
@@ -617,6 +627,8 @@ class AccessibilityAnalyzer {
         imagesWithoutAlt, // From axe-core violations
         formsWithoutLabels, // From axe-core violations
         emptyLinks, // From axe-core violations
+        colorContrastViolations: colorContrastAnalysis?.totalViolations || 0,
+        colorContrastAAViolations: colorContrastAnalysis?.aaViolations || 0,
         hasExcellentAccessibility,
         dataSource: 'axe-core' // Flag to indicate data source
       },
@@ -628,6 +640,7 @@ class AccessibilityAnalyzer {
     if (reportType === 'detailed') {
       baseReport.axeResults = axeResults;
       baseReport.customChecks = customChecks;
+      baseReport.colorContrastAnalysis = colorContrastAnalysis;
       baseReport.performanceMetrics = performanceMetrics;
     } else {
       // Overview report - show only basic issue counts, no specific violations
@@ -735,7 +748,7 @@ class AccessibilityAnalyzer {
     logger.debug(`Cache cleanup completed. Analysis cache size: ${this.analysisCache.size}, PDF cache size: ${this.pdfCache.size}`);
   }
 
-  generateRecommendations(axeResults, customChecks, reportType = 'overview', language = 'en') {
+  generateRecommendations(axeResults, customChecks, reportType = 'overview', language = 'en', colorContrastAnalysis = null) {
     const recommendations = [];
     
     if (reportType === 'detailed') {
@@ -793,6 +806,23 @@ class AccessibilityAnalyzer {
               helpUrl: v.helpUrl,
               nodeCount: v.nodes.length
             }))
+          }
+        });
+      }
+      
+      // Add color contrast recommendations if analysis is available
+      if (colorContrastAnalysis && colorContrastAnalysis.aaViolations > 0) {
+        recommendations.push({
+          priority: 'high',
+          category: i18n.t('reports:recommendations.categories.colorContrast', language),
+          title: i18n.t('reports:recommendations.titles.improveColorContrast', language),
+          description: i18n.t('reports:recommendations.descriptions.colorContrastViolations', language, { count: colorContrastAnalysis.aaViolations }),
+          action: i18n.t('reports:recommendations.actions.adjustColorContrast', language),
+          details: {
+            aaViolations: colorContrastAnalysis.aaViolations,
+            aaaViolations: colorContrastAnalysis.aaaViolations || 0,
+            complianceLevel: colorContrastAnalysis.summary?.aaComplianceLevel || 0,
+            recommendations: colorContrastAnalysis.summary?.recommendations || []
           }
         });
       }

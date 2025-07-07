@@ -14,6 +14,7 @@ const HeaderComponent = require('./HeaderComponent');
 const ExecutiveSummaryComponent = require('./ExecutiveSummaryComponent');
 const ScoreVisualizationComponent = require('./ScoreVisualizationComponent');
 const ViolationsComponent = require('./ViolationsComponent');
+const ColorContrastComponent = require('./ColorContrastComponent');
 const RecommendationsComponent = require('./RecommendationsComponent');
 const AppendixComponent = require('./AppendixComponent');
 
@@ -25,6 +26,7 @@ class PDFGenerator extends HeaderComponent {
     this.executiveSummary = new ExecutiveSummaryComponent();
     this.scoreVisualization = new ScoreVisualizationComponent();
     this.violations = new ViolationsComponent();
+    this.colorContrast = new ColorContrastComponent();
     this.recommendations = new RecommendationsComponent();
     this.appendix = new AppendixComponent();
   }
@@ -51,6 +53,8 @@ class PDFGenerator extends HeaderComponent {
       this.scoreVisualization.language = language;
       this.violations.reportData = reportData;
       this.violations.language = language;
+      this.colorContrast.reportData = reportData;
+      this.colorContrast.language = language;
       this.recommendations.reportData = reportData;
       this.recommendations.language = language;
       this.appendix.reportData = reportData;
@@ -96,6 +100,13 @@ class PDFGenerator extends HeaderComponent {
     this.violations.reportData = reportData;
     this.violations.language = language;
     this.violations.addTopViolations(doc, reportData, language);
+    
+    // 4.5. Color Contrast Analysis (if violations exist)
+    if (reportData.colorContrastAnalysis && reportData.colorContrastAnalysis.totalViolations > 0) {
+      this.colorContrast.reportData = reportData;
+      this.colorContrast.language = language;
+      this.colorContrast.addColorContrastAnalysis(doc, reportData, language);
+    }
     
     // 5. Strategic Recommendations (starts new page)
     this.recommendations.reportData = reportData;
