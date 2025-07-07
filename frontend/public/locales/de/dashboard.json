@@ -15,5 +15,107 @@
   "usage": "Nutzung",
   "plan": "Plan",
   "upgrade": "Upgrade",
-  "support": "Support"
+  "support": "Support",
+  "results": {
+    "title": "Barrierefreiheits-Analyseergebnisse",
+    "analysisId": "Analyse-ID",
+    "generated": "Erstellt",
+    "scores": {
+      "overallTitle": "Gesamtbewertung",
+      "overallDescription": "Kombinierte Barrierefreiheits- und Usability-Bewertung",
+      "accessibilityTitle": "Barrierefreiheits-Bewertung", 
+      "accessibilityDescription": "WCAG-Konformität und Barrierefreiheitsprobleme",
+      "customTitle": "Benutzerdefinierte Bewertung",
+      "customDescription": "Zusätzliche Usability und Best Practices"
+    },
+    "summary": {
+      "title": "Problemzusammenfassung",
+      "totalViolations": "Gesamtverletzungen",
+      "criticalIssues": "Kritische Probleme",
+      "seriousIssues": "Schwerwiegende Probleme",
+      "imagesWithoutAlt": "Bilder ohne Alt-Text",
+      "unlabeledFormFields": "Unbeschriftete Formularfelder",
+      "emptyLinks": "Leere Links"
+    },
+    "sections": {
+      "recommendations": "Empfehlungen",
+      "accessibilityViolations": "Barrierefreiheits-Verletzungen",
+      "issuesFound": "Gefundene Probleme"
+    },
+    "issuePreview": {
+      "criticalAndSeriousIssues": "{{critical}} Kritische Probleme, {{serious}} Schwerwiegende Probleme Gefunden",
+      "categoriesDetected": "Probleme in Kategorien erkannt: {{categories}}",
+      "getDetailedReport": "Holen Sie sich den detaillierten Bericht, um spezifische Verletzungen und deren Behebung zu sehen"
+    },
+    "upgradePrompt": {
+      "title": "Vollständige Analyse Freischalten",
+      "description": "Erhalten Sie den vollständigen detaillierten Bericht mit allen Verletzungen, Code-Beispielen, Implementierungsleitfaden und professionellem PDF-Export."
+    },
+    "lockedSection": {
+      "title": "Zusätzliche Funktionen Gesperrt",
+      "description": "Detaillierte Analyse, benutzerdefinierte Prüfungen, Leistungsmetriken und vollständige Verletzungsaufschlüsselung sind im detaillierten Bericht verfügbar."
+    },
+    "noResults": {
+      "title": "Keine Analyseergebnisse Gefunden",
+      "description": "Es sieht so aus, als hätten Sie noch keine Barrierefreiheitsanalyse durchgeführt, oder die Ergebnisse sind abgelaufen."
+    },
+    "reportTypes": {
+      "premiumReport": "Premium-Bericht",
+      "overviewReport": "Übersichtsbericht"
+    },
+    "buttons": {
+      "backToHome": "Zurück zur Startseite",
+      "downloadPdfReport": "PDF-Bericht Herunterladen",
+      "getDetailedReportPdf": "Detaillierten Bericht & PDF Erhalten", 
+      "getDetailedReport": "Detaillierten Bericht Erhalten",
+      "unlockFullAnalysis": "Vollständige Analyse Freischalten",
+      "upgradeToDetailedReport": "Auf Detaillierten Bericht Upgraden"
+    },
+    "messages": {
+      "errorLoadingResults": "Fehler beim Laden der Analyseergebnisse",
+      "noResultsFound": "Keine Analyseergebnisse gefunden. Bitte führen Sie zuerst eine Analyse durch.",
+      "loadingDetailedReport": "Detaillierter Bericht wird geladen...",
+      "detailedReportLoaded": "Detaillierter Bericht erfolgreich geladen!",
+      "failedLoadDetailedReport": "Fehler beim Laden des detaillierten Berichts",
+      "downloadingPdfReport": "PDF-Bericht wird heruntergeladen...",
+      "pdfReportDownloaded": "PDF-Bericht erfolgreich heruntergeladen!",
+      "failedDownloadPdf": "Fehler beim Herunterladen des PDF-Berichts",
+      "downloadAvailableInDetailed": "Der Download ist im detaillierten Bericht verfügbar. Klicken Sie auf \"Detaillierten Bericht & PDF Erhalten\" zum Upgraden.",
+      "generatingPdf": "PDF wird generiert...",
+      "upgrading": "Wird aktualisiert...",
+      "loadingDetails": "Details werden geladen...",
+      "generatingDetailedReport": "Detaillierter Bericht wird erstellt..."
+    }
+  },
+  "recommendations": {
+    "noRecommendations": {
+      "title": "Keine Empfehlungen Verfügbar",
+      "description": "Für diese Analyse wurden keine spezifischen Empfehlungen generiert."
+    },
+    "priority": {
+      "high": "HOCH",
+      "medium": "MITTEL", 
+      "low": "NIEDRIG"
+    },
+    "priorityLabel": "Priorität",
+    "recommendedAction": "Empfohlene Maßnahme"
+  },
+  "violations": {
+    "noViolations": {
+      "title": "Keine Barrierefreiheits-Verletzungen Gefunden",
+      "description": "Großartig! Keine Barrierefreiheits-Verletzungen wurden in der Analyse erkannt."
+    },
+    "impact": {
+      "critical": "Kritisch",
+      "serious": "Schwerwiegend",
+      "moderate": "Moderat",
+      "minor": "Geringfügig",
+      "unknown": "Unbekannt"
+    },
+    "elementCount": "{{count}} Element",
+    "elementCount_plural": "{{count}} Elemente",
+    "affectedElements": "Betroffene Elemente",
+    "moreElements": "... und {{count}} weiteres Element",
+    "moreElements_plural": "... und {{count}} weitere Elemente"
+  }
 }

@@ -13,5 +13,386 @@
   "reportGenerated": "Bericht erstellt am {{date}}",
   "reportId": "Bericht-ID: {{id}}",
   "pageCount": "{{count}} Seite analysiert",
-  "pageCount_plural": "{{count}} Seiten analysiert"
+  "pageCount_plural": "{{count}} Seiten analysiert",
+  "pdf": {
+    "documentTitle": "Website-Barrierefreiheits-Analysebericht",
+    "generatedBy": "Erstellt von SiteCraft",
+    "analysisDate": "Analysedatum",
+    "websiteUrl": "Website-URL",
+    "overallScore": "Gesamtpunktzahl Barrierefreiheit",
+    "scoreExplanation": "Bewertungserklärung",
+    "executiveSummary": "Zusammenfassung",
+    "keyFindings": "Wichtige Ergebnisse",
+    "accessibilityOverview": "Barrierefreiheits-Übersicht",
+    "scoreBreakdown": "Bewertungsaufschlüsselung",
+    "priorityViolations": "Prioritätsverletzungen",
+    "strategicRecommendations": "Strategische Empfehlungen",
+    "detailedTechnicalAnalysis": "Detaillierte Technische Analyse",
+    "technicalAppendix": "Technischer Anhang",
+    "wcagCompliance": "WCAG 2.1 AA Konformität",
+    "implementationGuidance": "Umsetzungsleitfaden",
+    "nextSteps": "Nächste Schritte",
+    "contactInfo": "Kontaktinformationen",
+    "violationCount": "{{count}} Verletzung gefunden",
+    "violationCount_plural": "{{count}} Verletzungen gefunden",
+    "criticalIssues": "Kritische Probleme",
+    "seriousIssues": "Schwerwiegende Probleme",
+    "moderateIssues": "Moderate Probleme",
+    "minorIssues": "Geringfügige Probleme",
+    "noIssues": "Keine Probleme Gefunden",
+    "impact": "Auswirkung",
+    "priority": "Priorität",
+    "description": "Beschreibung",
+    "solution": "Lösung",
+    "codeExample": "Code-Beispiel",
+    "learnMore": "Mehr Erfahren",
+    "wcagReference": "WCAG-Referenz",
+    "estimatedEffort": "Geschätzter Aufwand",
+    "businessImpact": "Geschäftliche Auswirkungen",
+    "userImpact": "Auswirkungen auf Benutzer",
+    "quickFix": "Schnelle Lösung",
+    "detailedFix": "Detaillierte Lösung",
+    "testingGuidance": "Testanleitung",
+    "priorityHigh": "Hohe Priorität",
+    "priorityMedium": "Mittlere Priorität",
+    "priorityLow": "Niedrige Priorität",
+    "timeline": "Zeitplan",
+    "resources": "Ressourcen",
+    "scoreRating": {
+      "excellent": "Ausgezeichnet",
+      "good": "Gut",
+      "fair": "Akzeptabel",
+      "needsWork": "Verbesserungsbedürftig",
+      "critical": "Kritisch"
+    },
+    "customChecks": {
+      "imageAnalysis": "Bild-Barrierefreiheits-Analyse",
+      "formAnalysis": "Formular-Barrierefreiheits-Analyse",
+      "headingAnalysis": "Überschriften-Struktur-Analyse",
+      "linksAnalysis": "Link-Barrierefreiheits-Analyse",
+      "totalImages": "Gesamtanzahl analysierter Bilder",
+      "imagesWithoutAlt": "Bilder ohne Alternativtext",
+      "decorativeImages": "Dekorative Bilder (korrekt markiert)",
+      "totalForms": "Gesamtanzahl analysierter Formulare",
+      "totalInputs": "Gesamtanzahl Formularfelder",
+      "unlabeledInputs": "Felder ohne angemessene Beschriftung",
+      "totalHeadings": "Gesamtanzahl gefundener Überschriften",
+      "h1Headings": "H1-Überschriften",
+      "emptyHeadings": "Leere Überschriften",
+      "totalLinks": "Gesamtanzahl analysierter Links",
+      "emptyLinks": "Leere Links (ohne Text)",
+      "newWindowLinks": "Links, die neue Fenster öffnen"
+    },
+    "performanceMetrics": {
+      "title": "Analyse der Leistungsauswirkungen",
+      "pageLoadTime": "Seitenladezeit",
+      "domContentLoaded": "DOM-Inhalt Geladen",
+      "firstContentfulPaint": "Erstes Inhalts-Rendering",
+      "totalElements": "Gesamtanzahl Elemente",
+      "imageCount": "Anzahl Bilder",
+      "scriptCount": "Anzahl Skripte"
+    },
+    "executiveSummaryContent": {
+      "totalViolationsFound": "{{count}} Gesamtverletzungen gefunden",
+      "criticalIssuesFound": "{{count}} kritische Probleme",
+      "seriousIssuesFound": "{{count}} schwerwiegende Probleme",
+      "wcagCompliance": "WCAG 2.1 AA Konformität: {{percentage}}%",
+      "businessImpactTitle": "Geschäftliche Auswirkungen & Vorteile",
+      "businessImpactPoint1": "Verbesserte Benutzererfahrung für 15% der Bevölkerung mit Behinderungen",
+      "businessImpactPoint2": "Verbesserte SEO-Leistung durch bessere semantische Auszeichnung",
+      "businessImpactPoint3": "Reduziertes rechtliches Compliance-Risiko und ADA-Klagengefahr",
+      "summaryHigh": "Diese Website zeigt starke Barrierefreiheitspraktiken mit einer Bewertung von {{score}}/100. Obwohl es {{violations}} Verbesserungsbereiche gibt, zeigt die Website ein gutes Engagement für inklusives Design. Konzentrieren Sie sich darauf, die {{critical}} kritischen Probleme anzugehen, um exzellente Barrierefreiheitsstandards zu erreichen.",
+      "summaryMedium": "Diese Website zeigt moderate Barrierefreiheitsimplementierung mit einer Bewertung von {{score}}/100. Es gibt {{violations}} Verletzungen, die Aufmerksamkeit benötigen, einschließlich {{critical}} kritischer Probleme, die priorisiert werden sollten. Systematische Verbesserungen werden die Benutzererfahrung für Menschen mit Behinderungen erheblich verbessern.",
+      "summaryLow": "Diese Website benötigt erhebliche Barrierefreiheitsverbesserungen mit einer Bewertung von {{score}}/100. Die {{violations}} identifizierten Verletzungen, einschließlich {{critical}} kritischer Probleme, stellen Barrieren für Benutzer mit Behinderungen dar. Sofortiges Handeln wird empfohlen, um rechtliche Compliance und inklusive Benutzererfahrung sicherzustellen.",
+      "urgentActionRequired": "DRINGENDE MASSNAHMEN ERFORDERLICH",
+      "attentionNeeded": "AUFMERKSAMKEIT ERFORDERLICH"
+    },
+    "scoreVisualization": {
+      "accessibilityScoreBreakdown": "Aufschlüsselung der Barrierefreiheits-Bewertung",
+      "scoreInterpretation": "Bewertungsinterpretation",
+      "detailedMetricsBreakdown": "Detaillierte Metriken-Aufschlüsselung",
+      "scoreCards": {
+        "overallScore": "Gesamtbewertung",
+        "overallDescription": "Kombinierte Barrierefreiheits-Bewertung",
+        "wcagCompliance": "WCAG-Konformität",
+        "wcagDescription": "Standards-Konformitätsbewertung",
+        "customChecks": "Benutzerdefinierte Prüfungen",
+        "customDescription": "Zusätzliche Qualitätsmetriken"
+      },
+      "performanceRatings": {
+        "excellent": "AUSGEZEICHNET",
+        "good": "GUT", 
+        "fair": "AKZEPTABEL",
+        "needsWork": "VERBESSERUNGSBEDÜRFTIG",
+        "critical": "KRITISCH"
+      },
+      "interpretations": {
+        "excellentTitle": "Ausgezeichnete Barrierefreiheit - Branchenführend",
+        "excellentDescription": "Ihre Website zeigt außergewöhnliche Barrierefreiheitsstandards und dient als Modell für inklusives Design.",
+        "goodTitle": "Gute Barrierefreiheit - Überdurchschnittlich",
+        "goodDescription": "Ihre Website erfüllt die meisten Barrierefreiheitsstandards mit Raum für Optimierung zur Erreichung von Exzellenz.",
+        "moderateTitle": "Moderate Barrierefreiheit - Verbesserung Erforderlich",
+        "moderateDescription": "Ihre Website hat Barrierefreiheits-Grundlagen, benötigt aber Aufmerksamkeit für kritische Probleme zur vollständigen Konformität.",
+        "poorTitle": "Schlechte Barrierefreiheit - Sofortiges Handeln Erforderlich",
+        "poorDescription": "Ihre Website hat erhebliche Barrierefreiheits-Hindernisse, die Benutzer mit Behinderungen daran hindern, auf Inhalte zuzugreifen."
+      },
+      "metrics": {
+        "totalIssues": "Gesamtprobleme",
+        "critical": "Kritisch",
+        "serious": "Schwerwiegend",
+        "moderate": "Moderat",
+        "minor": "Geringfügig",
+        "imagesWithoutAlt": "Bilder ohne Alt"
+      }
+    },
+    "violations": {
+      "priorityIssuesTitle": "Prioritätsprobleme - Sofortiges Handeln Erforderlich",
+      "noCriticalIssuesTitle": "🎉 Ausgezeichnet! Keine Kritischen Probleme Gefunden",
+      "noCriticalIssuesDescription": "Ihre Website erfüllt die höchsten Barrierefreiheitsstandards für kritische und schwerwiegende Verletzungen.",
+      "impactLabel": "AUSWIRKUNG",
+      "elementsAffected": "{{count}} Element betroffen",
+      "elementsAffected_plural": "{{count}} Elemente betroffen",
+      "quickFixLabel": "💡 Schnelle Lösung: ",
+      "completeAnalysisTitle": "Vollständige Verletzungsanalyse",
+      "noDetailedViolations": "✓ Keine Barrierefreiheitsverletzungen in der detaillierten Analyse erkannt!",
+      "affectedElementsLabel": "Betroffene Elemente ({{count}}):",
+      "summaryByImpactTitle": "Verletzungszusammenfassung nach Auswirkungsgrad",
+      "impactLevels": {
+        "critical": "Kritisch",
+        "serious": "Schwerwiegend",
+        "moderate": "Moderat",
+        "minor": "Geringfügig"
+      },
+      "quickFixes": {
+        "colorContrast": "Textfarbkontrast erhöhen, um 4.5:1 Verhältnis für normalen Text, 3:1 für großen Text zu erfüllen",
+        "imageAlt": "Beschreibende Alt-Attribute zu Bildern hinzufügen: <img src=\"...\" alt=\"Klare Beschreibung\">",
+        "label": "Labels mit Formulareingaben verknüpfen: <label for=\"email\">E-Mail</label><input id=\"email\">",
+        "headingOrder": "Überschriften in logischer Reihenfolge verwenden: h1 > h2 > h3, keine Ebenen überspringen",
+        "linkName": "Beschreibenden Linktext oder aria-label für aussagekräftigen Kontext bereitstellen",
+        "buttonName": "Textinhalt oder aria-label zu Schaltflächen für Bildschirmleser hinzufügen",
+        "focusOrder": "Sicherstellen, dass interaktive Elemente angemessene Fokusindikatoren und logische Tab-Reihenfolge haben",
+        "keyboard": "Alle interaktiven Elemente über Tastaturnavigation zugänglich machen",
+        "ariaAllowed": "Nur gültige ARIA-Attribute entsprechend Elementrollen verwenden",
+        "ariaRequired": "Erforderliche ARIA-Attribute für angemessene Barrierefreiheitssemantik hinzufügen",
+        "default": "WCAG-Richtlinien für spezifische Implementierungsdetails überprüfen"
+      }
+    },
+    "recommendations": {
+      "strategicRecommendationsTitle": "Strategische Empfehlungen & Aktionsplan",
+      "priorityMatrixTitle": "Prioritäten-Implementierungsmatrix",
+      "categoryLabel": "Kategorie",
+      "actionRequiredLabel": "→ Erforderliche Maßnahme: ",
+      "implementationTimelineTitle": "Implementierungszeitplan & Code-Beispiele",
+      "codeExamplesTitle": "Häufige Implementierungsbeispiele",
+      "bestPracticesTitle": "Bewährte Implementierungspraktiken",
+      "resourcesTitle": "Empfohlene Tools & Ressourcen",
+      "priorityLevels": {
+        "high": "HOCH",
+        "medium": "MITTEL",
+        "low": "NIEDRIG"
+      },
+      "timeframes": {
+        "immediate": "Sofort (1-2 Wochen)",
+        "shortTerm": "Kurzfristig (2-4 Wochen)",
+        "longTerm": "Langfristig (1-3 Monate)"
+      },
+      "descriptions": {
+        "critical": "Kritische Barrierefreiheits-Hindernisse",
+        "important": "Wichtige Verbesserungen",
+        "enhancement": "Verbesserungsmöglichkeiten"
+      },
+      "phases": {
+        "phase1": "Phase 1: Kritische Probleme (Woche 1-2)",
+        "phase2": "Phase 2: Wichtige Verbesserungen (Woche 3-6)",
+        "phase3": "Phase 3: Verbesserung & Optimierung (Monat 2-3)"
+      },
+      "codeLabels": {
+        "before": "Vorher (Nicht barrierefrei):",
+        "after": "Nachher (Barrierefrei):"
+      },
+      "examples": {
+        "imageAlt": {
+          "title": "Alt-Text zu Bildern Hinzufügen",
+          "explanation": "Beschreibenden Alternativtext für Bildschirmleser bereitstellen"
+        },
+        "formLabeling": {
+          "title": "Ordnungsgemäße Formular-Beschriftung",
+          "explanation": "Labels mit Formularelementen für Barrierefreiheit verknüpfen"
+        },
+        "keyboardNav": {
+          "title": "Tastaturnavigation-Unterstützung",
+          "explanation": "Semantische HTML-Elemente für ordnungsgemäße Tastaturunterstützung verwenden"
+        },
+        "colorContrast": {
+          "title": "Farbkontrast-Verbesserung",
+          "explanation": "Ausreichenden Kontrast für Textlesbarkeit sicherstellen"
+        }
+      },
+      "bestPractices": {
+        "screenReaders": "Mit echten Bildschirmlesern testen (NVDA, JAWS, VoiceOver)",
+        "keyboardTesting": "Tastaturnavigation-Tests in Ihren Arbeitsablauf implementieren",
+        "automatedTesting": "Automatisierte Test-Tools als Teil der CI/CD-Pipeline verwenden",
+        "userTesting": "Benutzer mit Behinderungen in Tests einbeziehen, wenn möglich",
+        "documentation": "Barrierefreiheits-Entscheidungen und -Muster dokumentieren",
+        "training": "Entwicklungsteam in Barrierefreiheits-Prinzipien schulen"
+      },
+      "resourceCategories": {
+        "testing": "Test-Tools",
+        "design": "Design-Tools",
+        "development": "Entwicklung"
+      }
+    },
+    "appendix": {
+      "title": "Anhang & Technische Referenz",
+      "methodology": {
+        "title": "Testmethodik & Tools",
+        "description": "Unsere umfassende Barrierefreiheits-Analyse nutzt branchenführende Tools und Methodiken:",
+        "tools": {
+          "axeCore": "• Axe-core v4.7+ - Barrierefreiheits-Test-Engine von Deque Systems",
+          "wcagValidation": "• WCAG 2.1 Level AA Konformitätsvalidierung",
+          "browserTesting": "• Automatisierte Browser-Tests mit Puppeteer",
+          "heuristicEvaluation": "• Benutzerdefinierte heuristische Bewertung für Benutzerfreundlichkeit",
+          "colorContrast": "• Farbkontrast-Analyse und -Messung",
+          "keyboardTesting": "• Tastaturnavigations-Pfad-Tests",
+          "screenReaderTesting": "• Bildschirmleser-Kompatibilitätsbewertung"
+        }
+      },
+      "wcag": {
+        "title": "WCAG 2.1 Level AA Richtlinien-Referenz",
+        "principles": {
+          "perceivable": {
+            "title": "Wahrnehmbar",
+            "description": "Informationen und UI-Komponenten müssen den Benutzern in wahrnehmbarer Weise präsentiert werden",
+            "guidelines": {
+              "textAlternatives": "Textalternativen für Bilder und nicht-textuelle Inhalte",
+              "multimedia": "Untertitel und Alternativen für Multimedia",
+              "adaptable": "Inhalt kann präsentiert werden, ohne Bedeutung zu verlieren",
+              "distinguishable": "Ausreichender Farbkontrast zwischen Text und Hintergrund"
+            }
+          },
+          "operable": {
+            "title": "Bedienbar",
+            "description": "Benutzeroberflächenkomponenten und Navigation müssen bedienbar sein",
+            "guidelines": {
+              "keyboard": "Alle Funktionen über Tastatur verfügbar",
+              "timing": "Benutzer haben genügend Zeit, Inhalte zu lesen",
+              "seizures": "Inhalt verursacht keine Anfälle oder körperliche Reaktionen",
+              "navigable": "Benutzer können navigieren und Inhalte finden"
+            }
+          },
+          "understandable": {
+            "title": "Verständlich",
+            "description": "Informationen und Bedienung der Benutzeroberfläche müssen verständlich sein",
+            "guidelines": {
+              "readable": "Text ist lesbar und verständlich",
+              "predictable": "Webseiten erscheinen und funktionieren vorhersagbar",
+              "inputAssistance": "Benutzern wird geholfen, Fehler zu vermeiden und zu korrigieren"
+            }
+          },
+          "robust": {
+            "title": "Robust",
+            "description": "Inhalt muss robust genug für die Interpretation durch Hilfstechnologien sein",
+            "guidelines": {
+              "compatible": "Kompatibilität mit Hilfstechnologien maximieren",
+              "semantic": "Gültiges, semantisches HTML-Markup",
+              "futureProof": "Zukunftssichere Barrierefreiheits-Implementierungen"
+            }
+          }
+        }
+      },
+      "compliance": {
+        "title": "Rechtliche Konformität & Standards",
+        "importantConsiderations": "Wichtige Rechtliche Überlegungen:",
+        "points": {
+          "ada": "Americans with Disabilities Act (ADA) Konformitätsanforderungen",
+          "section508": "Section 508 Bundesbarrierefreiheits-Standards",
+          "eaa": "Europäisches Barrierefreiheitsgesetz (EAA) für EU-Unternehmen",
+          "wcag": "WCAG 2.1 AA als anerkannter internationaler Standard"
+        },
+        "standards": {
+          "ada": {
+            "description": "Gilt für öffentlich zugängliche Unternehmen und erfordert barrierefreie Websites für gleichen Zugang"
+          },
+          "section508": {
+            "description": "Bundesbehörden müssen sicherstellen, dass elektronische Informationen für Menschen mit Behinderungen zugänglich sind"
+          },
+          "en301549": {
+            "description": "Europäischer Standard für IKT-Barrierefreiheitsanforderungen in öffentlicher Beschaffung"
+          },
+          "aoda": {
+            "description": "Barrierefreiheitsgesetz für Ontarier mit Behinderungen - gilt für Ontario-Unternehmen"
+          }
+        }
+      },
+      "resources": {
+        "title": "Empfohlene Ressourcen & Nächste Schritte",
+        "professionalTitle": "Professionelle Entwicklungsressourcen:",
+        "testingTitle": "Test-Tools & Software:",
+        "professional": {
+          "webaim": "WebAIM (webaim.org) - Umfassende Barrierefreiheits-Schulung und Ressourcen",
+          "a11yProject": "A11y Projekt (a11yproject.com) - Community-getriebene Barrierefreiheits-Checkliste",
+          "dequeUniversity": "Deque University - Professionelle Barrierefreiheits-Schulungskurse",
+          "iaap": "IAAP-Zertifizierung - Internationale Vereinigung von Barrierefreiheits-Fachleuten",
+          "mdn": "MDN Barrierefreiheits-Docs - Mozilla Developer Network Barrierefreiheits-Leitfaden"
+        },
+        "testing": {
+          "colorContrast": "Farbkontrast-Analyzer - Kostenlose Desktop-Anwendung für Kontrast-Tests",
+          "nvda": "NVDA Bildschirmleser - Kostenloser Bildschirmleser für Windows-Tests",
+          "voiceOver": "VoiceOver - Integrierter macOS-Bildschirmleser für Tests",
+          "chromeDevTools": "Chrome DevTools Barrierefreiheits-Panel - Integrierte Browser-Test-Tools",
+          "axeDevTools": "axe DevTools Browser-Erweiterung - Browser-basierte Barrierefreiheits-Tests"
+        }
+      },
+      "contact": {
+        "title": "Fragen zu diesem Bericht?",
+        "description1": "Kontaktieren Sie unsere Barrierefreiheits-Experten für Implementierungsunterstützung, Schulung und Beratungsdienste.",
+        "description2": "Wir bieten kontinuierliche Unterstützung, um Ihrem Team zu helfen, Barrierefreiheits-Konformität zu erreichen und zu erhalten."
+      },
+      "techSpecs": {
+        "title": "Technische Spezifikationen",
+        "analysisEngine": "Analyse-Engine",
+        "browserEngine": "Browser-Engine",
+        "standardsCompliance": "Standards-Konformität",
+        "reportGeneration": "Berichterstellung",
+        "analysisScope": "Analyse-Umfang",
+        "analysisScopeValue": "Automatischer Einzelseiten-Scan",
+        "manualTesting": "Manuelle Tests",
+        "manualTestingValue": "Heuristische Bewertung eingeschlossen"
+      },
+      "glossary": {
+        "title": "Barrierefreiheits-Glossar",
+        "terms": {
+          "altText": {
+            "term": "Alt-Text",
+            "definition": "Alternativtext, der Bilder für Bildschirmleser beschreibt"
+          },
+          "aria": {
+            "term": "ARIA",
+            "definition": "Accessible Rich Internet Applications - Attribute, die HTML-Semantik verbessern"
+          },
+          "focusManagement": {
+            "term": "Fokus-Management",
+            "definition": "Kontrolle darüber, wo sich der Tastaturfokus durch interaktive Elemente bewegt"
+          },
+          "screenReader": {
+            "term": "Bildschirmleser",
+            "definition": "Hilfstechnologie, die Webinhalte für blinde Benutzer vorliest"
+          },
+          "semanticHtml": {
+            "term": "Semantisches HTML",
+            "definition": "HTML, das bedeutungsvolle Elemente zur Beschreibung der Inhaltsstruktur verwendet"
+          },
+          "skipLinks": {
+            "term": "Skip-Links",
+            "definition": "Versteckte Links, die Tastaturbenutzern ermöglichen, zum Hauptinhalt zu springen"
+          }
+        }
+      }
+    },
+    "footer": {
+      "poweredBy": "Bereitgestellt von SiteCraft - Professionelle Web-Barrierefreiheits-Analyse",
+      "contactUs": "Kontaktieren Sie unser Team für Implementierungsunterstützung und kontinuierliche Barrierefreiheits-Beratung.",
+      "website": "Besuchen Sie sitecraft.com für weitere Informationen"
+    }
+  }
 }

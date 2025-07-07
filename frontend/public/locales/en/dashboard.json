@@ -15,5 +15,107 @@
   "usage": "Usage",
   "plan": "Plan",
   "upgrade": "Upgrade",
-  "support": "Support"
+  "support": "Support",
+  "results": {
+    "title": "Accessibility Analysis Results",
+    "analysisId": "Analysis ID",
+    "generated": "Generated",
+    "scores": {
+      "overallTitle": "Overall Score",
+      "overallDescription": "Combined accessibility and usability score",
+      "accessibilityTitle": "Accessibility Score", 
+      "accessibilityDescription": "WCAG compliance and accessibility issues",
+      "customTitle": "Custom Score",
+      "customDescription": "Additional usability and best practices"
+    },
+    "summary": {
+      "title": "Issues Summary",
+      "totalViolations": "Total Violations",
+      "criticalIssues": "Critical Issues",
+      "seriousIssues": "Serious Issues",
+      "imagesWithoutAlt": "Images without Alt Text",
+      "unlabeledFormFields": "Unlabeled Form Fields",
+      "emptyLinks": "Empty Links"
+    },
+    "sections": {
+      "recommendations": "Recommendations",
+      "accessibilityViolations": "Accessibility Violations",
+      "issuesFound": "Issues Found"
+    },
+    "issuePreview": {
+      "criticalAndSeriousIssues": "{{critical}} Critical Issues, {{serious}} Serious Issues Found",
+      "categoriesDetected": "Issues detected in categories: {{categories}}",
+      "getDetailedReport": "Get the detailed report to see specific violations and how to fix them"
+    },
+    "upgradePrompt": {
+      "title": "Unlock Complete Analysis",
+      "description": "Get the full detailed report with all violations, code examples, implementation guidance, and a professional PDF export."
+    },
+    "lockedSection": {
+      "title": "Additional Features Locked",
+      "description": "Detailed analysis, custom checks, performance metrics, and complete violation breakdown are available in the detailed report."
+    },
+    "noResults": {
+      "title": "No Analysis Results Found",
+      "description": "It looks like you haven't run an accessibility analysis yet, or the results have expired."
+    },
+    "reportTypes": {
+      "premiumReport": "Premium Report",
+      "overviewReport": "Overview Report"
+    },
+    "buttons": {
+      "backToHome": "Back to Home",
+      "downloadPdfReport": "Download PDF Report",
+      "getDetailedReportPdf": "Get Detailed Report & PDF", 
+      "getDetailedReport": "Get Detailed Report",
+      "unlockFullAnalysis": "Unlock Full Analysis",
+      "upgradeToDetailedReport": "Upgrade to Detailed Report"
+    },
+    "messages": {
+      "errorLoadingResults": "Error loading analysis results",
+      "noResultsFound": "No analysis results found. Please run an analysis first.",
+      "loadingDetailedReport": "Loading detailed report...",
+      "detailedReportLoaded": "Detailed report loaded successfully!",
+      "failedLoadDetailedReport": "Failed to load detailed report",
+      "downloadingPdfReport": "Downloading PDF report...",
+      "pdfReportDownloaded": "PDF report downloaded successfully!",
+      "failedDownloadPdf": "Failed to download PDF report",
+      "downloadAvailableInDetailed": "Download is available in the detailed report. Click \"Get Detailed Report & PDF\" to upgrade.",
+      "generatingPdf": "Generating PDF...",
+      "upgrading": "Upgrading...",
+      "loadingDetails": "Loading Details...",
+      "generatingDetailedReport": "Generating Detailed Report..."
+    }
+  },
+  "recommendations": {
+    "noRecommendations": {
+      "title": "No Recommendations Available",
+      "description": "No specific recommendations were generated for this analysis."
+    },
+    "priority": {
+      "high": "HIGH",
+      "medium": "MEDIUM", 
+      "low": "LOW"
+    },
+    "priorityLabel": "Priority",
+    "recommendedAction": "Recommended Action"
+  },
+  "violations": {
+    "noViolations": {
+      "title": "No Accessibility Violations Found",
+      "description": "Great! No accessibility violations were detected in the analysis."
+    },
+    "impact": {
+      "critical": "Critical",
+      "serious": "Serious",
+      "moderate": "Moderate",
+      "minor": "Minor",
+      "unknown": "Unknown"
+    },
+    "elementCount": "{{count}} element",
+    "elementCount_plural": "{{count}} elements",
+    "affectedElements": "Affected Elements",
+    "moreElements": "... and {{count}} more element",
+    "moreElements_plural": "... and {{count}} more elements"
+  }
 }

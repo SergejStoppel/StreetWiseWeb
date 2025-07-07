@@ -197,6 +197,7 @@ router.get('/detailed/:analysisId', async (req, res) => {
 router.get('/pdf/:analysisId', async (req, res) => {
   try {
     const { analysisId } = req.params;
+    const { language = 'en' } = req.query; // Accept language parameter
     
     if (!analysisId) {
       return res.status(400).json({
@@ -205,9 +206,12 @@ router.get('/pdf/:analysisId', async (req, res) => {
       });
     }
 
-    logger.info('PDF download request received', { analysisId });
+    logger.info('PDF download request received', { analysisId, language });
+    console.log('DEBUG: Backend received language parameter:', language);
 
-    const pdfBuffer = accessibilityAnalyzer.getCachedPDF(analysisId);
+    // Create cache key that includes language
+    const cacheKey = `${analysisId}_${language}`;
+    const pdfBuffer = accessibilityAnalyzer.getCachedPDF(cacheKey);
     
     if (!pdfBuffer) {
       // Try to get the detailed report and generate PDF on demand
@@ -220,9 +224,10 @@ router.get('/pdf/:analysisId', async (req, res) => {
         });
       }
       
-      logger.info('Generating PDF on demand', { analysisId });
-      const newPdfBuffer = await pdfGenerator.generateAccessibilityReport(detailedReport);
-      accessibilityAnalyzer.pdfCache.set(analysisId, newPdfBuffer);
+      logger.info('Generating PDF on demand', { analysisId, language });
+      // Pass language to PDF generator
+      const newPdfBuffer = await pdfGenerator.generateAccessibilityReport(detailedReport, language);
+      accessibilityAnalyzer.pdfCache.set(cacheKey, newPdfBuffer);
       
       const filename = `accessibility-report-${analysisId}.pdf`;
       
@@ -232,7 +237,7 @@ router.get('/pdf/:analysisId', async (req, res) => {
       
       res.send(newPdfBuffer);
       
-      logger.info('PDF generated and sent successfully', { analysisId, size: newPdfBuffer.length });
+      logger.info('PDF generated and sent successfully', { analysisId, language, size: newPdfBuffer.length });
       return;
     }
     
@@ -244,7 +249,7 @@ router.get('/pdf/:analysisId', async (req, res) => {
     
     res.send(pdfBuffer);
     
-    logger.info('Cached PDF sent successfully', { analysisId, size: pdfBuffer.length });
+    logger.info('Cached PDF sent successfully', { analysisId, language, size: pdfBuffer.length });
 
   } catch (error) {
     logger.error('PDF download failed:', { error: error.message, analysisId: req.params.analysisId });
@@ -258,7 +263,7 @@ router.get('/pdf/:analysisId', async (req, res) => {
 // POST /api/accessibility/generate-pdf (legacy endpoint for backward compatibility)
 router.post('/generate-pdf', analysisLimiter, async (req, res) => {
   try {
-    const { analysisId, reportData } = req.body;
+    const { analysisId, reportData, language = 'en' } = req.body;
     
     if (!analysisId) {
       return res.status(400).json({
@@ -267,8 +272,9 @@ router.post('/generate-pdf', analysisLimiter, async (req, res) => {
       });
     }
 
-    // Try to use cached PDF first
-    const cachedPdf = accessibilityAnalyzer.getCachedPDF(analysisId);
+    // Try to use cached PDF first (with language-specific cache key)
+    const cacheKey = `${analysisId}_${language}`;
+    const cachedPdf = accessibilityAnalyzer.getCachedPDF(cacheKey);
     if (cachedPdf) {
       const filename = `accessibility-report-${analysisId}.pdf`;
       
@@ -278,7 +284,7 @@ router.post('/generate-pdf', analysisLimiter, async (req, res) => {
       
       res.send(cachedPdf);
       
-      logger.info('Cached PDF sent via legacy endpoint', { analysisId, size: cachedPdf.length });
+      logger.info('Cached PDF sent via legacy endpoint', { analysisId, language, size: cachedPdf.length });
       return;
     }
 
@@ -290,9 +296,9 @@ router.post('/generate-pdf', analysisLimiter, async (req, res) => {
       });
     }
 
-    logger.info('PDF generation request received (legacy)', { analysisId });
+    logger.info('PDF generation request received (legacy)', { analysisId, language });
 
-    const pdfBuffer = await pdfGenerator.generateAccessibilityReport(reportData);
+    const pdfBuffer = await pdfGenerator.generateAccessibilityReport(reportData, language);
     
     const filename = `accessibility-report-${analysisId}.pdf`;
     
@@ -302,7 +308,7 @@ router.post('/generate-pdf', analysisLimiter, async (req, res) => {
     
     res.send(pdfBuffer);
     
-    logger.info('PDF generated and sent successfully (legacy)', { analysisId, size: pdfBuffer.length });
+    logger.info('PDF generated and sent successfully (legacy)', { analysisId, language, size: pdfBuffer.length });
 
   } catch (error) {
     logger.error('PDF generation failed (legacy):', { error: error.message });

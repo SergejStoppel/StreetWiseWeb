@@ -12,8 +12,9 @@ class ScoreVisualizationComponent extends BasePDFDocument {
   /**
    * Add the complete score overview section
    */
-  addScoreOverview(doc, reportData) {
-    this.addSectionHeader(doc, 'Accessibility Score Breakdown');
+  addScoreOverview(doc, reportData, language = 'en') {
+    this.language = language;
+    this.addSectionHeader(doc, this.t('reports:pdf.scoreVisualization.accessibilityScoreBreakdown', language));
     
     // Enhanced score visualization cards
     this.addScoreCards(doc, reportData);
@@ -30,21 +31,21 @@ class ScoreVisualizationComponent extends BasePDFDocument {
   addScoreCards(doc, reportData) {
     const scores = [
       { 
-        label: 'Overall Score', 
+        label: this.t('reports:pdf.scoreVisualization.scoreCards.overallScore', this.language), 
         value: reportData.scores.overall, 
-        description: 'Combined accessibility rating',
+        description: this.t('reports:pdf.scoreVisualization.scoreCards.overallDescription', this.language),
         category: 'overall'
       },
       { 
-        label: 'WCAG Compliance', 
+        label: this.t('reports:pdf.scoreVisualization.scoreCards.wcagCompliance', this.language), 
         value: reportData.scores.accessibility, 
-        description: 'Standards compliance rating',
+        description: this.t('reports:pdf.scoreVisualization.scoreCards.wcagDescription', this.language),
         category: 'wcag'
       },
       { 
-        label: 'Custom Checks', 
+        label: this.t('reports:pdf.scoreVisualization.scoreCards.customChecks', this.language), 
         value: reportData.scores.custom, 
-        description: 'Additional quality metrics',
+        description: this.t('reports:pdf.scoreVisualization.scoreCards.customDescription', this.language),
         category: 'custom'
       }
     ];
@@ -115,7 +116,7 @@ class ScoreVisualizationComponent extends BasePDFDocument {
   addScoreInterpretation(doc, overallScore) {
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Score Interpretation', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.scoreVisualization.scoreInterpretation', this.language), this.margins.left, doc.y);
     
     doc.y += 20;
     
@@ -139,11 +140,11 @@ class ScoreVisualizationComponent extends BasePDFDocument {
    * Get performance text based on score
    */
   getPerformanceText(score) {
-    if (score >= 90) return 'EXCELLENT';
-    if (score >= 80) return 'GOOD';
-    if (score >= 70) return 'FAIR';
-    if (score >= 60) return 'NEEDS WORK';
-    return 'CRITICAL';
+    if (score >= 90) return this.t('reports:pdf.scoreVisualization.performanceRatings.excellent', this.language);
+    if (score >= 80) return this.t('reports:pdf.scoreVisualization.performanceRatings.good', this.language);
+    if (score >= 70) return this.t('reports:pdf.scoreVisualization.performanceRatings.fair', this.language);
+    if (score >= 60) return this.t('reports:pdf.scoreVisualization.performanceRatings.needsWork', this.language);
+    return this.t('reports:pdf.scoreVisualization.performanceRatings.critical', this.language);
   }
 
   /**
@@ -152,29 +153,29 @@ class ScoreVisualizationComponent extends BasePDFDocument {
   getScoreInterpretation(score) {
     if (score >= 90) {
       return {
-        title: 'Excellent Accessibility - Industry Leading',
-        description: 'Your website demonstrates exceptional accessibility standards and serves as a model for inclusive design.',
+        title: this.t('reports:pdf.scoreVisualization.interpretations.excellentTitle', this.language),
+        description: this.t('reports:pdf.scoreVisualization.interpretations.excellentDescription', this.language),
         bgColor: '#f0fdf4',
         borderColor: this.successColor
       };
     } else if (score >= 80) {
       return {
-        title: 'Good Accessibility - Above Average',
-        description: 'Your website meets most accessibility standards with room for optimization to achieve excellence.',
+        title: this.t('reports:pdf.scoreVisualization.interpretations.goodTitle', this.language),
+        description: this.t('reports:pdf.scoreVisualization.interpretations.goodDescription', this.language),
         bgColor: '#fefce8',
         borderColor: this.warningColor
       };
     } else if (score >= 60) {
       return {
-        title: 'Moderate Accessibility - Improvement Needed',
-        description: 'Your website has accessibility foundations but requires attention to critical issues for full compliance.',
+        title: this.t('reports:pdf.scoreVisualization.interpretations.moderateTitle', this.language),
+        description: this.t('reports:pdf.scoreVisualization.interpretations.moderateDescription', this.language),
         bgColor: '#fef2f2',
         borderColor: this.errorColor
       };
     } else {
       return {
-        title: 'Poor Accessibility - Immediate Action Required',
-        description: 'Your website has significant accessibility barriers that prevent users with disabilities from accessing content.',
+        title: this.t('reports:pdf.scoreVisualization.interpretations.poorTitle', this.language),
+        description: this.t('reports:pdf.scoreVisualization.interpretations.poorDescription', this.language),
         bgColor: '#fef2f2',
         borderColor: this.criticalColor
       };
@@ -189,18 +190,18 @@ class ScoreVisualizationComponent extends BasePDFDocument {
     
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Detailed Metrics Breakdown', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.scoreVisualization.detailedMetricsBreakdown', this.language), this.margins.left, doc.y);
     
     doc.y += 25;
     
     // Metrics grid
     const metrics = [
-      { label: 'Total Issues', value: reportData.summary.totalViolations, color: this.grayColor },
-      { label: 'Critical', value: reportData.summary.criticalViolations, color: this.criticalColor },
-      { label: 'Serious', value: reportData.summary.seriousViolations, color: this.seriousColor },
-      { label: 'Moderate', value: reportData.summary.moderateViolations, color: this.warningColor },
-      { label: 'Minor', value: reportData.summary.minorViolations, color: this.lightGrayColor },
-      { label: 'Images w/o Alt', value: reportData.summary.imagesWithoutAlt, color: this.errorColor }
+      { label: this.t('reports:pdf.scoreVisualization.metrics.totalIssues', this.language), value: this.formatNumber(reportData.summary.totalViolations, this.language), color: this.grayColor },
+      { label: this.t('reports:pdf.scoreVisualization.metrics.critical', this.language), value: this.formatNumber(reportData.summary.criticalViolations, this.language), color: this.criticalColor },
+      { label: this.t('reports:pdf.scoreVisualization.metrics.serious', this.language), value: this.formatNumber(reportData.summary.seriousViolations, this.language), color: this.seriousColor },
+      { label: this.t('reports:pdf.scoreVisualization.metrics.moderate', this.language), value: this.formatNumber(reportData.summary.moderateViolations, this.language), color: this.warningColor },
+      { label: this.t('reports:pdf.scoreVisualization.metrics.minor', this.language), value: this.formatNumber(reportData.summary.minorViolations, this.language), color: this.lightGrayColor },
+      { label: this.t('reports:pdf.scoreVisualization.metrics.imagesWithoutAlt', this.language), value: this.formatNumber(reportData.summary.imagesWithoutAlt, this.language), color: this.errorColor }
     ];
     
     let xPos = this.margins.left;

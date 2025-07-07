@@ -12,11 +12,12 @@ class RecommendationsComponent extends BasePDFDocument {
   /**
    * Add the complete recommendations section
    */
-  addRecommendations(doc, reportData) {
+  addRecommendations(doc, reportData, language = 'en') {
     // Temporarily set reportData for footer generation
     this.reportData = reportData;
+    this.language = language;
     this.addPage(doc);
-    this.addSectionHeader(doc, 'Strategic Recommendations & Action Plan');
+    this.addSectionHeader(doc, this.t('reports:pdf.recommendations.strategicRecommendationsTitle', language));
     
     // Priority matrix explanation
     this.addPriorityMatrix(doc);
@@ -38,28 +39,28 @@ class RecommendationsComponent extends BasePDFDocument {
   addPriorityMatrix(doc) {
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Priority Implementation Matrix', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.recommendations.priorityMatrixTitle', this.language), this.margins.left, doc.y);
     
     doc.y += 25;
     
     const priorities = [
       { 
-        level: 'HIGH', 
+        level: this.t('reports:pdf.recommendations.priorityLevels.high', this.language), 
         color: this.errorColor, 
-        timeframe: 'Immediate (1-2 weeks)', 
-        description: 'Critical accessibility barriers' 
+        timeframe: this.t('reports:pdf.recommendations.timeframes.immediate', this.language), 
+        description: this.t('reports:pdf.recommendations.descriptions.critical', this.language) 
       },
       { 
-        level: 'MEDIUM', 
+        level: this.t('reports:pdf.recommendations.priorityLevels.medium', this.language), 
         color: this.warningColor, 
-        timeframe: 'Short-term (2-4 weeks)', 
-        description: 'Important improvements' 
+        timeframe: this.t('reports:pdf.recommendations.timeframes.shortTerm', this.language), 
+        description: this.t('reports:pdf.recommendations.descriptions.important', this.language) 
       },
       { 
-        level: 'LOW', 
+        level: this.t('reports:pdf.recommendations.priorityLevels.low', this.language), 
         color: this.successColor, 
-        timeframe: 'Long-term (1-3 months)', 
-        description: 'Enhancement opportunities' 
+        timeframe: this.t('reports:pdf.recommendations.timeframes.longTerm', this.language), 
+        description: this.t('reports:pdf.recommendations.descriptions.enhancement', this.language) 
       }
     ];
     
@@ -131,7 +132,7 @@ class RecommendationsComponent extends BasePDFDocument {
     // Category
     doc.fontSize(9)
        .fillColor(this.grayColor)
-       .text(`Category: ${recommendation.category}`, x, y + 20);
+       .text(`${this.t('reports:pdf.recommendations.categoryLabel', this.language)}: ${recommendation.category}`, x, y + 20);
     
     // Description
     doc.fontSize(10)
@@ -141,7 +142,7 @@ class RecommendationsComponent extends BasePDFDocument {
     // Action items
     doc.fontSize(10)
        .fillColor(this.accentColor)
-       .text('→ Action Required: ', x, y + 60)
+       .text(this.t('reports:pdf.recommendations.actionRequiredLabel', this.language), x, y + 60)
        .fillColor(this.textColor)
        .text(recommendation.action, x + 105, y + 60, { width: this.contentWidth - 225 });
   }
@@ -151,22 +152,22 @@ class RecommendationsComponent extends BasePDFDocument {
    */
   addImplementationTimeline(doc, recommendations) {
     this.addPage(doc);
-    this.addSectionHeader(doc, 'Implementation Timeline & Code Examples');
+    this.addSectionHeader(doc, this.t('reports:pdf.recommendations.implementationTimelineTitle', this.language));
     
     // Timeline phases
     const phases = [
       {
-        phase: 'Phase 1: Critical Issues (Week 1-2)',
+        phase: this.t('reports:pdf.recommendations.phases.phase1', this.language),
         items: recommendations.filter(r => r.priority === 'high'),
         color: this.errorColor
       },
       {
-        phase: 'Phase 2: Important Improvements (Week 3-6)',
+        phase: this.t('reports:pdf.recommendations.phases.phase2', this.language),
         items: recommendations.filter(r => r.priority === 'medium'),
         color: this.warningColor
       },
       {
-        phase: 'Phase 3: Enhancement & Optimization (Month 2-3)',
+        phase: this.t('reports:pdf.recommendations.phases.phase3', this.language),
         items: recommendations.filter(r => r.priority === 'low'),
         color: this.successColor
       }
@@ -219,34 +220,34 @@ class RecommendationsComponent extends BasePDFDocument {
   addCodeExamples(doc) {
     doc.fontSize(16)
        .fillColor(this.textColor)
-       .text('Common Implementation Examples', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.recommendations.codeExamplesTitle', this.language), this.margins.left, doc.y);
     
     doc.y += 30;
     
     const examples = [
       {
-        title: 'Adding Alt Text to Images',
+        title: this.t('reports:pdf.recommendations.examples.imageAlt.title', this.language),
         before: '<img src="logo.png">',
         after: '<img src="logo.png" alt="Company Logo - Home">',
-        explanation: 'Provide descriptive alternative text for screen readers'
+        explanation: this.t('reports:pdf.recommendations.examples.imageAlt.explanation', this.language)
       },
       {
-        title: 'Proper Form Labeling',
+        title: this.t('reports:pdf.recommendations.examples.formLabeling.title', this.language),
         before: '<input type="email" placeholder="Email">',
         after: '<label for="email">Email Address</label>\n<input type="email" id="email" placeholder="email@example.com">',
-        explanation: 'Associate labels with form controls for accessibility'
+        explanation: this.t('reports:pdf.recommendations.examples.formLabeling.explanation', this.language)
       },
       {
-        title: 'Keyboard Navigation Support',
+        title: this.t('reports:pdf.recommendations.examples.keyboardNav.title', this.language),
         before: '<div onclick="handleClick()">Click me</div>',
         after: '<button onclick="handleClick()" aria-label="Submit form">Click me</button>',
-        explanation: 'Use semantic HTML elements for proper keyboard support'
+        explanation: this.t('reports:pdf.recommendations.examples.keyboardNav.explanation', this.language)
       },
       {
-        title: 'Color Contrast Improvement',
+        title: this.t('reports:pdf.recommendations.examples.colorContrast.title', this.language),
         before: 'color: #999; background: #fff; /* 2.85:1 ratio */',
         after: 'color: #666; background: #fff; /* 4.54:1 ratio */',
-        explanation: 'Ensure sufficient contrast for text readability'
+        explanation: this.t('reports:pdf.recommendations.examples.colorContrast.explanation', this.language)
       }
     ];
     
@@ -269,10 +270,10 @@ class RecommendationsComponent extends BasePDFDocument {
     doc.y += 20;
     
     // Before code section
-    this.addCodeSection(doc, 'Before (Inaccessible):', example.before, '#fef2f2', this.errorColor);
+    this.addCodeSection(doc, this.t('reports:pdf.recommendations.codeLabels.before', this.language), example.before, '#fef2f2', this.errorColor);
     
     // After code section
-    this.addCodeSection(doc, 'After (Accessible):', example.after, '#f0fdf4', this.successColor);
+    this.addCodeSection(doc, this.t('reports:pdf.recommendations.codeLabels.after', this.language), example.after, '#f0fdf4', this.successColor);
     
     // Explanation
     doc.fontSize(9)
@@ -316,17 +317,17 @@ class RecommendationsComponent extends BasePDFDocument {
     
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Implementation Best Practices', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.recommendations.bestPracticesTitle', this.language), this.margins.left, doc.y);
     
     doc.y += 25;
     
     const practices = [
-      'Test with actual screen readers (NVDA, JAWS, VoiceOver)',
-      'Implement keyboard navigation testing in your workflow',
-      'Use automated testing tools as part of CI/CD pipeline',
-      'Involve users with disabilities in testing when possible',
-      'Document accessibility decisions and patterns',
-      'Train development team on accessibility principles'
+      this.t('reports:pdf.recommendations.bestPractices.screenReaders', this.language),
+      this.t('reports:pdf.recommendations.bestPractices.keyboardTesting', this.language),
+      this.t('reports:pdf.recommendations.bestPractices.automatedTesting', this.language),
+      this.t('reports:pdf.recommendations.bestPractices.userTesting', this.language),
+      this.t('reports:pdf.recommendations.bestPractices.documentation', this.language),
+      this.t('reports:pdf.recommendations.bestPractices.training', this.language)
     ];
     
     practices.forEach(practice => {
@@ -347,14 +348,14 @@ class RecommendationsComponent extends BasePDFDocument {
     
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Recommended Tools & Resources', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.recommendations.resourcesTitle', this.language), this.margins.left, doc.y);
     
     doc.y += 25;
     
     const resources = [
-      { category: 'Testing Tools', items: ['axe DevTools', 'WAVE Browser Extension', 'Lighthouse Accessibility Audit'] },
-      { category: 'Design Tools', items: ['Colour Contrast Analyser', 'Stark (Figma/Sketch)', 'Adobe Color Accessibility'] },
-      { category: 'Development', items: ['eslint-plugin-jsx-a11y', 'react-axe', 'Pa11y command line tool'] }
+      { category: this.t('reports:pdf.recommendations.resourceCategories.testing', this.language), items: ['axe DevTools', 'WAVE Browser Extension', 'Lighthouse Accessibility Audit'] },
+      { category: this.t('reports:pdf.recommendations.resourceCategories.design', this.language), items: ['Colour Contrast Analyser', 'Stark (Figma/Sketch)', 'Adobe Color Accessibility'] },
+      { category: this.t('reports:pdf.recommendations.resourceCategories.development', this.language), items: ['eslint-plugin-jsx-a11y', 'react-axe', 'Pa11y command line tool'] }
     ];
     
     resources.forEach(resource => {

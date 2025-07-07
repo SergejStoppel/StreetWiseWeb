@@ -19,12 +19,13 @@ class LegacyPDFGeneratorWrapper {
   /**
    * Generate accessibility report - delegates to new modular system
    */
-  async generateAccessibilityReport(reportData) {
+  async generateAccessibilityReport(reportData, language = 'en') {
     logger.info('Delegating PDF generation to modular system', { 
-      analysisId: reportData.analysisId 
+      analysisId: reportData.analysisId,
+      language
     });
     
-    return await this.pdfGenerator.generateAccessibilityReport(reportData);
+    return await this.pdfGenerator.generateAccessibilityReport(reportData, language);
   }
 }
 

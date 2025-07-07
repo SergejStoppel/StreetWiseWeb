@@ -12,8 +12,9 @@ class ViolationsComponent extends BasePDFDocument {
   /**
    * Add the priority violations section
    */
-  addTopViolations(doc, reportData) {
-    this.addSectionHeader(doc, 'Priority Issues - Immediate Action Required');
+  addTopViolations(doc, reportData, language = 'en') {
+    this.language = language;
+    this.addSectionHeader(doc, this.t('reports:pdf.violations.priorityIssuesTitle', language));
     
     const violations = this.getFilteredViolations(reportData);
     
@@ -55,10 +56,10 @@ class ViolationsComponent extends BasePDFDocument {
     
     doc.fontSize(16)
        .fillColor(this.successColor)
-       .text('🎉 Excellent! No Critical Issues Found', this.margins.left + 20, doc.y + 20)
+       .text(this.t('reports:pdf.violations.noCriticalIssuesTitle', this.language), this.margins.left + 20, doc.y + 20)
        .fontSize(11)
        .fillColor(this.textColor)
-       .text('Your website meets the highest accessibility standards for critical and serious violations.', 
+       .text(this.t('reports:pdf.violations.noCriticalIssuesDescription', this.language), 
              this.margins.left + 20, doc.y + 45);
     
     doc.y += 100;
@@ -116,12 +117,12 @@ class ViolationsComponent extends BasePDFDocument {
     // Impact and affected elements
     doc.fontSize(9)
        .fillColor(impactColor)
-       .text(`${violation.impact.toUpperCase()} IMPACT`, x, y + 20);
+       .text(`${violation.impact.toUpperCase()} ${this.t('reports:pdf.violations.impactLabel', this.language)}`, x, y + 20);
     
     if (violation.nodes && violation.nodes.length > 0) {
       doc.fontSize(9)
          .fillColor(this.grayColor)
-         .text(`${violation.nodes.length} element${violation.nodes.length !== 1 ? 's' : ''} affected`, 
+         .text(this.t('reports:pdf.violations.elementsAffected', this.language, { count: violation.nodes.length }), 
                x + 120, y + 20);
     }
     
@@ -148,7 +149,7 @@ class ViolationsComponent extends BasePDFDocument {
     
     doc.fontSize(9)
        .fillColor('#92400e')
-       .text('💡 Quick Fix: ', this.margins.left + 30, yPosition + 7)
+       .text(this.t('reports:pdf.violations.quickFixLabel', this.language), this.margins.left + 30, yPosition + 7)
        .fillColor(this.textColor)
        .text(quickFix, this.margins.left + 75, yPosition + 7, { width: this.contentWidth - 100 });
   }
@@ -158,29 +159,30 @@ class ViolationsComponent extends BasePDFDocument {
    */
   getQuickFixGuidance(violationId) {
     const quickFixes = {
-      'color-contrast': 'Increase text color contrast to meet 4.5:1 ratio for normal text, 3:1 for large text',
-      'image-alt': 'Add descriptive alt attributes to images: <img src="..." alt="Clear description">',
-      'label': 'Associate labels with form inputs: <label for="email">Email</label><input id="email">',
-      'heading-order': 'Use headings in logical order: h1 > h2 > h3, don\'t skip levels',
-      'link-name': 'Provide descriptive link text or aria-label for meaningful context',
-      'button-name': 'Add text content or aria-label to buttons for screen readers',
-      'focus-order-semantics': 'Ensure interactive elements have proper focus indicators and logical tab order',
-      'keyboard': 'Make all interactive elements accessible via keyboard navigation',
-      'aria-allowed-attr': 'Use only valid ARIA attributes according to element roles',
-      'aria-required-attr': 'Add required ARIA attributes for proper accessibility semantics'
+      'color-contrast': this.t('reports:pdf.violations.quickFixes.colorContrast', this.language),
+      'image-alt': this.t('reports:pdf.violations.quickFixes.imageAlt', this.language),
+      'label': this.t('reports:pdf.violations.quickFixes.label', this.language),
+      'heading-order': this.t('reports:pdf.violations.quickFixes.headingOrder', this.language),
+      'link-name': this.t('reports:pdf.violations.quickFixes.linkName', this.language),
+      'button-name': this.t('reports:pdf.violations.quickFixes.buttonName', this.language),
+      'focus-order-semantics': this.t('reports:pdf.violations.quickFixes.focusOrder', this.language),
+      'keyboard': this.t('reports:pdf.violations.quickFixes.keyboard', this.language),
+      'aria-allowed-attr': this.t('reports:pdf.violations.quickFixes.ariaAllowed', this.language),
+      'aria-required-attr': this.t('reports:pdf.violations.quickFixes.ariaRequired', this.language)
     };
     
-    return quickFixes[violationId] || 'Review WCAG guidelines for specific implementation details';
+    return quickFixes[violationId] || this.t('reports:pdf.violations.quickFixes.default', this.language);
   }
 
   /**
    * Add detailed violations analysis for comprehensive reports
    */
-  addDetailedViolations(doc, reportData) {
+  addDetailedViolations(doc, reportData, language = 'en') {
     if (reportData.reportType !== 'detailed') return doc.y;
+    this.language = language;
     
     this.checkPageBreak(doc, 100);
-    this.addSectionHeader(doc, 'Complete Violations Analysis');
+    this.addSectionHeader(doc, this.t('reports:pdf.violations.completeAnalysisTitle', language));
     
     if (!reportData.axeResults || !reportData.axeResults.violations.length) {
       this.addNoDetailedViolationsMessage(doc);
@@ -200,7 +202,7 @@ class ViolationsComponent extends BasePDFDocument {
   addNoDetailedViolationsMessage(doc) {
     doc.fontSize(12)
        .fillColor(this.successColor)
-       .text('✓ No accessibility violations detected in detailed analysis!', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.violations.noDetailedViolations', this.language), this.margins.left, doc.y);
     doc.y += 30;
   }
 
@@ -229,7 +231,7 @@ class ViolationsComponent extends BasePDFDocument {
     if (violation.nodes && violation.nodes.length > 0) {
       doc.fontSize(10)
          .fillColor(this.textColor)
-         .text(`Affected elements (${violation.nodes.length}):`, this.margins.left + 10, doc.y);
+         .text(this.t('reports:pdf.violations.affectedElementsLabel', this.language, { count: violation.nodes.length }), this.margins.left + 10, doc.y);
       
       // Show first few elements
       violation.nodes.slice(0, 3).forEach(node => {
@@ -248,20 +250,21 @@ class ViolationsComponent extends BasePDFDocument {
   /**
    * Add violation summary statistics
    */
-  addViolationSummary(doc, reportData) {
+  addViolationSummary(doc, reportData, language = 'en') {
+    this.language = language;
     this.checkPageBreak(doc, 80);
     
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Violation Summary by Impact Level', this.margins.left, doc.y);
+       .text(this.t('reports:pdf.violations.summaryByImpactTitle', language), this.margins.left, doc.y);
     
     doc.y += 25;
     
     const summaryData = [
-      { level: 'Critical', count: reportData.summary.criticalViolations, color: this.criticalColor },
-      { level: 'Serious', count: reportData.summary.seriousViolations, color: this.seriousColor },
-      { level: 'Moderate', count: reportData.summary.moderateViolations || 0, color: this.warningColor },
-      { level: 'Minor', count: reportData.summary.minorViolations || 0, color: this.lightGrayColor }
+      { level: this.t('reports:pdf.violations.impactLevels.critical', this.language), count: reportData.summary.criticalViolations, color: this.criticalColor },
+      { level: this.t('reports:pdf.violations.impactLevels.serious', this.language), count: reportData.summary.seriousViolations, color: this.seriousColor },
+      { level: this.t('reports:pdf.violations.impactLevels.moderate', this.language), count: reportData.summary.moderateViolations || 0, color: this.warningColor },
+      { level: this.t('reports:pdf.violations.impactLevels.minor', this.language), count: reportData.summary.minorViolations || 0, color: this.lightGrayColor }
     ];
     
     let xPos = this.margins.left;

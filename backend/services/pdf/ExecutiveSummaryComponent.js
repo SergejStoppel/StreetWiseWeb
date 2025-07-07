@@ -12,8 +12,9 @@ class ExecutiveSummaryComponent extends BasePDFDocument {
   /**
    * Add the complete executive summary section
    */
-  addExecutiveSummary(doc, reportData) {
-    this.addSectionHeader(doc, 'Executive Summary');
+  addExecutiveSummary(doc, reportData, language = 'en') {
+    this.language = language;
+    this.addSectionHeader(doc, this.t('reports:pdf.executiveSummary', language));
     
     // Key findings box with score and metrics
     this.addKeyFindingsBox(doc, reportData);
@@ -51,10 +52,10 @@ class ExecutiveSummaryComponent extends BasePDFDocument {
     
     doc.fontSize(14)
        .fillColor(this.textColor)
-       .text('Overall Accessibility Score:', this.margins.left + 20, boxY + 20)
+       .text(this.t('reports:pdf.overallScore', this.language), this.margins.left + 20, boxY + 20)
        .fontSize(36)
        .fillColor(scoreColor)
-       .text(`${reportData.scores.overall}`, this.margins.left + 20, boxY + 40)
+       .text(`${this.formatNumber(reportData.scores.overall, this.language)}`, this.margins.left + 20, boxY + 40)
        .fontSize(14)
        .fillColor(this.grayColor)
        .text('/100', this.margins.left + 90, boxY + 55);
@@ -68,13 +69,13 @@ class ExecutiveSummaryComponent extends BasePDFDocument {
     
     doc.fontSize(12)
        .fillColor(this.textColor)
-       .text('Key Findings:', metricsX, boxY + 20)
+       .text(this.t('reports:pdf.keyFindings', this.language), metricsX, boxY + 20)
        .fontSize(10)
        .fillColor(this.grayColor)
-       .text(`• ${reportData.summary.totalViolations} total violations found`, metricsX, boxY + 40)
-       .text(`• ${reportData.summary.criticalViolations} critical issues`, metricsX, boxY + 55)
-       .text(`• ${reportData.summary.seriousViolations} serious issues`, metricsX, boxY + 70)
-       .text(`• WCAG 2.1 AA compliance: ${reportData.scores.accessibility}%`, metricsX, boxY + 85);
+       .text(`• ${this.t('reports:pdf.executiveSummaryContent.totalViolationsFound', this.language, { count: this.formatNumber(reportData.summary.totalViolations, this.language) })}`, metricsX, boxY + 40)
+       .text(`• ${this.t('reports:pdf.executiveSummaryContent.criticalIssuesFound', this.language, { count: this.formatNumber(reportData.summary.criticalViolations, this.language) })}`, metricsX, boxY + 55)
+       .text(`• ${this.t('reports:pdf.executiveSummaryContent.seriousIssuesFound', this.language, { count: this.formatNumber(reportData.summary.seriousViolations, this.language) })}`, metricsX, boxY + 70)
+       .text(`• ${this.t('reports:pdf.executiveSummaryContent.wcagCompliance', this.language, { percentage: this.formatNumber(reportData.scores.accessibility, this.language) })}`, metricsX, boxY + 85);
   }
 
   /**
@@ -101,36 +102,27 @@ class ExecutiveSummaryComponent extends BasePDFDocument {
     const score = reportData.scores.overall;
     const violations = reportData.summary.totalViolations;
     const critical = reportData.summary.criticalViolations;
-    const serious = reportData.summary.seriousViolations;
 
-    let summary = `This comprehensive accessibility analysis evaluated your website against WCAG 2.1 AA standards and industry best practices. `;
-
-    // Score-based assessment
-    if (score >= 90) {
-      summary += 'Your website demonstrates excellent accessibility compliance with only minor optimizations needed. ';
-    } else if (score >= 80) {
-      summary += 'Your website shows good accessibility foundations with some important improvements required. ';
-    } else if (score >= 60) {
-      summary += 'Your website has moderate accessibility compliance but requires significant attention to critical issues. ';
+    // Score-based assessment using translations
+    if (score >= 75) {
+      return this.t('reports:pdf.executiveSummaryContent.summaryHigh', this.language, {
+        score: this.formatNumber(score, this.language),
+        violations: this.formatNumber(violations, this.language),
+        critical: this.formatNumber(critical, this.language)
+      });
+    } else if (score >= 50) {
+      return this.t('reports:pdf.executiveSummaryContent.summaryMedium', this.language, {
+        score: this.formatNumber(score, this.language),
+        violations: this.formatNumber(violations, this.language),
+        critical: this.formatNumber(critical, this.language)
+      });
     } else {
-      summary += 'Your website has substantial accessibility barriers that pose significant challenges for users with disabilities. ';
+      return this.t('reports:pdf.executiveSummaryContent.summaryLow', this.language, {
+        score: this.formatNumber(score, this.language),
+        violations: this.formatNumber(violations, this.language),
+        critical: this.formatNumber(critical, this.language)
+      });
     }
-
-    // Violations summary
-    summary += `Our analysis identified ${violations} accessibility ${violations === 1 ? 'violation' : 'violations'} across your site. `;
-    
-    if (critical > 0) {
-      summary += `${critical} critical ${critical === 1 ? 'issue requires' : 'issues require'} immediate remediation as ${critical === 1 ? 'it directly impacts' : 'they directly impact'} user access. `;
-    }
-    
-    if (serious > 0) {
-      summary += `Additionally, ${serious} serious ${serious === 1 ? 'issue needs' : 'issues need'} prompt attention to ensure full compliance. `;
-    }
-
-    // Value proposition
-    summary += 'This report provides detailed implementation guidance, code examples, and prioritized action items to help your development team efficiently address these accessibility barriers and create an inclusive user experience for all visitors.';
-
-    return summary;
   }
 
   /**
@@ -145,12 +137,12 @@ class ExecutiveSummaryComponent extends BasePDFDocument {
     
     doc.fontSize(12)
        .fillColor(this.textColor)
-       .text('Business Impact & Benefits', this.margins.left + 15, impactY + 15)
+       .text(this.t('reports:pdf.executiveSummaryContent.businessImpactTitle', this.language), this.margins.left + 15, impactY + 15)
        .fontSize(10)
        .fillColor(this.grayColor)
-       .text('• Improved user experience for 15% of the population with disabilities', this.margins.left + 20, impactY + 35)
-       .text('• Enhanced SEO performance through better semantic markup', this.margins.left + 20, impactY + 50)
-       .text('• Reduced legal compliance risk and ADA lawsuit exposure', this.margins.left + 20, impactY + 65);
+       .text(`• ${this.t('reports:pdf.executiveSummaryContent.businessImpactPoint1', this.language)}`, this.margins.left + 20, impactY + 35)
+       .text(`• ${this.t('reports:pdf.executiveSummaryContent.businessImpactPoint2', this.language)}`, this.margins.left + 20, impactY + 50)
+       .text(`• ${this.t('reports:pdf.executiveSummaryContent.businessImpactPoint3', this.language)}`, this.margins.left + 20, impactY + 65);
     
     doc.y = impactY + 100;
   }
@@ -162,7 +154,9 @@ class ExecutiveSummaryComponent extends BasePDFDocument {
     if (reportData.summary.criticalViolations === 0) return;
     
     const urgencyColor = reportData.summary.criticalViolations > 5 ? this.criticalColor : this.warningColor;
-    const urgencyText = reportData.summary.criticalViolations > 5 ? 'URGENT ACTION REQUIRED' : 'ATTENTION NEEDED';
+    const urgencyText = reportData.summary.criticalViolations > 5 ? 
+      this.t('reports:pdf.executiveSummaryContent.urgentActionRequired', this.language) : 
+      this.t('reports:pdf.executiveSummaryContent.attentionNeeded', this.language);
     
     // Urgency banner
     doc.rect(this.margins.left, doc.y, this.contentWidth, 30)

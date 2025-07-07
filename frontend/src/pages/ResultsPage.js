@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { 
   FaArrowLeft, 
@@ -352,6 +353,7 @@ const ResultsPage = () => {
   const [upgradingToDetailed, setUpgradingToDetailed] = useState(false);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const navigate = useNavigate();
+  const { i18n, t } = useTranslation('dashboard');
 
   useEffect(() => {
     const storedResults = sessionStorage.getItem('analysisResult');
@@ -362,10 +364,10 @@ const ResultsPage = () => {
         setResults(parsedResults);
       } catch (error) {
         console.error('Error parsing stored results:', error);
-        toast.error('Error loading analysis results');
+        toast.error(t('results.messages.errorLoadingResults'));
       }
     } else {
-      toast.info('No analysis results found. Please run an analysis first.');
+      toast.info(t('results.messages.noResultsFound'));
     }
     
     setLoading(false);
@@ -381,20 +383,20 @@ const ResultsPage = () => {
     setUpgradingToDetailed(true);
     
     try {
-      toast.info('Loading detailed report...', { autoClose: 2000 });
+      toast.info(t('results.messages.loadingDetailedReport'), { autoClose: 2000 });
       
       const detailedResult = await accessibilityAPI.getDetailedReport(results.analysisId);
       
       if (detailedResult.success) {
         setResults(detailedResult.data);
         sessionStorage.setItem('analysisResult', JSON.stringify(detailedResult.data));
-        toast.success('Detailed report loaded successfully!');
+        toast.success(t('results.messages.detailedReportLoaded'));
       } else {
-        toast.error('Failed to load detailed report');
+        toast.error(t('results.messages.failedLoadDetailedReport'));
       }
     } catch (error) {
       console.error('Upgrade error:', error);
-      toast.error(error.message || 'Failed to load detailed report');
+      toast.error(error.message || t('results.messages.failedLoadDetailedReport'));
     } finally {
       setUpgradingToDetailed(false);
     }
@@ -406,13 +408,13 @@ const ResultsPage = () => {
     setDownloadingPDF(true);
     
     try {
-      toast.info('Downloading PDF report...', { autoClose: 2000 });
+      toast.info(t('results.messages.downloadingPdfReport'), { autoClose: 2000 });
       
-      await accessibilityAPI.downloadPDF(results.analysisId);
-      toast.success('PDF report downloaded successfully!');
+      await accessibilityAPI.downloadPDF(results.analysisId, i18n.language);
+      toast.success(t('results.messages.pdfReportDownloaded'));
     } catch (error) {
       console.error('PDF download error:', error);
-      toast.error(error.message || 'Failed to download PDF report');
+      toast.error(error.message || t('results.messages.failedDownloadPdf'));
     } finally {
       setDownloadingPDF(false);
     }
@@ -427,7 +429,7 @@ const ResultsPage = () => {
     }
     
     // Overview reports don't have download functionality
-    toast.info('Download is available in the detailed report. Click "Get Detailed Report & PDF" to upgrade.');
+    toast.info(t('results.messages.downloadAvailableInDetailed'));
   };
 
   if (loading) {
@@ -445,13 +447,13 @@ const ResultsPage = () => {
     return (
       <ResultsContainer>
         <NoResultsMessage>
-          <NoResultsTitle>No Analysis Results Found</NoResultsTitle>
+          <NoResultsTitle>{t('results.noResults.title')}</NoResultsTitle>
           <NoResultsText>
-            It looks like you haven't run an accessibility analysis yet, or the results have expired.
+            {t('results.noResults.description')}
           </NoResultsText>
           <BackButton onClick={handleBack}>
             <FaArrowLeft />
-            Back to Home
+            {t('results.buttons.backToHome')}
           </BackButton>
         </NoResultsMessage>
       </ResultsContainer>
@@ -463,28 +465,28 @@ const ResultsPage = () => {
       <Header>
         <HeaderLeft>
           <Title>
-            Accessibility Analysis Results
+            {t('results.title')}
             <ReportTypeBadge type={results.reportType}>
               {results.reportType === 'detailed' ? (
                 <>
-                  <FaCrown /> Premium Report
+                  <FaCrown /> {t('results.reportTypes.premiumReport')}
                 </>
               ) : (
-                'Overview Report'
+                t('results.reportTypes.overviewReport')
               )}
             </ReportTypeBadge>
           </Title>
           <Subtitle>{results.url}</Subtitle>
           <AnalysisInfo>
-            <span>Analysis ID: {results.analysisId}</span>
+            <span>{t('results.analysisId')}: {results.analysisId}</span>
             <span>•</span>
-            <span>Generated: {new Date(results.timestamp).toLocaleString()}</span>
+            <span>{t('results.generated')}: {new Date(results.timestamp).toLocaleString()}</span>
           </AnalysisInfo>
         </HeaderLeft>
         <HeaderRight>
           <BackButton onClick={handleBack}>
             <FaArrowLeft />
-            Back to Home
+            {t('results.buttons.backToHome')}
           </BackButton>
           
           {results.reportType === 'detailed' ? (
@@ -496,12 +498,12 @@ const ResultsPage = () => {
               {downloadingPDF ? (
                 <>
                   <LoadingSpinner size="small" />
-                  Generating PDF...
+                  {t('results.messages.generatingPdf')}
                 </>
               ) : (
                 <>
                   <FaDownload />
-                  Download PDF Report
+                  {t('results.buttons.downloadPdfReport')}
                 </>
               )}
             </DownloadButton>
@@ -513,12 +515,12 @@ const ResultsPage = () => {
               {upgradingToDetailed ? (
                 <>
                   <LoadingSpinner size="small" />
-                  Upgrading...
+                  {t('results.messages.upgrading')}
                 </>
               ) : (
                 <>
                   <FaCrown />
-                  Get Detailed Report & PDF
+                  {t('results.buttons.getDetailedReportPdf')}
                 </>
               )}
             </UpgradeButton>
@@ -529,35 +531,35 @@ const ResultsPage = () => {
       <ScoresSection>
         <ScoresGrid>
           <ScoreCard
-            title="Overall Score"
+            title={t('results.scores.overallTitle')}
             score={results.scores.overall}
-            description="Combined accessibility and usability score"
+            description={t('results.scores.overallDescription')}
             color={results.scores.overall >= 80 ? '#10b981' : results.scores.overall >= 60 ? '#f59e0b' : '#ef4444'}
           />
           <ScoreCard
-            title="Accessibility Score"
+            title={t('results.scores.accessibilityTitle')}
             score={results.scores.accessibility}
-            description="WCAG compliance and accessibility issues"
+            description={t('results.scores.accessibilityDescription')}
             color={results.scores.accessibility >= 80 ? '#10b981' : results.scores.accessibility >= 60 ? '#f59e0b' : '#ef4444'}
           />
           <ScoreCard
-            title="Custom Score"
+            title={t('results.scores.customTitle')}
             score={results.scores.custom}
-            description="Additional usability and best practices"
+            description={t('results.scores.customDescription')}
             color={results.scores.custom >= 80 ? '#10b981' : results.scores.custom >= 60 ? '#f59e0b' : '#ef4444'}
           />
         </ScoresGrid>
       </ScoresSection>
 
       <SummarySection>
-        <SummaryTitle>Issues Summary</SummaryTitle>
+        <SummaryTitle>{t('results.summary.title')}</SummaryTitle>
         <SummaryGrid>
           <SummaryCard>
             <SummaryIcon color="#ef4444">
               <FaTimesCircle />
             </SummaryIcon>
             <SummaryValue>{results.summary.totalViolations}</SummaryValue>
-            <SummaryLabel>Total Violations</SummaryLabel>
+            <SummaryLabel>{t('results.summary.totalViolations')}</SummaryLabel>
           </SummaryCard>
           
           <SummaryCard>
@@ -565,7 +567,7 @@ const ResultsPage = () => {
               <FaExclamationTriangle />
             </SummaryIcon>
             <SummaryValue>{results.summary.criticalViolations}</SummaryValue>
-            <SummaryLabel>Critical Issues</SummaryLabel>
+            <SummaryLabel>{t('results.summary.criticalIssues')}</SummaryLabel>
           </SummaryCard>
           
           <SummaryCard>
@@ -573,7 +575,7 @@ const ResultsPage = () => {
               <FaInfoCircle />
             </SummaryIcon>
             <SummaryValue>{results.summary.seriousViolations}</SummaryValue>
-            <SummaryLabel>Serious Issues</SummaryLabel>
+            <SummaryLabel>{t('results.summary.seriousIssues')}</SummaryLabel>
           </SummaryCard>
           
           <SummaryCard>
@@ -581,7 +583,7 @@ const ResultsPage = () => {
               <FaImage />
             </SummaryIcon>
             <SummaryValue>{results.summary.imagesWithoutAlt}</SummaryValue>
-            <SummaryLabel>Images without Alt Text</SummaryLabel>
+            <SummaryLabel>{t('results.summary.imagesWithoutAlt')}</SummaryLabel>
           </SummaryCard>
           
           <SummaryCard>
@@ -589,7 +591,7 @@ const ResultsPage = () => {
               <FaWpforms />
             </SummaryIcon>
             <SummaryValue>{results.summary.formsWithoutLabels}</SummaryValue>
-            <SummaryLabel>Unlabeled Form Fields</SummaryLabel>
+            <SummaryLabel>{t('results.summary.unlabeledFormFields')}</SummaryLabel>
           </SummaryCard>
           
           <SummaryCard>
@@ -597,13 +599,13 @@ const ResultsPage = () => {
               <FaLink />
             </SummaryIcon>
             <SummaryValue>{results.summary.emptyLinks}</SummaryValue>
-            <SummaryLabel>Empty Links</SummaryLabel>
+            <SummaryLabel>{t('results.summary.emptyLinks')}</SummaryLabel>
           </SummaryCard>
         </SummaryGrid>
       </SummarySection>
 
       <Section>
-        <SectionTitle>Recommendations</SectionTitle>
+        <SectionTitle>{t('results.sections.recommendations')}</SectionTitle>
         <RecommendationsList recommendations={results.recommendations} />
       </Section>
 
@@ -611,7 +613,7 @@ const ResultsPage = () => {
         // Detailed report shows full violations list
         results.axeResults && (
           <Section>
-            <SectionTitle>Accessibility Violations</SectionTitle>
+            <SectionTitle>{t('results.sections.accessibilityViolations')}</SectionTitle>
             <ViolationsList violations={results.axeResults.violations} />
           </Section>
         )
@@ -620,17 +622,17 @@ const ResultsPage = () => {
         <>
           {results.issuePreview && results.issuePreview.hasViolations && (
             <Section>
-              <SectionTitle>Issues Found</SectionTitle>
+              <SectionTitle>{t('results.sections.issuesFound')}</SectionTitle>
               <LockedSection>
                 <LockIcon>
                   <FaLock />
                 </LockIcon>
                 <LockedTitle>
-                  {results.issuePreview.criticalIssues} Critical Issues, {results.issuePreview.seriousIssues} Serious Issues Found
+                  {t('results.issuePreview.criticalAndSeriousIssues', { critical: results.issuePreview.criticalIssues, serious: results.issuePreview.seriousIssues })}
                 </LockedTitle>
                 <LockedDescription>
-                  Issues detected in categories: {results.issuePreview.categories.join(', ')}. 
-                  Get the detailed report to see specific violations and how to fix them.
+                  {t('results.issuePreview.categoriesDetected', { categories: results.issuePreview.categories.join(', ') })}. 
+                  {t('results.issuePreview.getDetailedReport')}
                 </LockedDescription>
                 <UpgradeButton 
                   onClick={handleUpgradeToDetailed}
@@ -639,12 +641,12 @@ const ResultsPage = () => {
                   {upgradingToDetailed ? (
                     <>
                       <LoadingSpinner size="small" />
-                      Loading Details...
+                      {t('results.messages.loadingDetails')}
                     </>
                   ) : (
                     <>
                       <FaLock />
-                      Unlock Full Analysis
+                      {t('results.buttons.unlockFullAnalysis')}
                     </>
                   )}
                 </UpgradeButton>
@@ -656,11 +658,10 @@ const ResultsPage = () => {
             <UpgradePrompt>
               <UpgradeTitle>
                 <FaCrown />
-                Unlock Complete Analysis
+                {t('results.upgradePrompt.title')}
               </UpgradeTitle>
               <UpgradeDescription>
-                Get the full detailed report with all violations, code examples, 
-                implementation guidance, and a professional PDF export.
+                {t('results.upgradePrompt.description')}
               </UpgradeDescription>
               
               <FeatureList>
@@ -679,12 +680,12 @@ const ResultsPage = () => {
                 {upgradingToDetailed ? (
                   <>
                     <LoadingSpinner size="small" />
-                    Generating Detailed Report...
+                    {t('results.messages.generatingDetailedReport')}
                   </>
                 ) : (
                   <>
                     <FaStar />
-                    Upgrade to Detailed Report
+                    {t('results.buttons.upgradeToDetailedReport')}
                   </>
                 )}
               </UpgradeButton>
@@ -695,10 +696,9 @@ const ResultsPage = () => {
             <LockIcon>
               <FaLock />
             </LockIcon>
-            <LockedTitle>Additional Features Locked</LockedTitle>
+            <LockedTitle>{t('results.lockedSection.title')}</LockedTitle>
             <LockedDescription>
-              Detailed analysis, custom checks, performance metrics, and complete 
-              violation breakdown are available in the detailed report.
+              {t('results.lockedSection.description')}
             </LockedDescription>
             <UpgradeButton 
               onClick={handleUpgradeToDetailed}
@@ -707,12 +707,12 @@ const ResultsPage = () => {
               {upgradingToDetailed ? (
                 <>
                   <LoadingSpinner size="small" />
-                  Upgrading...
+                  {t('results.messages.upgrading')}
                 </>
               ) : (
                 <>
                   <FaCrown />
-                  Get Detailed Report
+                  {t('results.buttons.getDetailedReport')}
                 </>
               )}
             </UpgradeButton>

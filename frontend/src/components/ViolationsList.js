@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { FaChevronDown, FaExclamationTriangle, FaTimesCircle, FaInfoCircle, FaExclamationCircle } from 'react-icons/fa';
 
@@ -187,6 +188,7 @@ const getImpactIcon = (impact) => {
 };
 
 const ViolationsList = ({ violations }) => {
+  const { t } = useTranslation('dashboard');
   const [expandedViolations, setExpandedViolations] = useState(new Set());
 
   const toggleViolation = (violationId) => {
@@ -203,9 +205,9 @@ const ViolationsList = ({ violations }) => {
     return (
       <Container>
         <EmptyState>
-          <EmptyTitle>No Accessibility Violations Found</EmptyTitle>
+          <EmptyTitle>{t('violations.noViolations.title')}</EmptyTitle>
           <EmptyDescription>
-            Great! No accessibility violations were detected in the analysis.
+            {t('violations.noViolations.description')}
           </EmptyDescription>
         </EmptyState>
       </Container>
@@ -228,10 +230,10 @@ const ViolationsList = ({ violations }) => {
                   <ViolationTitle>{violation.help}</ViolationTitle>
                   <ViolationMeta>
                     <ImpactBadge impact={violation.impact}>
-                      {violation.impact || 'Unknown'}
+                      {t('violations.impact.' + (violation.impact || 'unknown'))}
                     </ImpactBadge>
                     <ElementCount>
-                      {violation.nodes.length} element{violation.nodes.length !== 1 ? 's' : ''}
+                      {t('violations.elementCount', { count: violation.nodes.length })}
                     </ElementCount>
                   </ViolationMeta>
                 </div>
@@ -248,7 +250,7 @@ const ViolationsList = ({ violations }) => {
                 
                 {violation.nodes && violation.nodes.length > 0 && (
                   <NodesSection>
-                    <NodesTitle>Affected Elements:</NodesTitle>
+                    <NodesTitle>{t('violations.affectedElements')}:</NodesTitle>
                     {violation.nodes.slice(0, 5).map((node, nodeIndex) => (
                       <NodeItem key={nodeIndex}>
                         {node.target && (
@@ -263,7 +265,7 @@ const ViolationsList = ({ violations }) => {
                     ))}
                     {violation.nodes.length > 5 && (
                       <NodeMessage>
-                        ... and {violation.nodes.length - 5} more element{violation.nodes.length - 5 !== 1 ? 's' : ''}
+                        {t('violations.moreElements', { count: violation.nodes.length - 5 })}
                       </NodeMessage>
                     )}
                   </NodesSection>

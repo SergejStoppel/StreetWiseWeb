@@ -15,5 +15,107 @@
   "usage": "Uso",
   "plan": "Plan",
   "upgrade": "Actualizar",
-  "support": "Soporte"
+  "support": "Soporte",
+  "results": {
+    "title": "Resultados del Análisis de Accesibilidad",
+    "analysisId": "ID de Análisis",
+    "generated": "Generado",
+    "scores": {
+      "overallTitle": "Puntuación General",
+      "overallDescription": "Puntuación combinada de accesibilidad y usabilidad",
+      "accessibilityTitle": "Puntuación de Accesibilidad", 
+      "accessibilityDescription": "Cumplimiento WCAG y problemas de accesibilidad",
+      "customTitle": "Puntuación Personalizada",
+      "customDescription": "Usabilidad adicional y mejores prácticas"
+    },
+    "summary": {
+      "title": "Resumen de Problemas",
+      "totalViolations": "Total de Violaciones",
+      "criticalIssues": "Problemas Críticos",
+      "seriousIssues": "Problemas Graves",
+      "imagesWithoutAlt": "Imágenes sin Texto Alt",
+      "unlabeledFormFields": "Campos de Formulario sin Etiqueta",
+      "emptyLinks": "Enlaces Vacíos"
+    },
+    "sections": {
+      "recommendations": "Recomendaciones",
+      "accessibilityViolations": "Violaciones de Accesibilidad",
+      "issuesFound": "Problemas Encontrados"
+    },
+    "issuePreview": {
+      "criticalAndSeriousIssues": "{{critical}} Problemas Críticos, {{serious}} Problemas Graves Encontrados",
+      "categoriesDetected": "Problemas detectados en categorías: {{categories}}",
+      "getDetailedReport": "Obtenga el informe detallado para ver violaciones específicas y cómo solucionarlas"
+    },
+    "upgradePrompt": {
+      "title": "Desbloquear Análisis Completo",
+      "description": "Obtenga el informe detallado completo con todas las violaciones, ejemplos de código, guía de implementación y exportación PDF profesional."
+    },
+    "lockedSection": {
+      "title": "Características Adicionales Bloqueadas",
+      "description": "Análisis detallado, verificaciones personalizadas, métricas de rendimiento y desglose completo de violaciones están disponibles en el informe detallado."
+    },
+    "noResults": {
+      "title": "No se Encontraron Resultados de Análisis",
+      "description": "Parece que aún no has ejecutado un análisis de accesibilidad, o los resultados han expirado."
+    },
+    "reportTypes": {
+      "premiumReport": "Informe Premium",
+      "overviewReport": "Informe General"
+    },
+    "buttons": {
+      "backToHome": "Volver al Inicio",
+      "downloadPdfReport": "Descargar Informe PDF",
+      "getDetailedReportPdf": "Obtener Informe Detallado y PDF", 
+      "getDetailedReport": "Obtener Informe Detallado",
+      "unlockFullAnalysis": "Desbloquear Análisis Completo",
+      "upgradeToDetailedReport": "Actualizar a Informe Detallado"
+    },
+    "messages": {
+      "errorLoadingResults": "Error al cargar los resultados del análisis",
+      "noResultsFound": "No se encontraron resultados de análisis. Por favor, ejecute un análisis primero.",
+      "loadingDetailedReport": "Cargando informe detallado...",
+      "detailedReportLoaded": "¡Informe detallado cargado exitosamente!",
+      "failedLoadDetailedReport": "Error al cargar el informe detallado",
+      "downloadingPdfReport": "Descargando informe PDF...",
+      "pdfReportDownloaded": "¡Informe PDF descargado exitosamente!",
+      "failedDownloadPdf": "Error al descargar el informe PDF",
+      "downloadAvailableInDetailed": "La descarga está disponible en el informe detallado. Haga clic en \"Obtener Informe Detallado y PDF\" para actualizar.",
+      "generatingPdf": "Generando PDF...",
+      "upgrading": "Actualizando...",
+      "loadingDetails": "Cargando Detalles...",
+      "generatingDetailedReport": "Generando Informe Detallado..."
+    }
+  },
+  "recommendations": {
+    "noRecommendations": {
+      "title": "No Hay Recomendaciones Disponibles",
+      "description": "No se generaron recomendaciones específicas para este análisis."
+    },
+    "priority": {
+      "high": "ALTA",
+      "medium": "MEDIA", 
+      "low": "BAJA"
+    },
+    "priorityLabel": "Prioridad",
+    "recommendedAction": "Acción Recomendada"
+  },
+  "violations": {
+    "noViolations": {
+      "title": "No se Encontraron Violaciones de Accesibilidad",
+      "description": "¡Excelente! No se detectaron violaciones de accesibilidad en el análisis."
+    },
+    "impact": {
+      "critical": "Crítico",
+      "serious": "Grave",
+      "moderate": "Moderado",
+      "minor": "Menor",
+      "unknown": "Desconocido"
+    },
+    "elementCount": "{{count}} elemento",
+    "elementCount_plural": "{{count}} elementos",
+    "affectedElements": "Elementos Afectados",
+    "moreElements": "... y {{count}} elemento más",
+    "moreElements_plural": "... y {{count}} elementos más"
+  }
 }
