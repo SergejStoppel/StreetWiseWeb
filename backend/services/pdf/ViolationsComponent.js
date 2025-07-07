@@ -106,18 +106,58 @@ class ViolationsComponent extends BasePDFDocument {
   }
 
   /**
+   * Translate Axe-core violation messages
+   */
+  translateViolation(violation) {
+    const ruleId = violation.id;
+    
+    // Try to get translated version from dashboard namespace (where axe violations are stored)
+    let translatedHelp = violation.help;
+    let translatedDescription = violation.description;
+    
+    try {
+      const helpKey = `dashboard:violations.axeViolations.${ruleId}`;
+      const descKey = `dashboard:violations.axeViolations.${ruleId}-desc`;
+      
+      const helpTranslation = this.t(helpKey, this.language);
+      const descTranslation = this.t(descKey, this.language);
+      
+      // Use translation if it's different from the key (meaning translation was found)
+      if (helpTranslation !== helpKey) {
+        translatedHelp = helpTranslation;
+      }
+      if (descTranslation !== descKey) {
+        translatedDescription = descTranslation;
+      }
+    } catch (error) {
+      // If translation fails, use original text
+      console.log(`PDF: Translation not found for violation ${ruleId}`);
+    }
+    
+    return {
+      ...violation,
+      help: translatedHelp,
+      description: translatedDescription
+    };
+  }
+
+  /**
    * Add violation title, impact, and description
    */
   addViolationContent(doc, violation, x, y, impactColor) {
+    // Translate the violation before using it
+    const translatedViolation = this.translateViolation(violation);
+    
     // Violation title
     doc.fontSize(13)
        .fillColor(this.textColor)
-       .text(violation.help, x, y, { width: this.contentWidth - (x - this.margins.left) });
+       .text(translatedViolation.help, x, y, { width: this.contentWidth - (x - this.margins.left) });
     
     // Impact and affected elements
+    const translatedImpact = this.t(`dashboard:violations.impact.${violation.impact}`, this.language) || violation.impact;
     doc.fontSize(9)
        .fillColor(impactColor)
-       .text(`${violation.impact.toUpperCase()} ${this.t('reports:pdf.violations.impactLabel', this.language)}`, x, y + 20);
+       .text(`${translatedImpact.toUpperCase()} ${this.t('reports:pdf.violations.impactLabel', this.language)}`, x, y + 20);
     
     if (violation.nodes && violation.nodes.length > 0) {
       doc.fontSize(9)
@@ -127,10 +167,10 @@ class ViolationsComponent extends BasePDFDocument {
     }
     
     // Description
-    if (violation.description) {
+    if (translatedViolation.description) {
       doc.fontSize(10)
          .fillColor(this.grayColor)
-         .text(violation.description, x, y + 35, { 
+         .text(translatedViolation.description, x, y + 35, { 
            width: this.contentWidth - (x - this.margins.left) - 20, 
            lineGap: 2 
          });
@@ -212,18 +252,21 @@ class ViolationsComponent extends BasePDFDocument {
   addDetailedViolationItem(doc, violation, index) {
     this.checkPageBreak(doc, 100);
     
+    // Translate the violation before using it
+    const translatedViolation = this.translateViolation(violation);
+    
     // Violation header
     doc.fontSize(12)
        .fillColor(this.textColor)
-       .text(`${index}. ${violation.id}: ${violation.help}`, this.margins.left, doc.y);
+       .text(`${index}. ${violation.id}: ${translatedViolation.help}`, this.margins.left, doc.y);
 
     doc.y += 15;
 
     // Description
-    if (violation.description) {
+    if (translatedViolation.description) {
       doc.fontSize(10)
          .fillColor(this.grayColor)
-         .text(violation.description, this.margins.left + 10, doc.y, { width: this.contentWidth - 20 });
+         .text(translatedViolation.description, this.margins.left + 10, doc.y, { width: this.contentWidth - 20 });
       doc.y += 15;
     }
 
