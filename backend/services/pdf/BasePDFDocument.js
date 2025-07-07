@@ -9,23 +9,29 @@
 const PDFDocument = require('pdfkit');
 const logger = require('../../utils/logger');
 const i18n = require('../../utils/i18n');
+const branding = require('../../../shared/branding');
+const BrandingUtils = require('../../../shared/branding/utils');
 
 class BasePDFDocument {
   constructor() {
-    // Color scheme - Professional accessibility report branding
-    this.primaryColor = '#0ea5e9';
-    this.secondaryColor = '#d946ef';
-    this.textColor = '#1e293b';
-    this.grayColor = '#64748b';
-    this.lightGrayColor = '#94a3b8';
-    this.successColor = '#22c55e';
-    this.warningColor = '#f59e0b';
-    this.errorColor = '#ef4444';
-    this.criticalColor = '#dc2626';
-    this.seriousColor = '#ea580c';
-    this.backgroundColor = '#f8fafc';
-    this.accentColor = '#7c3aed';
-    this.borderColor = '#e2e8f0';
+    // Load colors from centralized branding system
+    this.primaryColor = BrandingUtils.getColor('primary.500');
+    this.secondaryColor = BrandingUtils.getColor('secondary.500');
+    this.textColor = BrandingUtils.getColor('neutral.800');
+    this.grayColor = BrandingUtils.getColor('neutral.500');
+    this.lightGrayColor = BrandingUtils.getColor('neutral.400');
+    this.successColor = BrandingUtils.getColor('success.500');
+    this.warningColor = BrandingUtils.getColor('warning.500');
+    this.errorColor = BrandingUtils.getColor('error.500');
+    this.criticalColor = BrandingUtils.getColor('error.600');
+    this.seriousColor = '#ea580c'; // Keep specific color for serious violations
+    this.backgroundColor = BrandingUtils.getColor('neutral.50');
+    this.accentColor = BrandingUtils.getColor('primary.700');
+    this.borderColor = BrandingUtils.getColor('neutral.200');
+    
+    // Store branding configuration
+    this.branding = branding;
+    this.brandingUtils = BrandingUtils;
 
     // Typography settings
     this.fonts = {
@@ -39,13 +45,9 @@ class BasePDFDocument {
       tiny: { size: 8, weight: 'normal' }
     };
 
-    // Layout constants
-    this.margins = {
-      top: 50,
-      bottom: 50,
-      left: 50,
-      right: 50
-    };
+    // Layout constants from branding
+    const pdfConfig = BrandingUtils.getPDFConfig();
+    this.margins = pdfConfig.margins;
 
     this.pageWidth = 612; // A4 width in points
     this.pageHeight = 792; // A4 height in points
@@ -93,9 +95,9 @@ class BasePDFDocument {
       size: 'A4',
       info: {
         Title: `${this.t('reports:pdf.documentTitle', language)} - ${reportData.url}`,
-        Author: 'SiteCraft',
+        Author: this.branding.company.name,
         Subject: this.t('reports:pdf.documentTitle', language),
-        Creator: 'SiteCraft Accessibility Analyzer'
+        Creator: `${this.branding.company.name} Accessibility Analyzer`
       }
     });
 
@@ -129,7 +131,7 @@ class BasePDFDocument {
     
     doc.fontSize(this.fonts.tiny.size)
        .fillColor(this.grayColor)
-       .text(`SiteCraft Accessibility Report - ${reportUrl}`, this.margins.left, 750, { width: 400 })
+       .text(`${this.branding.company.name} Accessibility Report - ${reportUrl}`, this.margins.left, 750, { width: 400 })
        .text(`Page ${this.currentPageNumber}`, 450, 750, { width: 100, align: 'right' });
     
     // Restore the y position
@@ -240,6 +242,50 @@ class BasePDFDocument {
        .fill(color || this.primaryColor);
     
     doc.y += 10;
+  }
+
+  /**
+   * Get logo path for PDF context
+   */
+  getLogoPath(type = 'primary', variant = 'light') {
+    return this.brandingUtils.getLogoPath(type, variant, 'pdf');
+  }
+
+  /**
+   * Get company information
+   */
+  getCompanyInfo() {
+    return this.brandingUtils.getCompanyInfo();
+  }
+
+  /**
+   * Add company logo to document
+   */
+  addLogo(doc, x = null, y = null, width = 120, height = 40) {
+    const logoPath = this.getLogoPath('primary', 'pdf');
+    const xPos = x || this.margins.left;
+    const yPos = y || doc.y;
+    
+    try {
+      // Check if logo file exists before trying to add it
+      const fs = require('fs');
+      if (fs.existsSync(logoPath)) {
+        doc.image(logoPath, xPos, yPos, { width, height });
+        return { x: xPos, y: yPos, width, height };
+      } else {
+        // Fallback to text-based logo if image doesn't exist
+        doc.fontSize(this.fonts.title.size)
+           .fillColor(this.primaryColor)
+           .text(this.branding.company.name, xPos, yPos);
+        return { x: xPos, y: yPos, width: 150, height: 20 };
+      }
+    } catch (error) {
+      // Fallback to text-based logo on error
+      doc.fontSize(this.fonts.title.size)
+         .fillColor(this.primaryColor)
+         .text(this.branding.company.name, xPos, yPos);
+      return { x: xPos, y: yPos, width: 150, height: 20 };
+    }
   }
 
   /**

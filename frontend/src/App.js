@@ -10,12 +10,14 @@ import HomePage from './pages/HomePage';
 import ResultsPage from './pages/ResultsPage';
 import GlobalStyles from './styles/GlobalStyles';
 import { theme } from './styles/theme';
+const { branding } = require('./shared/branding');
 
 const AppContainer = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: #f8fafc;
+  background-color: ${branding.colors.neutral[50]};
+  font-family: "${branding.typography.fonts.primary.name}", ${branding.typography.fonts.primary.fallback};
 `;
 
 const MainContent = styled.main`

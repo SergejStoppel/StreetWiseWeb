@@ -81,11 +81,12 @@ class AccessibilityAnalyzer {
       // Configure page settings
       await page.setRequestInterception(true);
       page.on('request', (request) => {
-        // Block unnecessary resources to speed up loading
+        // Block only non-essential resources to speed up loading while preserving accessibility analysis accuracy
         const resourceType = request.resourceType();
-        if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+        if (['stylesheet', 'font', 'media'].includes(resourceType)) {
           request.abort();
         } else {
+          // Allow images and scripts to load for accurate accessibility analysis
           request.continue();
         }
       });
@@ -103,12 +104,27 @@ class AccessibilityAnalyzer {
       
       try {
         await page.goto(validUrl, { 
-          waitUntil: 'domcontentloaded',
+          waitUntil: 'networkidle2',
           timeout: 45000
         });
         
-        // Wait a bit for dynamic content
-        await page.waitForTimeout(2000);
+        // Wait for dynamic content and images to load
+        await page.waitForTimeout(5000);
+        
+        // Wait for images to load or timeout after 10 seconds
+        try {
+          await page.waitForFunction(() => {
+            const images = document.querySelectorAll('img');
+            return Array.from(images).every(img => 
+              img.complete || 
+              img.naturalWidth > 0 ||
+              img.hasAttribute('aria-hidden') ||
+              img.getAttribute('role') === 'presentation'
+            );
+          }, { timeout: 10000 });
+        } catch (loadError) {
+          logger.warn('Some images may not have fully loaded', { analysisId });
+        }
         
         // Check if page loaded successfully
         const title = await page.title();
@@ -289,16 +305,37 @@ class AccessibilityAnalyzer {
           structure: {}
         };
 
-        // Image analysis
+        // Image analysis with improved decorative image detection
         const images = document.querySelectorAll('img');
         images.forEach((img, index) => {
+          // More comprehensive decorative image detection
+          const isDecorative = 
+            img.hasAttribute('aria-hidden') ||
+            img.getAttribute('role') === 'presentation' ||
+            img.getAttribute('role') === 'img' ||
+            img.alt === '' || // Empty alt is valid for decorative images
+            img.closest('[aria-hidden="true"]') ||
+            img.hasAttribute('data-decorative') ||
+            // Check if image is in a decorative context
+            img.closest('.icon, .logo, .decoration, .bg-image, [role="img"]') ||
+            // SVG images are often decorative
+            img.src.includes('.svg') ||
+            // Very small images are often decorative (icons, spacers)
+            (img.naturalWidth > 0 && img.naturalWidth <= 16 && img.naturalHeight <= 16);
+
+          const hasValidAlt = img.alt !== null && img.alt !== undefined;
+          const altText = img.alt || '';
+          
           results.images.push({
             index,
             src: img.src,
-            alt: img.alt,
-            hasAlt: !!img.alt,
-            isEmpty: !img.alt || img.alt.trim() === '',
-            isDecorative: img.hasAttribute('aria-hidden') || img.getAttribute('role') === 'presentation'
+            alt: altText,
+            hasAlt: hasValidAlt,
+            isEmpty: !altText || altText.trim() === '',
+            isDecorative,
+            naturalWidth: img.naturalWidth || 0,
+            naturalHeight: img.naturalHeight || 0,
+            isLoaded: img.complete && img.naturalWidth > 0
           });
         });
 
@@ -444,16 +481,26 @@ class AccessibilityAnalyzer {
     accessibilityScore -= (minorViolations * 2);
     accessibilityScore = Math.max(0, accessibilityScore);
     
-    // Custom checks scoring
-    const imagesWithoutAlt = customChecks.images.filter(img => !img.hasAlt && !img.isDecorative).length;
+    // Custom checks scoring with improved filtering to reduce false positives
+    const meaningfulImagesWithoutAlt = customChecks.images.filter(img => 
+      !img.hasAlt && 
+      !img.isDecorative && 
+      img.isLoaded && // Only count loaded images
+      img.naturalWidth > 16 && // Exclude very small images (likely icons)
+      img.naturalHeight > 16 &&
+      img.src && // Must have a source
+      !img.src.includes('data:') // Exclude data URLs (often decorative)
+    ).length;
+    
     const formsWithoutLabels = customChecks.forms.reduce((count, form) => 
       count + form.inputs.filter(input => !input.hasLabel && !input.hasAriaLabel).length, 0);
     const emptyLinks = customChecks.links.filter(link => link.isEmpty).length;
     
     let customScore = 100;
-    customScore -= (imagesWithoutAlt * 5);
-    customScore -= (formsWithoutLabels * 8);
-    customScore -= (emptyLinks * 3);
+    // Reduced penalties to be less aggressive
+    customScore -= (meaningfulImagesWithoutAlt * 3); // Reduced from 5 to 3
+    customScore -= (formsWithoutLabels * 5); // Reduced from 8 to 5
+    customScore -= (emptyLinks * 2); // Reduced from 3 to 2
     customScore = Math.max(0, customScore);
     
     // Overall score
@@ -461,6 +508,33 @@ class AccessibilityAnalyzer {
     
     // Generate recommendations
     const recommendations = this.generateRecommendations(axeResults, customChecks, reportType, language);
+    
+    // Determine if site has excellent accessibility (very few/no real issues)
+    const hasExcellentAccessibility = 
+      criticalViolations === 0 && 
+      seriousViolations === 0 && 
+      moderateViolations <= 1 && 
+      meaningfulImagesWithoutAlt === 0 &&
+      formsWithoutLabels === 0 &&
+      emptyLinks === 0;
+
+    // Log scoring details for debugging
+    logger.info('Accessibility scoring details', {
+      analysisId,
+      url,
+      criticalViolations,
+      seriousViolations,
+      moderateViolations,
+      minorViolations,
+      meaningfulImagesWithoutAlt,
+      totalImagesAnalyzed: customChecks.images.length,
+      formsWithoutLabels,
+      emptyLinks,
+      accessibilityScore: Math.round(accessibilityScore),
+      customScore: Math.round(customScore),
+      overallScore,
+      hasExcellentAccessibility
+    });
     
     const baseReport = {
       analysisId,
@@ -479,9 +553,10 @@ class AccessibilityAnalyzer {
         seriousViolations,
         moderateViolations,
         minorViolations,
-        imagesWithoutAlt,
+        imagesWithoutAlt: meaningfulImagesWithoutAlt, // Use filtered count
         formsWithoutLabels,
-        emptyLinks
+        emptyLinks,
+        hasExcellentAccessibility // Flag for frontend to show appropriate messaging
       },
       recommendations,
       reportGenerated: new Date().toISOString()

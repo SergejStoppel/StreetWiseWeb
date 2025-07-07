@@ -4,10 +4,12 @@ import styled from 'styled-components';
 import { FaAccessibleIcon } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
+import { useBranding } from '../hooks/useBranding';
+const { branding } = require('../shared/branding');
 
 const HeaderContainer = styled.header`
-  background-color: #ffffff;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  background-color: ${branding.colors.neutral[0]};
+  box-shadow: ${branding.design.shadows.md};
   position: sticky;
   top: 0;
   z-index: 50;
@@ -29,14 +31,15 @@ const HeaderContent = styled.div`
 const Logo = styled(Link)`
   display: flex;
   align-items: center;
-  font-size: 1.5rem;
+  font-size: ${branding.typography.scales.xl};
   font-weight: 700;
-  color: #2563eb;
+  color: ${branding.colors.primary[500]};
   text-decoration: none;
+  font-family: "${branding.typography.fonts.primary.name}", ${branding.typography.fonts.primary.fallback};
   
   &:hover {
     text-decoration: none;
-    color: #1d4ed8;
+    color: ${branding.colors.primary[700]};
   }
 `;
 
@@ -52,29 +55,31 @@ const Navigation = styled.nav`
 `;
 
 const NavLink = styled(Link)`
-  color: #4b5563;
+  color: ${branding.colors.neutral[600]};
   font-weight: 500;
   text-decoration: none;
   padding: 0.5rem 0;
   border-bottom: 2px solid transparent;
   transition: all 0.2s ease;
+  font-family: "${branding.typography.fonts.primary.name}", ${branding.typography.fonts.primary.fallback};
   
   &:hover {
-    color: #2563eb;
-    border-bottom-color: #2563eb;
+    color: ${branding.colors.primary[500]};
+    border-bottom-color: ${branding.colors.primary[500]};
     text-decoration: none;
   }
 `;
 
 const Header = () => {
   const { t } = useTranslation('navigation');
+  const branding = useBranding();
 
   return (
     <HeaderContainer>
       <HeaderContent>
         <Logo to="/">
           <LogoIcon aria-hidden="true" />
-          SiteCraft
+          {branding.company.name}
         </Logo>
         <Navigation>
           <NavLink to="/">{t('home')}</NavLink>

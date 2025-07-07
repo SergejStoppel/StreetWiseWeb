@@ -263,6 +263,42 @@ const LockedDescription = styled.p`
   margin-bottom: 1.5rem;
 `;
 
+const ExcellentAccessibilitySection = styled.div`
+  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+  border: 2px solid #10b981;
+  border-radius: 12px;
+  padding: 2rem;
+  text-align: center;
+  margin: 1rem 0;
+`;
+
+const ExcellentIcon = styled.div`
+  font-size: 4rem;
+  color: #10b981;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+`;
+
+const ExcellentTitle = styled.h3`
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #065f46;
+  margin-bottom: 1rem;
+`;
+
+const ExcellentDescription = styled.p`
+  color: #047857;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  line-height: 1.6;
+  
+  &:last-child {
+    margin-bottom: 0;
+    font-weight: 600;
+  }
+`;
+
 const ScoresSection = styled.section`
   margin-bottom: 3rem;
 `;
@@ -620,7 +656,26 @@ const ResultsPage = () => {
       ) : (
         // Overview report shows very limited information
         <>
-          {results.issuePreview && results.issuePreview.hasViolations && (
+          {results.summary.hasExcellentAccessibility ? (
+            // Show excellent accessibility message
+            <Section>
+              <SectionTitle>{t('results.sections.excellentAccessibility')}</SectionTitle>
+              <ExcellentAccessibilitySection>
+                <ExcellentIcon>
+                  <FaCheckCircle />
+                </ExcellentIcon>
+                <ExcellentTitle>
+                  {t('results.excellent.title')}
+                </ExcellentTitle>
+                <ExcellentDescription>
+                  {t('results.excellent.description')}
+                </ExcellentDescription>
+                <ExcellentDescription>
+                  {t('results.excellent.noUpgradeNeeded')}
+                </ExcellentDescription>
+              </ExcellentAccessibilitySection>
+            </Section>
+          ) : results.issuePreview && results.issuePreview.hasViolations ? (
             <Section>
               <SectionTitle>{t('results.sections.issuesFound')}</SectionTitle>
               <LockedSection>
@@ -652,9 +707,9 @@ const ResultsPage = () => {
                 </UpgradeButton>
               </LockedSection>
             </Section>
-          )}
+          ) : null}
           
-          {results.upgradeInfo && (
+          {results.upgradeInfo && !results.summary.hasExcellentAccessibility && (
             <UpgradePrompt>
               <UpgradeTitle>
                 <FaCrown />

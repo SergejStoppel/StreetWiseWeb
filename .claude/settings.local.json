@@ -10,7 +10,10 @@
       "Bash(npm install:*)",
       "Bash(npm start)",
       "Bash(npm run build:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npx eslint:*)",
+      "Bash(timeout 15s npm run build)",
+      "Bash(node:*)"
     ],
     "deny": []
   }
