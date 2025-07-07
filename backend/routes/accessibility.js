@@ -51,7 +51,7 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
       });
     }
 
-    const { url, reportType = 'overview' } = req.body;
+    const { url, reportType = 'overview', language = 'en' } = req.body;
     const clientIp = req.ip || req.connection.remoteAddress;
     
     logger.info(`Analysis request received`, { 
@@ -64,7 +64,7 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
     const startTime = Date.now();
     
     try {
-      const report = await accessibilityAnalyzer.analyzeWebsite(url, reportType);
+      const report = await accessibilityAnalyzer.analyzeWebsite(url, reportType, language);
       const analysisTime = Date.now() - startTime;
       
       logger.info(`Analysis completed successfully`, {
@@ -164,6 +164,7 @@ router.get('/detailed/:analysisId', async (req, res) => {
 
     logger.info('Detailed report request received', { analysisId });
 
+    const { language = 'en' } = req.query;
     const detailedReport = accessibilityAnalyzer.getDetailedReport(analysisId);
     
     if (!detailedReport) {
@@ -171,6 +172,16 @@ router.get('/detailed/:analysisId', async (req, res) => {
         error: 'Report not found',
         message: 'The requested analysis report was not found or has expired'
       });
+    }
+
+    // If language is different from default, regenerate recommendations with proper language
+    if (language !== 'en') {
+      detailedReport.recommendations = accessibilityAnalyzer.generateRecommendations(
+        detailedReport.axeResults,
+        detailedReport.customChecks,
+        detailedReport.reportType,
+        language
+      );
     }
     
     res.json({

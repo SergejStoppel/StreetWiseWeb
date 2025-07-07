@@ -385,7 +385,7 @@ const ResultsPage = () => {
     try {
       toast.info(t('results.messages.loadingDetailedReport'), { autoClose: 2000 });
       
-      const detailedResult = await accessibilityAPI.getDetailedReport(results.analysisId);
+      const detailedResult = await accessibilityAPI.getDetailedReport(results.analysisId, i18n.language);
       
       if (detailedResult.success) {
         setResults(detailedResult.data);

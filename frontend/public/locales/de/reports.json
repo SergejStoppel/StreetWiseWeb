@@ -394,5 +394,47 @@
       "contactUs": "Kontaktieren Sie unser Team für Implementierungsunterstützung und kontinuierliche Barrierefreiheits-Beratung.",
       "website": "Besuchen Sie sitecraft.com für weitere Informationen"
     }
+  },
+  "recommendations": {
+    "categories": {
+      "criticalIssues": "Kritische Probleme",
+      "images": "Bilder",
+      "forms": "Formulare",
+      "accessibilityIssues": "Barrierefreiheitsprobleme",
+      "contentAndForms": "Inhalt und Formulare",
+      "structure": "Struktur",
+      "links": "Links"
+    },
+    "titles": {
+      "fixCriticalViolations": "Kritische Barrierefreiheitsverletzungen Beheben",
+      "addAltTextToImages": "Alt-Text zu Bildern Hinzufügen",
+      "addLabelsToFormFields": "Beschriftungen zu Formularfeldern Hinzufügen",
+      "addressAccessibilityCompliance": "Barrierefreiheitskonformität Behandeln",
+      "improveContentAccessibility": "Inhaltsbarrierefreiheit Verbessern",
+      "addMainHeading": "Hauptüberschrift Hinzufügen",
+      "fixEmptyLinks": "Leere Links Korrigieren"
+    },
+    "descriptions": {
+      "criticalAccessibilityIssues": "Ihre Website hat {{count}} kritisches Barrierefreiheitsproblem, das Nutzer mit Behinderungen stark beeinträchtigt.",
+      "criticalAccessibilityIssues_plural": "Ihre Website hat {{count}} kritische Barrierefreiheitsprobleme, die Nutzer mit Behinderungen stark beeinträchtigen.",
+      "imagesMissingAltText": "{{count}} Bild fehlt Alt-Text.",
+      "imagesMissingAltText_plural": "{{count}} Bildern fehlt Alt-Text.",
+      "formFieldsMissingLabels": "{{count}} Formularfeld fehlen angemessene Beschriftungen.",
+      "formFieldsMissingLabels_plural": "{{count}} Formularfeldern fehlen angemessene Beschriftungen.",
+      "accessibilityIssuesOverview": "Ihre Website hat Barrierefreiheitsprobleme, die Nutzer mit Behinderungen und die rechtliche Konformität beeinträchtigen können.",
+      "contentFormsAccessibility": "Einige Bilder und Formularelemente sind möglicherweise nicht für Nutzer mit Hilfstechnologien zugänglich.",
+      "missingH1Heading": "Ihrer Seite fehlt eine H1-Überschrift.",
+      "emptyLinksNoTextContent": "{{count}} Link hat keinen Textinhalt.",
+      "emptyLinksNoTextContent_plural": "{{count}} Links haben keinen Textinhalt."
+    },
+    "actions": {
+      "reviewCriticalViolations": "Überprüfen und beheben Sie alle kritischen Verletzungen sofort. Siehe detaillierte Verletzungsliste unten.",
+      "addDescriptiveAltText": "Fügen Sie beschreibenden Alt-Text zu allen Bildern hinzu, die Informationen vermitteln. Siehe spezifische Bilder in der detaillierten Analyse unten.",
+      "associateLabelsWithFormFields": "Verknüpfen Sie Beschriftungen mit Formularfeldern mit <label>-Elementen oder aria-label-Attributen. Siehe detaillierte Formularanalyse unten.",
+      "getDetailedReport": "Holen Sie sich einen detaillierten Bericht, um spezifische Probleme und schrittweise Reparaturanweisungen zu sehen.",
+      "upgradeToDetailedReport": "Upgraden Sie auf detaillierten Bericht für spezifische Standorte und Implementierungsanleitung.",
+      "addClearH1Heading": "Fügen Sie eine klare H1-Überschrift hinzu, die den Hauptinhalt der Seite beschreibt",
+      "addDescriptiveTextToLinks": "Fügen Sie beschreibenden Text zu allen Links hinzu oder verwenden Sie aria-label für Icon-Links"
+    }
   }
 }

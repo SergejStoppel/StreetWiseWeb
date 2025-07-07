@@ -339,7 +339,7 @@ const HomePage = () => {
   const [url, setUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
-  const { t } = useTranslation(['homepage', 'forms']);
+  const { t, i18n } = useTranslation(['homepage', 'forms']);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -369,7 +369,7 @@ const HomePage = () => {
         autoClose: 2000,
       });
       
-      const result = await accessibilityAPI.analyzeWebsite(fullUrl);
+      const result = await accessibilityAPI.analyzeWebsite(fullUrl, 'overview', i18n.language);
       
       if (result.success) {
         toast.success(t('forms:messages.analysisComplete'));

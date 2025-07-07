@@ -388,11 +388,53 @@
           }
         }
       }
-    },
-    "footer": {
-      "poweredBy": "Desarrollado por SiteCraft - Análisis Profesional de Accesibilidad Web",
-      "contactUs": "Contacta a nuestro equipo para soporte de implementación y consultoría continua de accesibilidad.",
-      "website": "Visita sitecraft.com para más información"
     }
+  },
+  "recommendations": {
+    "categories": {
+      "criticalIssues": "Problemas Críticos",
+      "images": "Imágenes",
+      "forms": "Formularios",
+      "accessibilityIssues": "Problemas de Accesibilidad",
+      "contentAndForms": "Contenido y Formularios",
+      "structure": "Estructura",
+      "links": "Enlaces"
+    },
+    "titles": {
+      "fixCriticalViolations": "Corregir Violaciones Críticas de Accesibilidad",
+      "addAltTextToImages": "Agregar Texto Alt a Imágenes",
+      "addLabelsToFormFields": "Agregar Etiquetas a Campos de Formulario",
+      "addressAccessibilityCompliance": "Abordar el Cumplimiento de Accesibilidad",
+      "improveContentAccessibility": "Mejorar la Accesibilidad del Contenido",
+      "addMainHeading": "Agregar Encabezado Principal",
+      "fixEmptyLinks": "Corregir Enlaces Vacíos"
+    },
+    "descriptions": {
+      "criticalAccessibilityIssues": "Su sitio web tiene {{count}} problema crítico de accesibilidad que impacta severamente a usuarios con discapacidades.",
+      "criticalAccessibilityIssues_plural": "Su sitio web tiene {{count}} problemas críticos de accesibilidad que impactan severamente a usuarios con discapacidades.",
+      "imagesMissingAltText": "{{count}} imagen no tiene texto alt.",
+      "imagesMissingAltText_plural": "{{count}} imágenes no tienen texto alt.",
+      "formFieldsMissingLabels": "{{count}} campo de formulario no tiene etiquetas apropiadas.",
+      "formFieldsMissingLabels_plural": "{{count}} campos de formulario no tienen etiquetas apropiadas.",
+      "accessibilityIssuesOverview": "Su sitio web tiene problemas de accesibilidad que pueden impactar a usuarios con discapacidades y el cumplimiento legal.",
+      "contentFormsAccessibility": "Algunas imágenes y elementos de formulario pueden no ser accesibles para usuarios con tecnologías de asistencia.",
+      "missingH1Heading": "Su página no tiene un encabezado H1.",
+      "emptyLinksNoTextContent": "{{count}} enlace no tiene contenido de texto.",
+      "emptyLinksNoTextContent_plural": "{{count}} enlaces no tienen contenido de texto."
+    },
+    "actions": {
+      "reviewCriticalViolations": "Revise y corrija todas las violaciones críticas inmediatamente. Vea la lista detallada de violaciones abajo.",
+      "addDescriptiveAltText": "Agregue texto alt descriptivo a todas las imágenes que transmiten información. Vea imágenes específicas en el análisis detallado abajo.",
+      "associateLabelsWithFormFields": "Asocie etiquetas con campos de formulario usando elementos <label> o atributos aria-label. Vea el análisis detallado de formularios abajo.",
+      "getDetailedReport": "Obtenga un informe detallado para ver problemas específicos e instrucciones paso a paso para solucionarlos.",
+      "upgradeToDetailedReport": "Actualice a informe detallado para ubicaciones específicas y guía de implementación.",
+      "addClearH1Heading": "Agregue un encabezado H1 claro que describa el contenido principal de la página",
+      "addDescriptiveTextToLinks": "Agregue texto descriptivo a todos los enlaces o use aria-label para enlaces de iconos"
+    }
+  },
+  "footer": {
+    "poweredBy": "Desarrollado por SiteCraft - Análisis Profesional de Accesibilidad Web",
+    "contactUs": "Contacta a nuestro equipo para soporte de implementación y consultoría continua de accesibilidad.",
+    "website": "Visita sitecraft.com para más información"
   }
 }

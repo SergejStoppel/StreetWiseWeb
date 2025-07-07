@@ -53,18 +53,18 @@ api.interceptors.response.use(
 );
 
 export const accessibilityAPI = {
-  analyzeWebsite: async (url, reportType = 'overview') => {
+  analyzeWebsite: async (url, reportType = 'overview', language = 'en') => {
     try {
-      const response = await api.post('/api/accessibility/analyze', { url, reportType });
+      const response = await api.post('/api/accessibility/analyze', { url, reportType, language });
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  getDetailedReport: async (analysisId) => {
+  getDetailedReport: async (analysisId, language = 'en') => {
     try {
-      const response = await api.get(`/api/accessibility/detailed/${analysisId}`);
+      const response = await api.get(`/api/accessibility/detailed/${analysisId}?language=${language}`);
       return response.data;
     } catch (error) {
       throw error;

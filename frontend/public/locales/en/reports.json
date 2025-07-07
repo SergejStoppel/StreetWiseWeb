@@ -388,11 +388,53 @@
           }
         }
       }
-    },
-    "footer": {
-      "poweredBy": "Powered by SiteCraft - Professional Web Accessibility Analysis",
-      "contactUs": "Contact our team for implementation support and ongoing accessibility consulting.",
-      "website": "Visit sitecraft.com for more information"
     }
+  },
+  "recommendations": {
+    "categories": {
+      "criticalIssues": "Critical Issues",
+      "images": "Images",
+      "forms": "Forms",
+      "accessibilityIssues": "Accessibility Issues",
+      "contentAndForms": "Content & Forms",
+      "structure": "Structure",
+      "links": "Links"
+    },
+    "titles": {
+      "fixCriticalViolations": "Fix Critical Accessibility Violations",
+      "addAltTextToImages": "Add Alt Text to Images",
+      "addLabelsToFormFields": "Add Labels to Form Fields",
+      "addressAccessibilityCompliance": "Address Accessibility Compliance",
+      "improveContentAccessibility": "Improve Content Accessibility",
+      "addMainHeading": "Add Main Heading",
+      "fixEmptyLinks": "Fix Empty Links"
+    },
+    "descriptions": {
+      "criticalAccessibilityIssues": "Your website has {{count}} critical accessibility issue that severely impact users with disabilities.",
+      "criticalAccessibilityIssues_plural": "Your website has {{count}} critical accessibility issues that severely impact users with disabilities.",
+      "imagesMissingAltText": "{{count}} image is missing alt text.",
+      "imagesMissingAltText_plural": "{{count}} images are missing alt text.",
+      "formFieldsMissingLabels": "{{count}} form field is missing proper labels.",
+      "formFieldsMissingLabels_plural": "{{count}} form fields are missing proper labels.",
+      "accessibilityIssuesOverview": "Your website has accessibility issues that may impact users with disabilities and legal compliance.",
+      "contentFormsAccessibility": "Some images and form elements may not be accessible to users with assistive technologies.",
+      "missingH1Heading": "Your page is missing an H1 heading.",
+      "emptyLinksNoTextContent": "{{count}} link has no text content.",
+      "emptyLinksNoTextContent_plural": "{{count}} links have no text content."
+    },
+    "actions": {
+      "reviewCriticalViolations": "Review and fix all critical violations immediately. See detailed violation list below.",
+      "addDescriptiveAltText": "Add descriptive alt text to all images that convey information. See specific images in detailed analysis below.",
+      "associateLabelsWithFormFields": "Associate labels with form fields using <label> elements or aria-label attributes. See detailed form analysis below.",
+      "getDetailedReport": "Get detailed report to see specific issues and step-by-step fixing instructions.",
+      "upgradeToDetailedReport": "Upgrade to detailed report for specific locations and implementation guidance.",
+      "addClearH1Heading": "Add a clear H1 heading that describes the main content of the page",
+      "addDescriptiveTextToLinks": "Add descriptive text to all links or use aria-label for icon links"
+    }
+  },
+  "footer": {
+    "poweredBy": "Powered by SiteCraft - Professional Web Accessibility Analysis",
+    "contactUs": "Contact our team for implementation support and ongoing accessibility consulting.",
+    "website": "Visit sitecraft.com for more information"
   }
 }
