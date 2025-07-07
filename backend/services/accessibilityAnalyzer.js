@@ -183,6 +183,16 @@ class AccessibilityAnalyzer {
         timestamp: new Date().toISOString(),
         reportType: 'overview'
       }, language);
+
+      // Final consistency check
+      logger.info(`Final report summary`, {
+        analysisId,
+        requestedReportType: reportType,
+        actualReportType: report.reportType,
+        imagesWithoutAlt: report.summary.imagesWithoutAlt,
+        totalViolations: report.summary.totalViolations,
+        detailedReportImages: detailedReport.summary.imagesWithoutAlt
+      });
       
       logger.info(`Analysis completed for ${url}`, { analysisId, score: report.scores.overall, reportType });
       
@@ -305,6 +315,48 @@ class AccessibilityAnalyzer {
           structure: {}
         };
 
+        // Helper function to detect meaningless alt text
+        const isMeaninglessAlt = (altText) => {
+          if (!altText || altText.trim() === '') return false; // Empty alt is valid for decorative images
+          
+          const meaninglessPatterns = [
+            /^\.+$/, // Just dots: ".", "..", "..."
+            /^image$/i, // Just "image"
+            /^photo$/i, // Just "photo" 
+            /^picture$/i, // Just "picture"
+            /^img$/i, // Just "img"
+            /^graphic$/i, // Just "graphic"
+            /^logo$/i, // Just "logo"
+            /^icon$/i, // Just "icon"
+            /^\d+$/, // Just numbers
+            /^untitled/i, // "untitled", "untitled-1", etc.
+            /^dsc_?\d+/i, // Camera defaults like "DSC_1234"
+            /^img_?\d+/i, // Generic like "IMG_1234"
+            /^screenshot/i, // "screenshot", "screenshot1", etc.
+            /^[a-z0-9_-]{1,3}$/i, // Very short meaningless strings
+            /^(jpeg|jpg|png|gif|svg|webp)$/i, // Just file extensions
+          ];
+          
+          const trimmed = altText.trim().toLowerCase();
+          
+          // Check against patterns
+          if (meaninglessPatterns.some(pattern => pattern.test(trimmed))) {
+            return true;
+          }
+          
+          // Check if it's just a filename (contains file extension)
+          if (trimmed.match(/\.(jpg|jpeg|png|gif|svg|webp|bmp)$/i)) {
+            return true;
+          }
+          
+          // Check if it's too short to be meaningful (less than 3 characters)
+          if (trimmed.length < 3) {
+            return true;
+          }
+          
+          return false;
+        };
+
         // Image analysis with improved decorative image detection
         const images = document.querySelectorAll('img');
         images.forEach((img, index) => {
@@ -325,6 +377,8 @@ class AccessibilityAnalyzer {
 
           const hasValidAlt = img.alt !== null && img.alt !== undefined;
           const altText = img.alt || '';
+          const hasMeaninglessAlt = hasValidAlt && isMeaninglessAlt(altText);
+          
           
           results.images.push({
             index,
@@ -333,9 +387,14 @@ class AccessibilityAnalyzer {
             hasAlt: hasValidAlt,
             isEmpty: !altText || altText.trim() === '',
             isDecorative,
+            hasMeaninglessAlt,
+            hasGoodAlt: hasValidAlt && !hasMeaninglessAlt && altText.trim() !== '',
             naturalWidth: img.naturalWidth || 0,
             naturalHeight: img.naturalHeight || 0,
-            isLoaded: img.complete && img.naturalWidth > 0
+            isLoaded: img.complete && img.naturalWidth > 0,
+            // Add debugging info
+            selector: img.tagName.toLowerCase() + (img.id ? '#' + img.id : '') + (img.className ? '.' + img.className.split(' ').join('.') : ''),
+            context: img.closest('[class*="post"], [class*="content"], [class*="article"], main, section')?.tagName || 'unknown'
           });
         });
 
@@ -481,26 +540,26 @@ class AccessibilityAnalyzer {
     accessibilityScore -= (minorViolations * 2);
     accessibilityScore = Math.max(0, accessibilityScore);
     
-    // Custom checks scoring with improved filtering to reduce false positives
-    const meaningfulImagesWithoutAlt = customChecks.images.filter(img => 
-      !img.hasAlt && 
+    // Custom checks scoring - images with missing or meaningless alt text
+    const imagesWithInadequateAlt = customChecks.images.filter(img => 
       !img.isDecorative && 
       img.isLoaded && // Only count loaded images
       img.naturalWidth > 16 && // Exclude very small images (likely icons)
       img.naturalHeight > 16 &&
       img.src && // Must have a source
-      !img.src.includes('data:') // Exclude data URLs (often decorative)
-    ).length;
+      !img.src.includes('data:') && // Exclude data URLs (often decorative)
+      (!img.hasAlt || img.hasMeaninglessAlt) // Missing alt OR meaningless alt
+    );
     
     const formsWithoutLabels = customChecks.forms.reduce((count, form) => 
       count + form.inputs.filter(input => !input.hasLabel && !input.hasAriaLabel).length, 0);
     const emptyLinks = customChecks.links.filter(link => link.isEmpty).length;
     
     let customScore = 100;
-    // Reduced penalties to be less aggressive
-    customScore -= (meaningfulImagesWithoutAlt * 3); // Reduced from 5 to 3
-    customScore -= (formsWithoutLabels * 5); // Reduced from 8 to 5
-    customScore -= (emptyLinks * 2); // Reduced from 3 to 2
+    // Penalties for usability issues
+    customScore -= (imagesWithInadequateAlt.length * 4); // Increased since this includes meaningful content
+    customScore -= (formsWithoutLabels * 5);
+    customScore -= (emptyLinks * 2);
     customScore = Math.max(0, customScore);
     
     // Overall score
@@ -514,7 +573,7 @@ class AccessibilityAnalyzer {
       criticalViolations === 0 && 
       seriousViolations === 0 && 
       moderateViolations <= 1 && 
-      meaningfulImagesWithoutAlt === 0 &&
+      imagesWithInadequateAlt.length === 0 &&
       formsWithoutLabels === 0 &&
       emptyLinks === 0;
 
@@ -526,8 +585,10 @@ class AccessibilityAnalyzer {
       seriousViolations,
       moderateViolations,
       minorViolations,
-      meaningfulImagesWithoutAlt,
+      imagesWithInadequateAlt: imagesWithInadequateAlt.length,
       totalImagesAnalyzed: customChecks.images.length,
+      imagesWithMeaninglessAlt: customChecks.images.filter(img => img.hasMeaninglessAlt).length,
+      imagesWithoutAltAttribute: customChecks.images.filter(img => !img.hasAlt).length,
       formsWithoutLabels,
       emptyLinks,
       accessibilityScore: Math.round(accessibilityScore),
@@ -536,6 +597,18 @@ class AccessibilityAnalyzer {
       hasExcellentAccessibility
     });
     
+    // Log data consistency for debugging
+    logger.info(`Report generation for ${reportType}`, {
+      analysisId,
+      url,
+      reportType,
+      imagesWithInadequateAlt: imagesWithInadequateAlt.length,
+      totalImagesAnalyzed: customChecks.images.length,
+      totalViolations,
+      criticalViolations,
+      seriousViolations
+    });
+
     const baseReport = {
       analysisId,
       url,
@@ -553,7 +626,7 @@ class AccessibilityAnalyzer {
         seriousViolations,
         moderateViolations,
         minorViolations,
-        imagesWithoutAlt: meaningfulImagesWithoutAlt, // Use filtered count
+        imagesWithoutAlt: imagesWithInadequateAlt.length, // Use new comprehensive count
         formsWithoutLabels,
         emptyLinks,
         hasExcellentAccessibility // Flag for frontend to show appropriate messaging
@@ -689,14 +762,49 @@ class AccessibilityAnalyzer {
         });
       }
       
-      const imagesWithoutAlt = customChecks.images.filter(img => !img.hasAlt && !img.isDecorative);
-      if (imagesWithoutAlt.length > 0) {
+      // Check for images with missing or meaningless alt text
+      const imagesWithInadequateAlt = customChecks.images.filter(img => 
+        !img.isDecorative && 
+        img.isLoaded && 
+        img.naturalWidth > 16 && 
+        img.naturalHeight > 16 &&
+        img.src && 
+        !img.src.includes('data:') &&
+        (!img.hasAlt || img.hasMeaninglessAlt)
+      );
+      
+      if (imagesWithInadequateAlt.length > 0) {
+        const missingAlt = imagesWithInadequateAlt.filter(img => !img.hasAlt).length;
+        const meaninglessAlt = imagesWithInadequateAlt.filter(img => img.hasMeaninglessAlt).length;
+        
+        let description = '';
+        if (missingAlt > 0 && meaninglessAlt > 0) {
+          description = i18n.t('reports:recommendations.descriptions.imagesMissingAndMeaninglessAlt', language, { 
+            missing: missingAlt, 
+            meaningless: meaninglessAlt,
+            total: imagesWithInadequateAlt.length
+          });
+        } else if (meaninglessAlt > 0) {
+          description = i18n.t('reports:recommendations.descriptions.imagesMeaninglessAlt', language, { count: meaninglessAlt });
+        } else {
+          description = i18n.t('reports:recommendations.descriptions.imagesMissingAltText', language, { count: missingAlt });
+        }
+        
         recommendations.push({
           priority: 'high',
           category: i18n.t('reports:recommendations.categories.images', language),
-          title: i18n.t('reports:recommendations.titles.addAltTextToImages', language),
-          description: i18n.t('reports:recommendations.descriptions.imagesMissingAltText', language, { count: imagesWithoutAlt.length }),
-          action: i18n.t('reports:recommendations.actions.addDescriptiveAltText', language)
+          title: i18n.t('reports:recommendations.titles.improveImageAltText', language),
+          description,
+          action: i18n.t('reports:recommendations.actions.addDescriptiveAltText', language),
+          details: {
+            imagesWithIssues: imagesWithInadequateAlt.map(img => ({
+              src: img.src,
+              alt: img.alt,
+              issue: img.hasAlt ? 'meaningless' : 'missing',
+              selector: img.selector,
+              context: img.context
+            }))
+          }
         });
       }
       

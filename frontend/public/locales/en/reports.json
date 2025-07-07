@@ -403,6 +403,7 @@
     "titles": {
       "fixCriticalViolations": "Fix Critical Accessibility Violations",
       "addAltTextToImages": "Add Alt Text to Images",
+      "improveImageAltText": "Improve Image Alt Text",
       "addLabelsToFormFields": "Add Labels to Form Fields",
       "addressAccessibilityCompliance": "Address Accessibility Compliance",
       "improveContentAccessibility": "Improve Content Accessibility",
@@ -414,6 +415,9 @@
       "criticalAccessibilityIssues_plural": "Your website has {{count}} critical accessibility issues that severely impact users with disabilities.",
       "imagesMissingAltText": "{{count}} image is missing alt text.",
       "imagesMissingAltText_plural": "{{count}} images are missing alt text.",
+      "imagesMeaninglessAlt": "{{count}} image has meaningless alt text like '...', 'image', or filename.",
+      "imagesMeaninglessAlt_plural": "{{count}} images have meaningless alt text like '...', 'image', or filename.",
+      "imagesMissingAndMeaninglessAlt": "{{missing}} images are missing alt text and {{meaningless}} have meaningless alt text ({{total}} total issues).",
       "formFieldsMissingLabels": "{{count}} form field is missing proper labels.",
       "formFieldsMissingLabels_plural": "{{count}} form fields are missing proper labels.",
       "accessibilityIssuesOverview": "Your website has accessibility issues that may impact users with disabilities and legal compliance.",
