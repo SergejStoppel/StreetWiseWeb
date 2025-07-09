@@ -10,6 +10,14 @@ import HomePage from './pages/HomePage';
 import ResultsPage from './pages/ResultsPage';
 import ServicesPage from './pages/ServicesPage';
 import AccessibilityServicePage from './pages/AccessibilityServicePage';
+import SeoContentServicePage from './pages/SeoContentServicePage';
+import WebsiteOverhaulServicePage from './pages/WebsiteOverhaulServicePage';
+import PricingPage from './pages/PricingPage';
+import AboutPage from './pages/AboutPage';
+import BlogPage from './pages/BlogPage';
+import ContactPage from './pages/ContactPage';
+import LoginPage from './pages/LoginPage';
+import CaseStudiesPage from './pages/CaseStudiesPage';
 import FreeAuditPage from './pages/FreeAuditPage';
 import GlobalStyles from './styles/GlobalStyles';
 import { theme } from './styles/theme';
@@ -70,55 +78,15 @@ function App() {
               <Route path="/results" element={<ResultsPage />} />
               <Route path="/services" element={<ServicesPage />} />
               <Route path="/services/accessibility" element={<AccessibilityServicePage />} />
-              <Route path="/services/seo-content" element={
-                <ComingSoonPage 
-                  title="SEO & Content Services" 
-                  description="Boost your online visibility with AI-powered SEO and content strategies. This page is coming soon!" 
-                />
-              } />
-              <Route path="/services/website-overhaul" element={
-                <ComingSoonPage 
-                  title="Website Overhaul Services" 
-                  description="Transform your website with modern design and technical optimization. This page is coming soon!" 
-                />
-              } />
-              <Route path="/pricing" element={
-                <ComingSoonPage 
-                  title="Pricing Plans" 
-                  description="Flexible pricing for every small business need. This page is coming soon!" 
-                />
-              } />
-              <Route path="/about" element={
-                <ComingSoonPage 
-                  title="About SiteCraft" 
-                  description="Learn more about our mission to make professional online presence accessible to all small businesses. This page is coming soon!" 
-                />
-              } />
-              <Route path="/blog" element={
-                <ComingSoonPage 
-                  title="SiteCraft Blog" 
-                  description="Insights, tips, and updates on web accessibility, SEO, and digital marketing. This page is coming soon!" 
-                />
-              } />
-              <Route path="/contact" element={
-                <ComingSoonPage 
-                  title="Contact Us" 
-                  description="Get in touch with our team of experts. This page is coming soon!" 
-                />
-              } />
+              <Route path="/services/seo-content" element={<SeoContentServicePage />} />
+              <Route path="/services/website-overhaul" element={<WebsiteOverhaulServicePage />} />
+              <Route path="/pricing" element={<PricingPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="/blog" element={<BlogPage />} />
+              <Route path="/contact" element={<ContactPage />} />
               <Route path="/free-audit" element={<FreeAuditPage />} />
-              <Route path="/login" element={
-                <ComingSoonPage 
-                  title="Client Portal" 
-                  description="Access your dashboard, reports, and manage your services. This page is coming soon!" 
-                />
-              } />
-              <Route path="/case-studies" element={
-                <ComingSoonPage 
-                  title="Case Studies" 
-                  description="See how we've helped other small businesses transform their online presence. This page is coming soon!" 
-                />
-              } />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/case-studies" element={<CaseStudiesPage />} />
               {/* 404 Page */}
               <Route path="*" element={
                 <ComingSoonPage 
