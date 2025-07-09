@@ -109,8 +109,32 @@ class AccessibilityAnalyzer {
           timeout: 45000
         });
         
-        // Wait for dynamic content and images to load
-        await page.waitForTimeout(5000);
+        // Production-ready wait strategy for dynamic content
+        // 1. Wait for any lazy-loaded content
+        await page.evaluate(() => {
+          return new Promise((resolve) => {
+            // Check if page uses Intersection Observer for lazy loading
+            if ('IntersectionObserver' in window) {
+              // Give lazy-loaded content time to initialize
+              setTimeout(resolve, 1000);
+            } else {
+              resolve();
+            }
+          });
+        });
+        
+        // 2. Wait for fonts to load (important for accurate text rendering)
+        await page.evaluateHandle(() => document.fonts.ready);
+        
+        // 3. Ensure no major layout shifts are happening
+        await page.waitForFunction(() => {
+          // Check if any animations or transitions are running
+          const animations = document.getAnimations();
+          return animations.length === 0 || animations.every(a => a.playState !== 'running');
+        }, { timeout: 5000 }).catch(() => {
+          // Don't fail analysis if animations timeout
+          logger.info('Some animations may still be running', { analysisId });
+        });
         
         // Wait for images to load or timeout after 10 seconds
         try {
