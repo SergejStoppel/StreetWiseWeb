@@ -9,7 +9,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 const HomeContainer = styled.div`
   min-height: calc(100vh - 160px);
-  background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-secondary-600) 100%);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
   position: relative;
   overflow: hidden;
   
@@ -30,7 +30,7 @@ const HeroSection = styled.section`
   margin: 0 auto;
   padding: 4rem 2rem;
   text-align: center;
-  color: var(--color-neutral-0);
+  color: var(--color-white);
   position: relative;
   z-index: 1;
   
@@ -44,7 +44,7 @@ const HeroTitle = styled.h1`
   font-weight: 800;
   margin-bottom: 1.5rem;
   line-height: 1.1;
-  background: linear-gradient(135deg, var(--color-neutral-0) 0%, var(--color-primary-100) 100%);
+  background: linear-gradient(135deg, var(--color-white) 0%, var(--color-primary-light) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -74,10 +74,10 @@ const HeroSubtitle = styled.p`
 `;
 
 const AnalysisForm = styled.form`
-  background: var(--color-neutral-0);
+  background: var(--color-white);
   padding: 2.5rem;
-  border-radius: var(--radius-2xl);
-  box-shadow: var(--shadow-2xl);
+  border-radius: var(--border-radius-2xl);
+  box-shadow: var(--shadow-xl);
   margin-bottom: 4rem;
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -92,7 +92,7 @@ const AnalysisForm = styled.form`
 `;
 
 const FormTitle = styled.h2`
-  color: var(--color-neutral-800);
+  color: var(--color-text-primary);
   font-size: 1.75rem;
   font-weight: 700;
   margin-bottom: 1.5rem;
@@ -113,25 +113,25 @@ const InputGroup = styled.div`
 const URLInput = styled.input`
   flex: 1;
   padding: 1rem 1.25rem;
-  border: 2px solid var(--color-neutral-200);
-  border-radius: var(--radius-lg);
+  border: 2px solid var(--color-gray-border);
+  border-radius: var(--border-radius-lg);
   font-size: 1rem;
-  transition: var(--transition-default);
-  background: var(--color-neutral-50);
+  transition: all var(--transition-fast);
+  background: var(--color-bg-secondary);
   
   &:focus {
     outline: none;
-    border-color: var(--color-primary-500);
-    background: var(--color-neutral-0);
+    border-color: var(--color-primary);
+    background: var(--color-white);
     box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
   }
   
   &:invalid {
-    border-color: var(--color-error-500);
+    border-color: var(--color-error);
   }
   
   &::placeholder {
-    color: var(--color-neutral-400);
+    color: var(--color-text-muted);
   }
   
   @media (max-width: 768px) {
@@ -140,25 +140,25 @@ const URLInput = styled.input`
 `;
 
 const AnalyzeButton = styled.button`
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-primary-600) 100%);
-  color: var(--color-neutral-0);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: var(--color-white);
   padding: 1rem 2rem;
   border: none;
-  border-radius: var(--radius-lg);
+  border-radius: var(--border-radius-lg);
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: var(--transition-default);
+  transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   gap: 0.75rem;
   white-space: nowrap;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
   
   &:hover:not(:disabled) {
-    background: linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-700) 100%);
+    background: linear-gradient(135deg, var(--color-primary-hover) 0%, var(--color-primary-dark) 100%);
     transform: translateY(-2px);
-    box-shadow: var(--shadow-xl);
+    box-shadow: var(--shadow-lg);
   }
   
   &:disabled {
@@ -184,23 +184,23 @@ const FeaturesSection = styled.section`
 const FeatureCard = styled.div`
   background: rgba(255, 255, 255, 0.15);
   padding: 2.5rem;
-  border-radius: var(--radius-xl);
+  border-radius: var(--border-radius-xl);
   text-align: center;
   backdrop-filter: blur(15px);
   border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: var(--transition-default);
+  transition: all var(--transition-fast);
   
   &:hover {
     transform: translateY(-5px);
     background: rgba(255, 255, 255, 0.2);
-    box-shadow: var(--shadow-xl);
+    box-shadow: var(--shadow-lg);
   }
 `;
 
 const FeatureIcon = styled.div`
   font-size: 3.5rem;
   margin-bottom: 1.5rem;
-  color: var(--color-warning-400);
+  color: var(--color-warning);
   display: flex;
   justify-content: center;
 `;
@@ -209,24 +209,24 @@ const FeatureTitle = styled.h3`
   font-size: 1.375rem;
   font-weight: 700;
   margin-bottom: 1rem;
-  color: var(--color-neutral-0);
+  color: var(--color-white);
 `;
 
 const FeatureDescription = styled.p`
   opacity: 0.95;
   line-height: 1.6;
-  color: var(--color-neutral-100);
+  color: var(--color-white);
 `;
 
 const ExampleText = styled.p`
-  color: var(--color-neutral-300);
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
   margin-top: 1rem;
   text-align: center;
 `;
 
 const ContentSection = styled.section`
-  background: var(--color-neutral-0);
+  background: var(--color-white);
   padding: 5rem 2rem;
   
   @media (max-width: 768px) {
@@ -244,7 +244,7 @@ const SectionTitle = styled.h2`
   font-weight: 800;
   text-align: center;
   margin-bottom: 1rem;
-  color: var(--color-neutral-800);
+  color: var(--color-text-primary);
   
   @media (max-width: 768px) {
     font-size: 2rem;
@@ -254,7 +254,7 @@ const SectionTitle = styled.h2`
 const SectionSubtitle = styled.p`
   font-size: 1.25rem;
   text-align: center;
-  color: var(--color-neutral-600);
+  color: var(--color-text-secondary);
   margin-bottom: 3rem;
   max-width: 600px;
   margin-left: auto;
@@ -271,26 +271,26 @@ const StatsGrid = styled.div`
 const StatCard = styled.div`
   text-align: center;
   padding: 2rem;
-  border-radius: var(--radius-lg);
-  background: var(--color-primary-50);
-  border: 1px solid var(--color-primary-100);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-primary-light);
+  border: 1px solid var(--color-primary);
 `;
 
 const StatNumber = styled.div`
   font-size: 3rem;
   font-weight: 800;
-  color: var(--color-primary-600);
+  color: var(--color-primary);
   margin-bottom: 0.5rem;
 `;
 
 const StatLabel = styled.div`
   font-size: 1rem;
-  color: var(--color-neutral-600);
+  color: var(--color-text-secondary);
   font-weight: 500;
 `;
 
 const TestimonialSection = styled.section`
-  background: linear-gradient(135deg, var(--color-neutral-100) 0%, var(--color-neutral-50) 100%);
+  background: linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-white) 100%);
   padding: 5rem 2rem;
   
   @media (max-width: 768px) {
@@ -299,10 +299,10 @@ const TestimonialSection = styled.section`
 `;
 
 const TestimonialCard = styled.div`
-  background: var(--color-neutral-0);
+  background: var(--color-white);
   padding: 2.5rem;
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-md);
   text-align: center;
   max-width: 600px;
   margin: 0 auto;
@@ -311,19 +311,19 @@ const TestimonialCard = styled.div`
 const TestimonialText = styled.p`
   font-size: 1.125rem;
   font-style: italic;
-  color: var(--color-neutral-700);
+  color: var(--color-text-secondary);
   margin-bottom: 1.5rem;
   line-height: 1.7;
 `;
 
 const TestimonialAuthor = styled.div`
   font-weight: 600;
-  color: var(--color-neutral-800);
+  color: var(--color-text-primary);
 `;
 
 const TestimonialRole = styled.div`
   font-size: 0.875rem;
-  color: var(--color-neutral-500);
+  color: var(--color-text-muted);
   margin-top: 0.25rem;
 `;
 
@@ -332,7 +332,7 @@ const StarRating = styled.div`
   justify-content: center;
   gap: 0.25rem;
   margin-bottom: 1.5rem;
-  color: var(--color-warning-400);
+  color: var(--color-warning);
 `;
 
 const HomePage = () => {
