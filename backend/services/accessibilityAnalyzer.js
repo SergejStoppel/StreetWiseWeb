@@ -171,6 +171,9 @@ class AccessibilityAnalyzer {
       // Run custom accessibility checks
       const customChecks = await this.runCustomChecks(page, analysisId);
       
+      // Run keyboard accessibility analysis
+      const keyboardAnalysis = await this.runKeyboardAccessibilityAnalysis(page, analysisId);
+      
       // Run comprehensive color contrast analysis
       const colorContrastAnalysis = colorContrastAnalyzer.analyzeColorContrast(
         axeResults, 
@@ -188,6 +191,7 @@ class AccessibilityAnalyzer {
         metadata,
         axeResults,
         customChecks,
+        keyboardAnalysis,
         colorContrastAnalysis,
         performanceMetrics,
         timestamp: new Date().toISOString(),
@@ -212,6 +216,7 @@ class AccessibilityAnalyzer {
         metadata,
         axeResults,
         customChecks,
+        keyboardAnalysis,
         colorContrastAnalysis,
         performanceMetrics,
         timestamp: new Date().toISOString(),
@@ -508,17 +513,348 @@ class AccessibilityAnalyzer {
         
         results.colors = colorSamples;
 
-        // Page structure analysis
+        // Enhanced semantic HTML structure analysis
         results.structure = {
+          // Basic structural elements
           hasH1: !!document.querySelector('h1'),
           h1Count: document.querySelectorAll('h1').length,
           hasMain: !!document.querySelector('main'),
           hasNav: !!document.querySelector('nav'),
           hasFooter: !!document.querySelector('footer'),
+          hasHeader: !!document.querySelector('header'),
           hasSkipLink: !!document.querySelector('a[href^="#"]'),
+          
+          // Semantic HTML5 elements analysis
+          semanticElements: {
+            header: document.querySelectorAll('header').length,
+            nav: document.querySelectorAll('nav').length,
+            main: document.querySelectorAll('main').length,
+            section: document.querySelectorAll('section').length,
+            article: document.querySelectorAll('article').length,
+            aside: document.querySelectorAll('aside').length,
+            footer: document.querySelectorAll('footer').length
+          },
+          
+          // Heading hierarchy analysis
+          headingHierarchy: (() => {
+            const headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+            const hierarchy = headings.map((heading, index) => ({
+              level: parseInt(heading.tagName.charAt(1)),
+              text: heading.textContent.trim().substring(0, 100),
+              isEmpty: !heading.textContent.trim(),
+              position: index,
+              hasId: !!heading.id
+            }));
+            
+            // Check for heading order violations
+            const violations = [];
+            for (let i = 1; i < hierarchy.length; i++) {
+              const current = hierarchy[i];
+              const previous = hierarchy[i - 1];
+              
+              // Check if heading level jumps more than 1 (e.g., H1 -> H3)
+              if (current.level > previous.level + 1) {
+                violations.push({
+                  type: 'heading_skip',
+                  message: `Heading level jumps from H${previous.level} to H${current.level}`,
+                  position: i,
+                  previousLevel: previous.level,
+                  currentLevel: current.level
+                });
+              }
+            }
+            
+            return {
+              headings: hierarchy,
+              violations,
+              hasLogicalOrder: violations.length === 0,
+              totalHeadings: hierarchy.length,
+              emptyHeadings: hierarchy.filter(h => h.isEmpty).length
+            };
+          })(),
+          
+          // ARIA landmarks analysis
+          ariaLandmarks: {
+            hasMainLandmark: !!document.querySelector('[role="main"], main'),
+            hasNavigationLandmark: !!document.querySelector('[role="navigation"], nav'),
+            hasBannerLandmark: !!document.querySelector('[role="banner"], header'),
+            hasContentinfoLandmark: !!document.querySelector('[role="contentinfo"], footer'),
+            hasSearchLandmark: !!document.querySelector('[role="search"]'),
+            hasComplementaryLandmark: !!document.querySelector('[role="complementary"], aside'),
+            
+            // Count ARIA landmarks
+            landmarkCounts: {
+              main: document.querySelectorAll('[role="main"], main').length,
+              navigation: document.querySelectorAll('[role="navigation"], nav').length,
+              banner: document.querySelectorAll('[role="banner"], header').length,
+              contentinfo: document.querySelectorAll('[role="contentinfo"], footer').length,
+              search: document.querySelectorAll('[role="search"]').length,
+              complementary: document.querySelectorAll('[role="complementary"], aside').length
+            }
+          },
+          
+          // Document structure quality
+          documentStructure: {
+            hasDoctype: !!document.doctype,
+            hasLang: !!document.documentElement.lang,
+            langValue: document.documentElement.lang || '',
+            hasTitle: !!document.title,
+            titleLength: document.title.length,
+            hasMetaDescription: !!document.querySelector('meta[name="description"]'),
+            hasMetaViewport: !!document.querySelector('meta[name="viewport"]')
+          },
+          
+          // Navigation structure
+          navigationStructure: {
+            skipLinksCount: document.querySelectorAll('a[href^="#skip"], .skip-link, .sr-only a[href^="#"]').length,
+            breadcrumbsPresent: !!document.querySelector('[aria-label*="breadcrumb"], .breadcrumb, nav[aria-label*="Breadcrumb"]'),
+            navigationMenuCount: document.querySelectorAll('nav').length,
+            hasSearchFunction: !!document.querySelector('input[type="search"], [role="search"]')
+          },
+          
+          // Interactive elements analysis
+          interactiveElements: {
+            total: document.querySelectorAll('a, button, input, select, textarea, [tabindex], [role="button"], [role="link"]').length,
+            buttons: document.querySelectorAll('button, [role="button"]').length,
+            links: document.querySelectorAll('a[href], [role="link"]').length,
+            formControls: document.querySelectorAll('input, select, textarea').length,
+            customControls: document.querySelectorAll('[role="button"], [role="link"], [role="menuitem"], [role="tab"]').length
+          },
+          
+          // Page metrics
           totalElements: document.querySelectorAll('*').length,
-          interactiveElements: document.querySelectorAll('a, button, input, select, textarea').length
+          textContent: document.body ? document.body.textContent.trim().length : 0
         };
+
+        // Enhanced ARIA analysis
+        results.ariaAnalysis = {
+          // ARIA labels and descriptions
+          elementsWithAriaLabel: document.querySelectorAll('[aria-label]').length,
+          elementsWithAriaLabelledby: document.querySelectorAll('[aria-labelledby]').length,
+          elementsWithAriaDescribedby: document.querySelectorAll('[aria-describedby]').length,
+          
+          // ARIA states and properties
+          hiddenElements: document.querySelectorAll('[aria-hidden="true"]').length,
+          expandedElements: document.querySelectorAll('[aria-expanded]').length,
+          checkedElements: document.querySelectorAll('[aria-checked]').length,
+          selectedElements: document.querySelectorAll('[aria-selected]').length,
+          
+          // Form-related ARIA
+          requiredFields: document.querySelectorAll('[aria-required="true"], [required]').length,
+          invalidFields: document.querySelectorAll('[aria-invalid="true"]').length,
+          
+          // Live regions
+          liveRegions: document.querySelectorAll('[aria-live]').length,
+          statusElements: document.querySelectorAll('[role="status"], [role="alert"]').length,
+          
+          // Custom roles validation
+          customRoles: (() => {
+            const roles = [];
+            const elementsWithRoles = document.querySelectorAll('[role]');
+            elementsWithRoles.forEach(el => {
+              const role = el.getAttribute('role');
+              if (role && !roles.includes(role)) {
+                roles.push(role);
+              }
+            });
+            return roles;
+          })(),
+          
+          // ARIA landmark validation
+          landmarkIssues: (() => {
+            const issues = [];
+            
+            // Check for multiple main landmarks
+            const mainLandmarks = document.querySelectorAll('[role="main"], main');
+            if (mainLandmarks.length > 1) {
+              issues.push({
+                type: 'multiple_main_landmarks',
+                count: mainLandmarks.length,
+                severity: 'serious'
+              });
+            }
+            
+            // Check for navigation landmarks without labels
+            const navs = document.querySelectorAll('[role="navigation"], nav');
+            let unLabeledNavs = 0;
+            navs.forEach(nav => {
+              if (!nav.hasAttribute('aria-label') && !nav.hasAttribute('aria-labelledby')) {
+                unLabeledNavs++;
+              }
+            });
+            if (unLabeledNavs > 0 && navs.length > 1) {
+              issues.push({
+                type: 'unlabeled_navigation_landmarks',
+                count: unLabeledNavs,
+                total: navs.length,
+                severity: 'moderate'
+              });
+            }
+            
+            return issues;
+          })()
+        };
+
+        // Enhanced form accessibility analysis
+        results.formAnalysis = {
+          totalForms: document.querySelectorAll('form').length,
+          
+          // Input analysis
+          inputAnalysis: (() => {
+            const inputs = document.querySelectorAll('input, select, textarea');
+            const analysis = {
+              total: inputs.length,
+              withLabels: 0,
+              withAriaLabels: 0,
+              withPlaceholders: 0,
+              withoutLabels: 0,
+              required: 0,
+              withErrorHandling: 0,
+              withFieldsets: 0,
+              inputTypes: {}
+            };
+            
+            inputs.forEach(input => {
+              // Count input types
+              const type = input.type || input.tagName.toLowerCase();
+              analysis.inputTypes[type] = (analysis.inputTypes[type] || 0) + 1;
+              
+              // Check for labels
+              const hasLabel = !!document.querySelector(`label[for="${input.id}"]`) || 
+                              !!input.closest('label') ||
+                              input.hasAttribute('aria-label') ||
+                              input.hasAttribute('aria-labelledby');
+              
+              if (hasLabel) {
+                analysis.withLabels++;
+              } else {
+                analysis.withoutLabels++;
+              }
+              
+              if (input.hasAttribute('aria-label') || input.hasAttribute('aria-labelledby')) {
+                analysis.withAriaLabels++;
+              }
+              
+              if (input.hasAttribute('placeholder')) {
+                analysis.withPlaceholders++;
+              }
+              
+              if (input.hasAttribute('required') || input.hasAttribute('aria-required')) {
+                analysis.required++;
+              }
+              
+              // Check for error handling
+              if (input.hasAttribute('aria-describedby') || 
+                  input.hasAttribute('aria-invalid') ||
+                  document.querySelector(`[id="${input.getAttribute('aria-describedby')}"]`)) {
+                analysis.withErrorHandling++;
+              }
+            });
+            
+            // Check for fieldsets
+            analysis.withFieldsets = document.querySelectorAll('fieldset').length;
+            
+            return analysis;
+          })(),
+          
+          // Button analysis
+          buttonAnalysis: (() => {
+            const buttons = document.querySelectorAll('button, input[type="button"], input[type="submit"], input[type="reset"], [role="button"]');
+            const analysis = {
+              total: buttons.length,
+              withText: 0,
+              withAriaLabels: 0,
+              withoutText: 0,
+              submitButtons: document.querySelectorAll('button[type="submit"], input[type="submit"]').length,
+              resetButtons: document.querySelectorAll('button[type="reset"], input[type="reset"]').length
+            };
+            
+            buttons.forEach(button => {
+              const hasText = button.textContent?.trim() || 
+                            button.value || 
+                            button.hasAttribute('aria-label') ||
+                            button.hasAttribute('aria-labelledby');
+              
+              if (hasText) {
+                analysis.withText++;
+              } else {
+                analysis.withoutText++;
+              }
+              
+              if (button.hasAttribute('aria-label') || button.hasAttribute('aria-labelledby')) {
+                analysis.withAriaLabels++;
+              }
+            });
+            
+            return analysis;
+          })(),
+          
+          // Form validation and error handling
+          errorHandling: (() => {
+            const errorElements = document.querySelectorAll('[role="alert"], .error, .invalid, [aria-invalid="true"]');
+            const requiredElements = document.querySelectorAll('[required], [aria-required="true"]');
+            
+            return {
+              errorElements: errorElements.length,
+              requiredElements: requiredElements.length,
+              hasErrorSummary: !!document.querySelector('[role="alert"][aria-live], .error-summary'),
+              hasInlineErrors: !!document.querySelector('[aria-describedby*="error"], [aria-describedby*="invalid"]')
+            };
+          })()
+        };
+
+        // Table accessibility analysis
+        results.tableAnalysis = (() => {
+          const tables = document.querySelectorAll('table');
+          const analysis = {
+            total: tables.length,
+            withCaptions: 0,
+            withHeaders: 0,
+            withScope: 0,
+            withSummary: 0,
+            complexTables: 0,
+            issues: []
+          };
+          
+          tables.forEach((table, index) => {
+            const hasCaption = !!table.querySelector('caption');
+            const hasHeaders = !!table.querySelector('th');
+            const hasScope = !!table.querySelector('[scope]');
+            const hasSummary = table.hasAttribute('summary') || table.hasAttribute('aria-describedby');
+            
+            if (hasCaption) analysis.withCaptions++;
+            if (hasHeaders) analysis.withHeaders++;
+            if (hasScope) analysis.withScope++;
+            if (hasSummary) analysis.withSummary++;
+            
+            // Check for complex tables (nested headers, merged cells)
+            const hasRowspan = !!table.querySelector('[rowspan]');
+            const hasColspan = !!table.querySelector('[colspan]');
+            const hasNestedHeaders = table.querySelectorAll('th').length > table.querySelectorAll('tr:first-child th').length;
+            
+            if (hasRowspan || hasColspan || hasNestedHeaders) {
+              analysis.complexTables++;
+              
+              if (!hasScope && !table.querySelector('[headers]')) {
+                analysis.issues.push({
+                  type: 'complex_table_without_headers',
+                  tableIndex: index,
+                  severity: 'serious'
+                });
+              }
+            }
+            
+            if (!hasCaption && !table.hasAttribute('aria-label') && !table.hasAttribute('aria-labelledby')) {
+              analysis.issues.push({
+                type: 'table_without_caption',
+                tableIndex: index,
+                severity: 'moderate'
+              });
+            }
+          });
+          
+          return analysis;
+        })();
 
         return results;
       });
@@ -527,6 +863,149 @@ class AccessibilityAnalyzer {
     } catch (error) {
       logger.error('Custom checks failed:', { error: error.message, analysisId });
       throw error;
+    }
+  }
+
+  async runKeyboardAccessibilityAnalysis(page, analysisId) {
+    try {
+      logger.info('Running keyboard accessibility analysis', { analysisId });
+      
+      const keyboardAnalysis = await page.evaluate(() => {
+        const results = {
+          focusableElements: [],
+          focusTraps: [],
+          skipLinks: [],
+          tabOrder: [],
+          focusManagement: {}
+        };
+
+        // Find all focusable elements
+        const focusableSelectors = [
+          'a[href]',
+          'button:not([disabled])',
+          'input:not([disabled])',
+          'select:not([disabled])',
+          'textarea:not([disabled])',
+          '[tabindex]:not([tabindex="-1"])',
+          '[contenteditable="true"]',
+          'iframe',
+          'object',
+          'embed',
+          'summary',
+          '[role="button"]:not([tabindex="-1"])',
+          '[role="link"]:not([tabindex="-1"])',
+          '[role="menuitem"]:not([tabindex="-1"])',
+          '[role="tab"]:not([tabindex="-1"])'
+        ];
+
+        const focusableElements = document.querySelectorAll(focusableSelectors.join(', '));
+        
+        focusableElements.forEach((element, index) => {
+          const computedStyle = window.getComputedStyle(element);
+          const isVisible = computedStyle.display !== 'none' && 
+                           computedStyle.visibility !== 'hidden' && 
+                           computedStyle.opacity !== '0' &&
+                           element.offsetWidth > 0 && 
+                           element.offsetHeight > 0;
+
+          const tabIndex = element.getAttribute('tabindex');
+          const hasVisibleFocus = computedStyle.outline !== 'none' || 
+                                 computedStyle.outlineWidth !== '0px' ||
+                                 computedStyle.boxShadow.includes('focus') ||
+                                 element.classList.contains('focus-visible') ||
+                                 element.classList.contains('focus');
+
+          results.focusableElements.push({
+            index,
+            tagName: element.tagName.toLowerCase(),
+            type: element.type || null,
+            role: element.getAttribute('role'),
+            ariaLabel: element.getAttribute('aria-label'),
+            ariaLabelledby: element.getAttribute('aria-labelledby'),
+            text: element.textContent?.trim().substring(0, 50) || '',
+            tabIndex: tabIndex ? parseInt(tabIndex) : null,
+            isVisible,
+            hasVisibleFocus,
+            hasAriaHidden: element.getAttribute('aria-hidden') === 'true',
+            isDisabled: element.disabled || element.getAttribute('aria-disabled') === 'true',
+            selector: element.tagName.toLowerCase() + 
+                     (element.id ? '#' + element.id : '') + 
+                     (element.className ? '.' + element.className.split(' ').join('.') : '')
+          });
+        });
+
+        // Analyze skip links
+        const skipLinks = document.querySelectorAll('a[href^="#skip"], .skip-link, .sr-only a[href^="#"]');
+        skipLinks.forEach((link, index) => {
+          const target = document.querySelector(link.getAttribute('href'));
+          results.skipLinks.push({
+            index,
+            text: link.textContent.trim(),
+            href: link.getAttribute('href'),
+            hasValidTarget: !!target,
+            isVisible: window.getComputedStyle(link).display !== 'none'
+          });
+        });
+
+        // Check for focus traps (basic detection)
+        const modals = document.querySelectorAll('[role="dialog"], .modal, .popup');
+        modals.forEach((modal, index) => {
+          const isVisible = window.getComputedStyle(modal).display !== 'none';
+          if (isVisible) {
+            const focusableInModal = modal.querySelectorAll(focusableSelectors.join(', '));
+            results.focusTraps.push({
+              index,
+              elementCount: focusableInModal.length,
+              hasCloseButton: !!modal.querySelector('[aria-label*="close"], .close, button[type="button"]'),
+              hasEscapeHandling: modal.hasAttribute('data-keyboard') || modal.hasAttribute('data-dismiss')
+            });
+          }
+        });
+
+        // Tab order analysis (simplified)
+        const tabbableElements = Array.from(focusableElements).filter(el => {
+          const tabIndex = el.getAttribute('tabindex');
+          return tabIndex === null || parseInt(tabIndex) >= 0;
+        }).sort((a, b) => {
+          const aIndex = parseInt(a.getAttribute('tabindex')) || 0;
+          const bIndex = parseInt(b.getAttribute('tabindex')) || 0;
+          return aIndex - bIndex;
+        });
+
+        results.tabOrder = tabbableElements.map((el, index) => ({
+          index,
+          tagName: el.tagName.toLowerCase(),
+          tabIndex: el.getAttribute('tabindex'),
+          hasCustomTabIndex: el.getAttribute('tabindex') !== null,
+          text: el.textContent?.trim().substring(0, 30) || ''
+        }));
+
+        // Focus management analysis
+        results.focusManagement = {
+          totalFocusableElements: results.focusableElements.length,
+          visibleFocusableElements: results.focusableElements.filter(el => el.isVisible).length,
+          elementsWithCustomTabIndex: results.focusableElements.filter(el => el.tabIndex !== null).length,
+          elementsWithAriaLabel: results.focusableElements.filter(el => el.ariaLabel).length,
+          elementsWithoutVisibleFocus: results.focusableElements.filter(el => !el.hasVisibleFocus).length,
+          skipLinksCount: results.skipLinks.length,
+          focusTrapsCount: results.focusTraps.length,
+          hasLogicalTabOrder: results.tabOrder.every((el, index) => 
+            index === 0 || !el.hasCustomTabIndex || parseInt(el.tabIndex) >= parseInt(results.tabOrder[index - 1].tabIndex))
+        };
+
+        return results;
+      });
+
+      return keyboardAnalysis;
+    } catch (error) {
+      logger.error('Keyboard accessibility analysis failed:', { error: error.message, analysisId });
+      return {
+        focusableElements: [],
+        focusTraps: [],
+        skipLinks: [],
+        tabOrder: [],
+        focusManagement: {}
+      };
     }
   }
 
@@ -558,7 +1037,7 @@ class AccessibilityAnalyzer {
   }
 
   generateReport(data, language = 'en') {
-    const { url, analysisId, metadata, axeResults, customChecks, colorContrastAnalysis, performanceMetrics, timestamp, reportType = 'overview' } = data;
+    const { url, analysisId, metadata, axeResults, customChecks, keyboardAnalysis, colorContrastAnalysis, performanceMetrics, timestamp, reportType = 'overview' } = data;
     
     // Calculate accessibility score based on axe-core results
     const totalViolations = axeResults.violations.length;
@@ -654,7 +1133,32 @@ class AccessibilityAnalyzer {
         colorContrastViolations: colorContrastAnalysis?.totalViolations || 0,
         colorContrastAAViolations: colorContrastAnalysis?.aaViolations || 0,
         hasExcellentAccessibility,
-        dataSource: 'axe-core' // Flag to indicate data source
+        dataSource: 'axe-core', // Flag to indicate data source
+        // Enhanced structure analysis summary
+        structureScore: customChecks?.structure ? this.calculateStructureScore(customChecks.structure) : null,
+        semanticElementsFound: customChecks?.structure?.semanticElements ? Object.values(customChecks.structure.semanticElements).reduce((a, b) => a + b, 0) : 0,
+        headingViolations: customChecks?.structure?.headingHierarchy?.violations?.length || 0,
+        ariaLandmarksCount: customChecks?.structure?.ariaLandmarks ? Object.values(customChecks.structure.ariaLandmarks.landmarkCounts).reduce((a, b) => a + b, 0) : 0,
+        // Keyboard accessibility summary
+        keyboardScore: keyboardAnalysis ? this.calculateKeyboardScore(keyboardAnalysis) : null,
+        focusableElementsCount: keyboardAnalysis?.focusableElements?.length || 0,
+        keyboardViolations: keyboardAnalysis ? this.countKeyboardViolations(keyboardAnalysis) : 0,
+        
+        // Enhanced ARIA analysis summary
+        ariaScore: customChecks?.ariaAnalysis ? this.calculateAriaScore(customChecks.ariaAnalysis) : null,
+        ariaLandmarkIssues: customChecks?.ariaAnalysis?.landmarkIssues?.length || 0,
+        elementsWithAriaLabels: customChecks?.ariaAnalysis?.elementsWithAriaLabel || 0,
+        
+        // Form accessibility summary
+        formScore: customChecks?.formAnalysis ? this.calculateFormScore(customChecks.formAnalysis) : null,
+        totalForms: customChecks?.formAnalysis?.totalForms || 0,
+        unlabeledInputs: customChecks?.formAnalysis?.inputAnalysis?.withoutLabels || 0,
+        unlabeledButtons: customChecks?.formAnalysis?.buttonAnalysis?.withoutText || 0,
+        
+        // Table accessibility summary
+        tableScore: customChecks?.tableAnalysis ? this.calculateTableScore(customChecks.tableAnalysis) : null,
+        totalTables: customChecks?.tableAnalysis?.total || 0,
+        tableIssues: customChecks?.tableAnalysis?.issues?.length || 0
       },
       recommendations,
       reportGenerated: new Date().toISOString()
@@ -665,6 +1169,7 @@ class AccessibilityAnalyzer {
       baseReport.axeResults = axeResults;
       baseReport.customChecks = customChecks;
       baseReport.colorContrastAnalysis = colorContrastAnalysis;
+      baseReport.keyboardAnalysis = keyboardAnalysis;
       baseReport.performanceMetrics = performanceMetrics;
     } else {
       // Overview report - show only basic issue counts, no specific violations
@@ -913,6 +1418,181 @@ class AccessibilityAnalyzer {
     }
     
     return recommendations;
+  }
+
+  calculateStructureScore(structure) {
+    if (!structure) return 0;
+    
+    let score = 100;
+    
+    // Check for semantic HTML5 elements
+    if (!structure.hasMain) score -= 15;
+    if (!structure.hasNav) score -= 10;
+    if (!structure.hasHeader) score -= 10;
+    if (!structure.hasFooter) score -= 5;
+    
+    // Check heading hierarchy
+    if (!structure.hasH1) score -= 20;
+    if (structure.h1Count > 1) score -= 10;
+    if (structure.headingHierarchy?.violations?.length > 0) {
+      score -= Math.min(structure.headingHierarchy.violations.length * 5, 20);
+    }
+    
+    // Check ARIA landmarks
+    if (!structure.ariaLandmarks?.hasMainLandmark) score -= 10;
+    if (!structure.ariaLandmarks?.hasNavigationLandmark) score -= 5;
+    
+    // Check document structure
+    if (!structure.documentStructure?.hasLang) score -= 10;
+    if (!structure.documentStructure?.hasTitle) score -= 10;
+    if (!structure.documentStructure?.hasMetaDescription) score -= 5;
+    
+    return Math.max(0, Math.round(score));
+  }
+
+  calculateKeyboardScore(keyboardAnalysis) {
+    if (!keyboardAnalysis) return 0;
+    
+    let score = 100;
+    
+    // Check focusable elements
+    if (keyboardAnalysis.focusableElements?.length === 0) {
+      score -= 50; // Major issue if no focusable elements
+    }
+    
+    // Check focus management
+    if (keyboardAnalysis.focusManagement) {
+      if (!keyboardAnalysis.focusManagement.hasVisibleFocusIndicators) score -= 20;
+      if (!keyboardAnalysis.focusManagement.hasLogicalTabOrder) score -= 15;
+      if (keyboardAnalysis.focusManagement.focusTrappedElements > 0) score -= 10;
+    }
+    
+    // Check skip links
+    if (keyboardAnalysis.skipLinks?.length === 0) score -= 15;
+    
+    // Check for keyboard traps
+    if (keyboardAnalysis.focusTraps?.length > 0) {
+      score -= Math.min(keyboardAnalysis.focusTraps.length * 10, 30);
+    }
+    
+    return Math.max(0, Math.round(score));
+  }
+
+  countKeyboardViolations(keyboardAnalysis) {
+    if (!keyboardAnalysis) return 0;
+    
+    let violations = 0;
+    
+    // Count focus management issues
+    if (keyboardAnalysis.focusManagement) {
+      if (!keyboardAnalysis.focusManagement.hasVisibleFocusIndicators) violations++;
+      if (!keyboardAnalysis.focusManagement.hasLogicalTabOrder) violations++;
+      violations += keyboardAnalysis.focusManagement.focusTrappedElements || 0;
+    }
+    
+    // Count missing skip links
+    if (keyboardAnalysis.skipLinks?.length === 0) violations++;
+    
+    // Count focus traps
+    violations += keyboardAnalysis.focusTraps?.length || 0;
+    
+    return violations;
+  }
+
+  calculateAriaScore(ariaAnalysis) {
+    if (!ariaAnalysis) return 0;
+    
+    let score = 100;
+    
+    // Deduct for landmark issues
+    if (ariaAnalysis.landmarkIssues?.length > 0) {
+      ariaAnalysis.landmarkIssues.forEach(issue => {
+        if (issue.severity === 'serious') score -= 15;
+        else if (issue.severity === 'moderate') score -= 10;
+        else score -= 5;
+      });
+    }
+    
+    // Check for missing ARIA labels on elements that need them
+    const totalInteractiveElements = ariaAnalysis.elementsWithAriaLabel + ariaAnalysis.elementsWithAriaLabelledby;
+    if (totalInteractiveElements === 0) score -= 20;
+    
+    // Deduct for invalid fields without proper error handling
+    if (ariaAnalysis.invalidFields > 0) score -= Math.min(ariaAnalysis.invalidFields * 5, 25);
+    
+    // Check for live regions
+    if (ariaAnalysis.liveRegions === 0 && ariaAnalysis.statusElements === 0) score -= 10;
+    
+    return Math.max(0, Math.round(score));
+  }
+
+  calculateFormScore(formAnalysis) {
+    if (!formAnalysis || formAnalysis.inputAnalysis?.total === 0) return 100;
+    
+    let score = 100;
+    const inputAnalysis = formAnalysis.inputAnalysis;
+    const buttonAnalysis = formAnalysis.buttonAnalysis;
+    
+    // Deduct for unlabeled inputs
+    if (inputAnalysis.withoutLabels > 0) {
+      const unlabeledRatio = inputAnalysis.withoutLabels / inputAnalysis.total;
+      score -= unlabeledRatio * 40; // Heavy penalty for unlabeled inputs
+    }
+    
+    // Deduct for buttons without text
+    if (buttonAnalysis.withoutText > 0) {
+      const unlabeledButtonRatio = buttonAnalysis.withoutText / buttonAnalysis.total;
+      score -= unlabeledButtonRatio * 30;
+    }
+    
+    // Deduct for missing error handling
+    if (inputAnalysis.required > 0 && formAnalysis.errorHandling?.errorElements === 0) {
+      score -= 20; // No error handling for required fields
+    }
+    
+    // Deduct for forms without fieldsets (if multiple inputs)
+    if (inputAnalysis.total > 3 && inputAnalysis.withFieldsets === 0) {
+      score -= 10;
+    }
+    
+    return Math.max(0, Math.round(score));
+  }
+
+  calculateTableScore(tableAnalysis) {
+    if (!tableAnalysis || tableAnalysis.total === 0) return 100;
+    
+    let score = 100;
+    
+    // Deduct for tables without captions
+    const tablesWithoutCaptions = tableAnalysis.total - tableAnalysis.withCaptions;
+    if (tablesWithoutCaptions > 0) {
+      score -= (tablesWithoutCaptions / tableAnalysis.total) * 30;
+    }
+    
+    // Deduct for tables without headers
+    const tablesWithoutHeaders = tableAnalysis.total - tableAnalysis.withHeaders;
+    if (tablesWithoutHeaders > 0) {
+      score -= (tablesWithoutHeaders / tableAnalysis.total) * 40;
+    }
+    
+    // Deduct for complex tables without proper scope/headers
+    if (tableAnalysis.complexTables > 0) {
+      const complexTablesWithoutScope = tableAnalysis.complexTables - tableAnalysis.withScope;
+      if (complexTablesWithoutScope > 0) {
+        score -= (complexTablesWithoutScope / tableAnalysis.total) * 25;
+      }
+    }
+    
+    // Deduct for specific table issues
+    if (tableAnalysis.issues?.length > 0) {
+      tableAnalysis.issues.forEach(issue => {
+        if (issue.severity === 'serious') score -= 15;
+        else if (issue.severity === 'moderate') score -= 10;
+        else score -= 5;
+      });
+    }
+    
+    return Math.max(0, Math.round(score));
   }
 }
 

@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { FaRocket, FaShieldAlt, FaUsers, FaChartLine, FaCheck, FaExclamationTriangle } from 'react-icons/fa';
+import { accessibilityAPI } from '../services/api';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 const AuditContainer = styled.div`
   min-height: 100vh;
@@ -429,17 +433,56 @@ const CTAButton = styled(Link)`
 const FreeAuditPage = () => {
   const [url, setUrl] = useState('');
   const [isScanning, setIsScanning] = useState(false);
+  const navigate = useNavigate();
+  const { t, i18n } = useTranslation(['forms']);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!url.trim()) {
+      toast.error(t('forms:messages.enterUrl'));
+      return;
+    }
+
+    // Basic URL validation - allow domains without protocol
+    const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
+    if (!urlPattern.test(url.trim())) {
+      toast.error(t('forms:validation.invalidUrl'));
+      return;
+    }
+
+    // Ensure URL has protocol
+    let fullUrl = url.trim();
+    if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+      fullUrl = 'https://' + fullUrl;
+    }
+
     setIsScanning(true);
     
-    // Simulate scanning process
-    setTimeout(() => {
+    try {
+      toast.info(t('forms:messages.analysisStarted'), {
+        autoClose: 2000,
+      });
+      
+      const result = await accessibilityAPI.analyzeWebsite(fullUrl, 'overview', i18n.language);
+      
+      if (result.success) {
+        toast.success(t('forms:messages.analysisComplete'));
+        
+        // Store results in sessionStorage for the results page
+        sessionStorage.setItem('analysisResult', JSON.stringify(result.data));
+        
+        // Navigate to results page
+        navigate('/results');
+      } else {
+        toast.error(t('forms:messages.analysisFailed'));
+      }
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast.error(error.message || t('forms:messages.error'));
+    } finally {
       setIsScanning(false);
-      // In real implementation, would redirect to results or show results inline
-      console.log('Scanning complete for:', url);
-    }, 3000);
+    }
   };
 
   return (
@@ -460,11 +503,11 @@ const FreeAuditPage = () => {
             <FormGroup>
               <FormLabel htmlFor="website-url">Website URL</FormLabel>
               <FormInput
-                type="url"
+                type="text"
                 id="website-url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="https://www.yourbusiness.com"
+                placeholder="www.yourbusiness.com"
                 required
                 disabled={isScanning}
               />
@@ -472,7 +515,7 @@ const FreeAuditPage = () => {
             <ScanButton type="submit" disabled={isScanning}>
               {isScanning ? (
                 <>
-                  <div className="spinner" />
+                  <LoadingSpinner size="small" />
                   Scanning Your Website...
                 </>
               ) : (
