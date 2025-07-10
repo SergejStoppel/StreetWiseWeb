@@ -1,9 +1,12 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
-const accessibilityAnalyzer = require('../services/accessibilityAnalyzer');
+const AccessibilityAnalyzer = require('../services/accessibilityAnalyzer');
 const pdfGenerator = require('../services/pdfGenerator');
 const logger = require('../utils/logger');
+
+// Create analyzer instance
+const accessibilityAnalyzer = new AccessibilityAnalyzer();
 
 const router = express.Router();
 
@@ -72,7 +75,7 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
         analysisId: report.analysisId,
         score: report.scores.overall,
         analysisTime,
-        violations: report.summary.totalViolations,
+        violations: report.summary.totalIssues,
         reportType
       });
 
