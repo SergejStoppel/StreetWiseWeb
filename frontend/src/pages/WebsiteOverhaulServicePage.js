@@ -10,7 +10,7 @@ const OverhaulContainer = styled.div`
 
 const HeroSection = styled.section`
   padding: var(--spacing-4xl) 0 var(--spacing-3xl);
-  background: linear-gradient(135deg, #6f42c1 0%, #e83e8c 100%);
+  background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
   color: var(--color-text-inverse);
   text-align: center;
   position: relative;
@@ -61,7 +61,7 @@ const HeroCTA = styled(Link)`
   gap: var(--spacing-sm);
   padding: var(--spacing-md) var(--spacing-xl);
   background-color: var(--color-text-inverse);
-  color: #6f42c1;
+  color: #a855f7;
   text-decoration: none;
   border-radius: var(--border-radius-lg);
   font-weight: var(--font-weight-semibold);
@@ -71,7 +71,7 @@ const HeroCTA = styled(Link)`
   
   &:hover {
     background-color: var(--color-surface-secondary);
-    color: #6f42c1;
+    color: #a855f7;
     text-decoration: none;
     transform: translateY(-2px);
     box-shadow: var(--shadow-xl);
@@ -108,7 +108,7 @@ const ProblemCard = styled.div`
   border-radius: var(--border-radius-xl);
   padding: var(--spacing-xl);
   box-shadow: var(--shadow-md);
-  border-left: 4px solid #e83e8c;
+  border-left: 4px solid #ec4899;
   text-align: center;
   transition: all var(--transition-normal);
   position: relative;
@@ -121,21 +121,21 @@ const ProblemCard = styled.div`
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(135deg, transparent 0%, rgba(232, 62, 140, 0.03) 100%);
+    background: linear-gradient(135deg, transparent 0%, rgba(236, 72, 153, 0.03) 100%);
     pointer-events: none;
   }
   
   &:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-lg);
-    border-left-color: #d91a72;
+    border-left-color: #db2777;
   }
 `;
 
 const ProblemIcon = styled.div`
   width: 4rem;
   height: 4rem;
-  background: linear-gradient(135deg, #e83e8c 0%, #d91a72 100%);
+  background: linear-gradient(135deg, #ec4899 0%, #db2777 100%);
   color: var(--color-text-inverse);
   border-radius: var(--border-radius-full);
   display: flex;
@@ -247,7 +247,7 @@ const TierCTA = styled(Link)`
   align-items: center;
   gap: var(--spacing-sm);
   padding: var(--spacing-md) var(--spacing-lg);
-  background-color: #6f42c1;
+  background-color: #a855f7;
   color: var(--color-text-inverse);
   text-decoration: none;
   border-radius: var(--border-radius-lg);
@@ -258,7 +258,7 @@ const TierCTA = styled(Link)`
   margin-top: auto;
   
   &:hover {
-    background-color: #5a359a;
+    background-color: #9333ea;
     color: var(--color-text-inverse);
     text-decoration: none;
     transform: translateY(-2px);
@@ -299,7 +299,7 @@ const BenefitCard = styled.div`
 const BenefitIcon = styled.div`
   width: 4rem;
   height: 4rem;
-  background-color: #6f42c1;
+  background-color: #a855f7;
   color: var(--color-text-inverse);
   border-radius: var(--border-radius-full);
   display: flex;
@@ -324,7 +324,7 @@ const BenefitDescription = styled.p`
 
 const CTASection = styled.section`
   padding: var(--spacing-4xl) 0;
-  background: linear-gradient(135deg, #6f42c1 0%, #5a359a 100%);
+  background: linear-gradient(135deg, #a855f7 0%, #9333ea 100%);
   color: var(--color-text-inverse);
   text-align: center;
   position: relative;
@@ -378,11 +378,11 @@ const CTAButton = styled(Link)`
   
   &.primary {
     background-color: var(--color-text-inverse);
-    color: #6f42c1;
+    color: #a855f7;
     
     &:hover {
       background-color: var(--color-surface-secondary);
-      color: #6f42c1;
+      color: #a855f7;
       text-decoration: none;
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
@@ -396,7 +396,7 @@ const CTAButton = styled(Link)`
     
     &:hover {
       background-color: var(--color-text-inverse);
-      color: #6f42c1;
+      color: #a855f7;
       text-decoration: none;
       transform: translateY(-2px);
       box-shadow: var(--shadow-lg);
