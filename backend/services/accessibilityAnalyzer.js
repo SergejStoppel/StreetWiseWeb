@@ -15,6 +15,9 @@ const AriaAnalyzer = require('./analysis/AriaAnalyzer');
 const FormAnalyzer = require('./analysis/FormAnalyzer');
 const TableAnalyzer = require('./analysis/TableAnalyzer');
 const KeyboardAnalyzer = require('./analysis/KeyboardAnalyzer');
+const TextReadabilityAnalyzer = require('./analysis/TextReadabilityAnalyzer');
+const EnhancedImageAnalyzer = require('./analysis/EnhancedImageAnalyzer');
+const FocusManagementAnalyzer = require('./analysis/FocusManagementAnalyzer');
 
 class AccessibilityAnalyzer {
   constructor() {
@@ -29,6 +32,9 @@ class AccessibilityAnalyzer {
     this.formAnalyzer = new FormAnalyzer();
     this.tableAnalyzer = new TableAnalyzer();
     this.keyboardAnalyzer = new KeyboardAnalyzer();
+    this.textReadabilityAnalyzer = new TextReadabilityAnalyzer();
+    this.enhancedImageAnalyzer = new EnhancedImageAnalyzer();
+    this.focusManagementAnalyzer = new FocusManagementAnalyzer();
     
     // Legacy compatibility
     this.pdfCache = this.cacheManager;
@@ -83,6 +89,9 @@ class AccessibilityAnalyzer {
           formData,
           tableData,
           keyboardData,
+          textReadabilityData,
+          enhancedImageData,
+          focusManagementData,
           customChecks
         ] = await Promise.all([
           this.runAxeAnalysis(page, analysisId),
@@ -91,6 +100,9 @@ class AccessibilityAnalyzer {
           this.formAnalyzer.analyze(page, analysisId),
           this.tableAnalyzer.analyze(page, analysisId),
           this.keyboardAnalyzer.analyze(page, analysisId),
+          this.textReadabilityAnalyzer.analyze(page, analysisId),
+          this.enhancedImageAnalyzer.analyze(page, analysisId),
+          this.focusManagementAnalyzer.analyze(page, analysisId),
           this.runLegacyCustomChecks(page, analysisId)
         ]);
         
@@ -111,6 +123,9 @@ class AccessibilityAnalyzer {
           formData,
           tableData,
           keyboardData,
+          textReadabilityData,
+          enhancedImageData,
+          focusManagementData,
           customChecks,
           colorContrastAnalysis,
           analysisId,
@@ -208,6 +223,9 @@ class AccessibilityAnalyzer {
       formData,
       tableData,
       keyboardData,
+      textReadabilityData,
+      enhancedImageData,
+      focusManagementData,
       customChecks,
       colorContrastAnalysis,
       analysisId,
@@ -221,6 +239,9 @@ class AccessibilityAnalyzer {
       forms: this.formAnalyzer.calculateScore(formData),
       tables: this.tableAnalyzer.calculateScore(tableData),
       keyboard: this.keyboardAnalyzer.calculateScore(keyboardData),
+      textReadability: this.textReadabilityAnalyzer.calculateScore(textReadabilityData),
+      enhancedImages: this.enhancedImageAnalyzer.calculateScore(enhancedImageData),
+      focusManagement: this.focusManagementAnalyzer.calculateScore(focusManagementData),
       colorContrast: this.calculateColorContrastScore(colorContrastAnalysis),
       axeScore: this.calculateAxeScore(axeResults)
     };
@@ -236,6 +257,9 @@ class AccessibilityAnalyzer {
       forms: individualScores.forms,
       tables: individualScores.tables,
       keyboard: individualScores.keyboard,
+      textReadability: individualScores.textReadability,
+      enhancedImages: individualScores.enhancedImages,
+      focusManagement: individualScores.focusManagement,
       colorContrast: individualScores.colorContrast,
       axeScore: individualScores.axeScore
     };
@@ -247,6 +271,9 @@ class AccessibilityAnalyzer {
       formData,
       tableData,
       keyboardData,
+      textReadabilityData,
+      enhancedImageData,
+      focusManagementData,
       axeResults,
       language
     });
@@ -277,6 +304,7 @@ class AccessibilityAnalyzer {
       summary: this.generateSummary(axeResults, recommendations, individualScores, { 
         totalTables: tableData?.totalTables || 0,
         customChecks: customChecks,
+        enhancedImageData: enhancedImageData,
         overallScore: overallScore
       }),
       structure: structureData,
@@ -284,6 +312,9 @@ class AccessibilityAnalyzer {
       forms: formData,
       tables: tableData,
       keyboard: keyboardData,
+      textReadability: textReadabilityData,
+      enhancedImages: enhancedImageData,
+      focusManagement: focusManagementData,
       customChecks: customChecks,
       colorContrast: colorContrastAnalysis,
       axeResults,
@@ -308,6 +339,9 @@ class AccessibilityAnalyzer {
       forms: 0.05,
       tables: 0.02,
       keyboard: 0.05,
+      textReadability: 0.04,
+      enhancedImages: 0.04,
+      focusManagement: 0.06,
       colorContrast: 0.03
     };
 
@@ -392,7 +426,11 @@ class AccessibilityAnalyzer {
   }
 
   generateConsolidatedRecommendations(data) {
-    const { structureData, ariaData, formData, tableData, keyboardData, axeResults, language } = data;
+    const { 
+      structureData, ariaData, formData, tableData, keyboardData,
+      textReadabilityData, enhancedImageData, focusManagementData,
+      axeResults, language 
+    } = data;
     
     try {
       const allRecommendations = [];
@@ -432,6 +470,27 @@ class AccessibilityAnalyzer {
       } catch (error) {
         logger.warn('Keyboard recommendations failed:', error.message);
       }
+      
+      try {
+        const textReadabilityRecs = this.textReadabilityAnalyzer.generateRecommendations(textReadabilityData, language) || [];
+        allRecommendations.push(...textReadabilityRecs);
+      } catch (error) {
+        logger.warn('Text readability recommendations failed:', error.message);
+      }
+      
+      try {
+        const enhancedImageRecs = this.enhancedImageAnalyzer.generateRecommendations(enhancedImageData, language) || [];
+        allRecommendations.push(...enhancedImageRecs);
+      } catch (error) {
+        logger.warn('Enhanced image recommendations failed:', error.message);
+      }
+      
+      try {
+        const focusManagementRecs = this.focusManagementAnalyzer.generateRecommendations(focusManagementData, language) || [];
+        allRecommendations.push(...focusManagementRecs);
+      } catch (error) {
+        logger.warn('Focus management recommendations failed:', error.message);
+      }
 
       // Group by priority and type
       const groupedRecommendations = {
@@ -466,11 +525,21 @@ class AccessibilityAnalyzer {
     // Extract specific violation counts from axe results
     const axeViolations = axeResults.violations || [];
     
-    // Use custom checks data for more accurate counts
+    // Use enhanced image analyzer data if available, otherwise fall back to custom checks
+    const enhancedImageData = additionalData.enhancedImageData;
     const customChecks = additionalData.customChecks || {};
-    const imagesWithoutAlt = customChecks.images ? 
-      customChecks.images.filter(img => !img.isDecorative && (!img.hasGoodAlt)).length :
-      axeViolations.filter(v => v.id === 'image-alt').length;
+    
+    let imagesWithoutAlt = 0;
+    let imagesWithMeaninglessAlt = 0;
+    
+    if (enhancedImageData && enhancedImageData.images) {
+      imagesWithoutAlt = enhancedImageData.images.missingAlt?.length || 0;
+      imagesWithMeaninglessAlt = enhancedImageData.images.meaninglessAlt?.length || 0;
+    } else if (customChecks.images) {
+      imagesWithoutAlt = customChecks.images.filter(img => !img.isDecorative && (!img.hasGoodAlt)).length;
+    } else {
+      imagesWithoutAlt = axeViolations.filter(v => v.id === 'image-alt').length;
+    }
       
     const formsWithoutLabels = axeViolations.filter(v => 
       v.id === 'label' || v.id === 'form-field-multiple-labels'
@@ -499,6 +568,7 @@ class AccessibilityAnalyzer {
       
       // Specific violation types
       imagesWithoutAlt,
+      imagesWithMeaninglessAlt,
       formsWithoutLabels,
       emptyLinks,
       colorContrastViolations,
@@ -509,6 +579,9 @@ class AccessibilityAnalyzer {
       formScore: individualScores.forms,
       tableScore: individualScores.tables,
       keyboardScore: individualScores.keyboard,
+      textReadabilityScore: individualScores.textReadability,
+      enhancedImagesScore: individualScores.enhancedImages,
+      focusManagementScore: individualScores.focusManagement,
       
       // Additional data
       axeViolations: axeResults.violations?.length || 0,
@@ -575,6 +648,9 @@ class AccessibilityAnalyzer {
           'Form accessibility analysis',
           'Table accessibility analysis',
           'Keyboard navigation analysis',
+          'Text readability and zoom analysis',
+          'Enhanced image accessibility analysis',
+          'Focus management and indicators analysis',
           'PDF report generation',
           'Advanced color contrast analysis'
         ]
