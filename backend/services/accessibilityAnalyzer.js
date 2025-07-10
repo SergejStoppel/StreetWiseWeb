@@ -363,7 +363,7 @@ class AccessibilityAnalyzer {
       score -= totalPenalty;
     });
     
-    return Math.max(15, score); // Never go below 15 - even bad sites have some working elements
+    return Math.max(20, score); // Never go below 20 - even sites with many issues have some working elements
   }
 
   calculateAxeScore(axeResults) {
@@ -476,9 +476,8 @@ class AccessibilityAnalyzer {
       v.id === 'label' || v.id === 'form-field-multiple-labels'
     ).length;
     
-    const emptyLinks = customChecks.links ?
-      customChecks.links.filter(link => link.isEmpty).length :
-      axeViolations.filter(v => v.id === 'link-name').length;
+    // Use axe results for consistency with detailed violations display
+    const emptyLinks = axeViolations.filter(v => v.id === 'link-name').length;
       
     const colorContrastViolations = axeViolations.filter(v => 
       v.id === 'color-contrast' || v.id === 'color-contrast-enhanced'
