@@ -5,84 +5,110 @@ import { FaAccessibleIcon, FaSearch, FaPaintBrush, FaRocket, FaArrowRight } from
 
 const ServicesContainer = styled.div`
   min-height: 100vh;
-  background-color: var(--color-bg-primary);
+  background-color: var(--color-surface-primary);
 `;
 
 const HeroSection = styled.section`
-  padding: var(--spacing-2xl) 0 var(--spacing-xl);
-  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
-  color: var(--color-white);
+  padding: var(--spacing-4xl) 0 var(--spacing-2xl);
+  background: linear-gradient(135deg, var(--color-interactive-primary) 0%, var(--color-interactive-primary-hover) 100%);
+  color: var(--color-text-inverse);
   text-align: center;
 `;
 
 const HeroContent = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const HeroTitle = styled.h1`
-  font-size: var(--font-size-h1);
-  font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-white);
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-extrabold);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-inverse);
+  line-height: var(--line-height-tight);
 `;
 
 const HeroSubtitle = styled.p`
-  font-size: var(--font-size-h4);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-regular);
+  font-family: var(--font-family-secondary);
   margin-bottom: var(--spacing-lg);
-  color: var(--color-white);
+  color: var(--color-text-inverse);
   opacity: 0.9;
-  max-width: 600px;
+  max-width: var(--content-max-width);
   margin-left: auto;
   margin-right: auto;
+  line-height: var(--line-height-relaxed);
 `;
 
 const TierSection = styled.section`
-  padding: var(--spacing-2xl) 0;
+  padding: var(--spacing-4xl) 0;
 `;
 
 const TierContainer = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const TierHeader = styled.div`
   text-align: center;
-  margin-bottom: var(--spacing-xl);
+  margin-bottom: var(--spacing-2xl);
 `;
 
 const TierTitle = styled.h2`
-  font-size: var(--font-size-h2);
+  font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-md);
   color: var(--color-text-primary);
 `;
 
 const TierDescription = styled.p`
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-lg);
   color: var(--color-text-secondary);
-  max-width: 700px;
+  max-width: var(--content-max-width);
   margin: 0 auto;
   line-height: var(--line-height-relaxed);
 `;
 
 const ServicesGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: var(--spacing-lg);
-  margin-top: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+  gap: var(--spacing-2xl);
+  margin-top: var(--spacing-2xl);
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-xl);
+  }
 `;
 
 const ServiceCard = styled.div`
-  background-color: var(--color-white);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
-  transition: all var(--transition-normal);
-  border: 1px solid var(--color-gray-border);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-fast);
+  border: 1px solid var(--color-border-primary);
   
   &:hover {
     box-shadow: var(--shadow-lg);
@@ -91,135 +117,151 @@ const ServiceCard = styled.div`
 `;
 
 const ServiceIcon = styled.div`
-  width: 4rem;
-  height: 4rem;
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  border-radius: var(--border-radius-lg);
+  width: 4.5rem;
+  height: 4.5rem;
+  background-color: var(--color-interactive-primary);
+  color: var(--color-text-inverse);
+  border-radius: var(--border-radius-xl);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  margin-bottom: var(--spacing-md);
+  font-size: 1.75rem;
+  margin-bottom: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
 `;
 
 const ServiceTitle = styled.h3`
-  font-size: var(--font-size-h3);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-semibold);
-  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-md);
   color: var(--color-text-primary);
+  line-height: var(--line-height-tight);
 `;
 
 const ServiceDescription = styled.p`
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   line-height: var(--line-height-relaxed);
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 `;
 
 const ServiceFeatures = styled.ul`
   list-style: none;
   padding: 0;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
 `;
 
 const ServiceFeature = styled.li`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) 0;
-  font-size: var(--font-size-body);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) 0;
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   
   &::before {
     content: '✓';
     color: var(--color-success);
     font-weight: var(--font-weight-bold);
+    font-size: var(--font-size-lg);
   }
 `;
 
 const ServiceLink = styled(Link)`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: 0.75rem 1.5rem;
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: var(--color-interactive-primary);
+  color: var(--color-text-inverse);
   text-decoration: none;
-  border-radius: var(--border-radius-md);
+  border-radius: var(--border-radius-lg);
   font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
   transition: all var(--transition-fast);
   
   &:hover {
-    background-color: var(--color-primary-hover);
-    color: var(--color-white);
+    background-color: var(--color-interactive-primary-hover);
+    color: var(--color-text-inverse);
     text-decoration: none;
-    transform: translateY(-1px);
+    transform: translateY(-2px);
     box-shadow: var(--shadow-md);
   }
 `;
 
 const CTASection = styled.section`
-  padding: var(--spacing-2xl) 0;
-  background-color: var(--color-bg-secondary);
+  padding: var(--spacing-4xl) 0;
+  background-color: var(--color-surface-secondary);
   text-align: center;
 `;
 
 const CTAContainer = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const CTATitle = styled.h2`
-  font-size: var(--font-size-h2);
+  font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-md);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-xl);
   color: var(--color-text-primary);
 `;
 
 const CTAButtons = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
   justify-content: center;
   flex-wrap: wrap;
 `;
 
 const CTAButton = styled(Link)`
-  padding: 1rem 2rem;
-  border-radius: var(--border-radius-md);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
   text-decoration: none;
   font-weight: var(--font-weight-medium);
-  font-family: var(--font-primary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
   transition: all var(--transition-fast);
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
   
   &.primary {
-    background-color: var(--color-primary);
-    color: var(--color-white);
+    background-color: var(--color-interactive-primary);
+    color: var(--color-text-inverse);
     
     &:hover {
-      background-color: var(--color-primary-hover);
-      color: var(--color-white);
+      background-color: var(--color-interactive-primary-hover);
+      color: var(--color-text-inverse);
       text-decoration: none;
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
   }
   
   &.secondary {
-    background-color: var(--color-white);
-    color: var(--color-primary);
-    border: 2px solid var(--color-primary);
+    background-color: var(--color-surface-elevated);
+    color: var(--color-interactive-primary);
+    border: 2px solid var(--color-interactive-primary);
     
     &:hover {
-      background-color: var(--color-primary);
-      color: var(--color-white);
+      background-color: var(--color-interactive-primary);
+      color: var(--color-text-inverse);
       text-decoration: none;
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
   }
 `;
@@ -306,7 +348,7 @@ const ServicesPage = () => {
         </TierContainer>
       </TierSection>
 
-      <TierSection style={{ backgroundColor: 'var(--color-bg-secondary)' }}>
+      <TierSection style={{ backgroundColor: 'var(--color-surface-secondary)' }}>
         <TierContainer>
           <TierHeader>
             <TierTitle>Tier 2: Full Implementation & Ongoing Management</TierTitle>
