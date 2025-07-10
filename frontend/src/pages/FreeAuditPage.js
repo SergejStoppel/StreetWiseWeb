@@ -5,126 +5,144 @@ import { FaRocket, FaShieldAlt, FaUsers, FaChartLine, FaCheck, FaExclamationTria
 
 const AuditContainer = styled.div`
   min-height: 100vh;
-  background-color: var(--color-bg-primary);
+  background-color: var(--color-surface-primary);
 `;
 
 const HeroSection = styled.section`
-  padding: var(--spacing-2xl) 0;
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  color: var(--color-white);
+  padding: var(--spacing-4xl) 0 var(--spacing-2xl);
+  background: linear-gradient(135deg, var(--color-interactive-primary) 0%, var(--color-interactive-primary-hover) 100%);
+  color: var(--color-text-inverse);
   text-align: center;
 `;
 
 const HeroContent = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const HeroTitle = styled.h1`
-  font-size: var(--font-size-h1);
-  font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-white);
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-extrabold);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-inverse);
+  line-height: var(--line-height-tight);
 `;
 
 const HeroSubtitle = styled.p`
-  font-size: var(--font-size-h4);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-regular);
+  font-family: var(--font-family-secondary);
   margin-bottom: var(--spacing-lg);
-  color: var(--color-white);
+  color: var(--color-text-inverse);
   opacity: 0.9;
-  max-width: 500px;
+  max-width: var(--content-max-width);
   margin-left: auto;
   margin-right: auto;
+  line-height: var(--line-height-relaxed);
 `;
 
 const ScanFormSection = styled.section`
-  padding: var(--spacing-xl) 0;
-  background-color: var(--color-white);
+  padding: var(--spacing-2xl) 0;
+  background-color: var(--color-surface-primary);
   margin-top: -2rem;
-  border-radius: var(--border-radius-xl) var(--border-radius-xl) 0 0;
+  border-radius: var(--border-radius-2xl) var(--border-radius-2xl) 0 0;
 `;
 
 const ScanFormContainer = styled.div`
   max-width: 600px;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
 `;
 
 const ScanForm = styled.form`
-  background-color: var(--color-white);
-  padding: var(--spacing-lg);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-xl);
-  border: 1px solid var(--color-gray-border);
+  background-color: var(--color-surface-elevated);
+  padding: var(--spacing-2xl);
+  border-radius: var(--border-radius-2xl);
+  box-shadow: var(--shadow-2xl);
+  border: 1px solid var(--color-border-primary);
 `;
 
 const FormTitle = styled.h2`
-  font-size: var(--font-size-h3);
+  font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-md);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-xl);
   color: var(--color-text-primary);
   text-align: center;
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
 `;
 
 const FormLabel = styled.label`
   display: block;
-  margin-bottom: var(--spacing-xs);
-  font-family: var(--font-primary);
-  font-size: var(--font-size-body);
+  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
 `;
 
 const FormInput = styled.input`
   width: 100%;
-  padding: 0.75rem 1rem;
-  font-family: var(--font-secondary);
-  font-size: var(--font-size-body);
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-family: var(--font-family-secondary);
+  font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
   color: var(--color-text-primary);
-  background-color: var(--color-white);
-  border: 2px solid var(--color-gray-border);
-  border-radius: var(--border-radius-md);
+  background-color: var(--color-surface-primary);
+  border: 2px solid var(--color-border-primary);
+  border-radius: var(--border-radius-lg);
   transition: all var(--transition-fast);
   
   &:focus {
     outline: none;
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+    border-color: var(--color-interactive-primary);
+    background-color: var(--color-surface-elevated);
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
   }
   
   &::placeholder {
-    color: var(--color-text-muted);
+    color: var(--color-text-tertiary);
   }
 `;
 
 const ScanButton = styled.button`
   width: 100%;
-  padding: 1rem 2rem;
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  background-color: var(--color-interactive-primary);
+  color: var(--color-text-inverse);
   border: none;
-  border-radius: var(--border-radius-md);
-  font-family: var(--font-primary);
-  font-size: var(--font-size-body);
-  font-weight: var(--font-weight-bold);
+  border-radius: var(--border-radius-lg);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   transition: all var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
   
   &:hover:not(:disabled) {
-    background-color: var(--color-primary-hover);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    background-color: var(--color-interactive-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
   }
   
   &:disabled {
@@ -135,154 +153,201 @@ const ScanButton = styled.button`
 `;
 
 const FormDisclaimer = styled.p`
-  font-size: var(--font-size-small);
-  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
   text-align: center;
-  margin-top: var(--spacing-sm);
+  margin-top: var(--spacing-md);
   line-height: var(--line-height-relaxed);
 `;
 
 const HowItWorksSection = styled.section`
-  padding: var(--spacing-xl) 0;
-  background-color: var(--color-bg-secondary);
+  padding: var(--spacing-4xl) 0;
+  background-color: var(--color-surface-secondary);
 `;
 
 const HowItWorksContainer = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const SectionTitle = styled.h2`
-  font-size: var(--font-size-h2);
+  font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-lg);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-2xl);
   color: var(--color-text-primary);
   text-align: center;
 `;
 
 const StepsContainer = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-lg);
-  margin-top: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-2xl);
+  margin-top: var(--spacing-2xl);
 `;
 
 const StepCard = styled.div`
   text-align: center;
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-primary);
+  transition: all var(--transition-fast);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
 `;
 
 const StepNumber = styled.div`
-  width: 3rem;
-  height: 3rem;
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  width: 3.5rem;
+  height: 3.5rem;
+  background-color: var(--color-interactive-primary);
+  color: var(--color-text-inverse);
   border-radius: var(--border-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: var(--font-size-h4);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
-  margin: 0 auto var(--spacing-md) auto;
+  font-family: var(--font-family-primary);
+  margin: 0 auto var(--spacing-lg) auto;
+  box-shadow: var(--shadow-sm);
 `;
 
 const StepTitle = styled.h3`
-  font-size: var(--font-size-h4);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
   margin-bottom: var(--spacing-sm);
   color: var(--color-text-primary);
 `;
 
 const StepDescription = styled.p`
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   line-height: var(--line-height-relaxed);
 `;
 
 const BenefitsSection = styled.section`
-  padding: var(--spacing-xl) 0;
+  padding: var(--spacing-4xl) 0;
 `;
 
 const BenefitsContainer = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const BenefitsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-lg);
-  margin-top: var(--spacing-lg);
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-2xl);
+  margin-top: var(--spacing-2xl);
 `;
 
 const BenefitCard = styled.div`
-  background-color: var(--color-white);
-  border-radius: var(--border-radius-lg);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-sm);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-primary);
   text-align: center;
-  transition: all var(--transition-normal);
+  transition: all var(--transition-fast);
   
   &:hover {
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-lg);
     transform: translateY(-2px);
   }
 `;
 
 const BenefitIcon = styled.div`
-  width: 4rem;
-  height: 4rem;
+  width: 4.5rem;
+  height: 4.5rem;
   background-color: var(--color-success);
-  color: var(--color-white);
+  color: var(--color-text-inverse);
   border-radius: var(--border-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  margin: 0 auto var(--spacing-md) auto;
+  font-size: 1.75rem;
+  margin: 0 auto var(--spacing-lg) auto;
+  box-shadow: var(--shadow-sm);
 `;
 
 const BenefitTitle = styled.h3`
-  font-size: var(--font-size-h4);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-semibold);
-  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-md);
   color: var(--color-text-primary);
 `;
 
 const BenefitDescription = styled.p`
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   line-height: var(--line-height-relaxed);
 `;
 
 const WarningSection = styled.section`
-  padding: var(--spacing-xl) 0;
-  background-color: var(--color-warning-light);
+  padding: var(--spacing-4xl) 0;
+  background: linear-gradient(135deg, var(--color-warning-light) 0%, var(--color-warning-lighter) 100%);
   border-left: 4px solid var(--color-warning);
 `;
 
 const WarningContainer = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
   display: flex;
   align-items: flex-start;
-  gap: var(--spacing-md);
+  gap: var(--spacing-xl);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
+  
+  @media (max-width: 640px) {
+    flex-direction: column;
+    gap: var(--spacing-lg);
+  }
 `;
 
 const WarningIcon = styled.div`
-  width: 3rem;
-  height: 3rem;
+  width: 3.5rem;
+  height: 3.5rem;
   background-color: var(--color-warning);
-  color: var(--color-white);
+  color: var(--color-text-inverse);
   border-radius: var(--border-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.5rem;
   flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
 `;
 
 const WarningContent = styled.div`
@@ -290,58 +355,74 @@ const WarningContent = styled.div`
 `;
 
 const WarningTitle = styled.h3`
-  font-size: var(--font-size-h4);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-md);
   color: var(--color-text-primary);
 `;
 
 const WarningText = styled.p`
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   line-height: var(--line-height-relaxed);
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
 `;
 
 const CTASection = styled.section`
-  padding: var(--spacing-xl) 0;
-  background-color: var(--color-primary-dark);
-  color: var(--color-white);
+  padding: var(--spacing-4xl) 0;
+  background: linear-gradient(135deg, var(--color-interactive-primary) 0%, var(--color-interactive-primary-hover) 100%);
+  color: var(--color-text-inverse);
   text-align: center;
 `;
 
 const CTAContainer = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const CTATitle = styled.h2`
-  font-size: var(--font-size-h2);
+  font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-md);
-  color: var(--color-white);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-xl);
+  color: var(--color-text-inverse);
 `;
 
 const CTAButton = styled(Link)`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: 1rem 2rem;
-  background-color: var(--color-white);
-  color: var(--color-primary);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  background-color: var(--color-surface-elevated);
+  color: var(--color-interactive-primary);
   text-decoration: none;
-  border-radius: var(--border-radius-md);
-  font-weight: var(--font-weight-bold);
-  font-family: var(--font-primary);
+  border-radius: var(--border-radius-lg);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
   transition: all var(--transition-fast);
+  box-shadow: var(--shadow-md);
   
   &:hover {
-    background-color: var(--color-bg-secondary);
-    color: var(--color-primary);
+    background-color: var(--color-surface-primary);
+    color: var(--color-interactive-primary);
     text-decoration: none;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
   }
 `;
 
