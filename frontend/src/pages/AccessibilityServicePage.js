@@ -177,6 +177,7 @@ const TierCards = styled.div`
   grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
   gap: var(--spacing-2xl);
   margin-top: var(--spacing-2xl);
+  align-items: stretch;
 `;
 
 const TierCard = styled.div`
@@ -186,6 +187,9 @@ const TierCard = styled.div`
   box-shadow: var(--shadow-md);
   position: relative;
   transition: all var(--transition-normal);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   
   &:hover {
     transform: translateY(-4px);
@@ -193,13 +197,7 @@ const TierCard = styled.div`
   }
   
   &.featured {
-    border: 2px solid var(--color-interactive-primary);
-    transform: translateY(-8px);
-    
-    &:hover {
-      transform: translateY(-12px);
-      box-shadow: var(--shadow-xl);
-    }
+    /* No special styling for featured card */
   }
 `;
 
@@ -225,6 +223,7 @@ const TierFeatures = styled.ul`
   list-style: none;
   padding: 0;
   margin-bottom: var(--spacing-xl);
+  flex-grow: 1;
 `;
 
 const TierFeature = styled.li`
@@ -234,6 +233,7 @@ const TierFeature = styled.li`
   padding: var(--spacing-sm) 0;
   font-size: var(--font-size-base);
   color: var(--color-text-secondary);
+  min-height: 2.5rem;
 `;
 
 const FeatureIcon = styled(FaCheckCircle)`
@@ -255,6 +255,7 @@ const TierCTA = styled(Link)`
   transition: all var(--transition-normal);
   width: 100%;
   justify-content: center;
+  margin-top: auto;
   
   &:hover {
     background-color: var(--color-interactive-primary-hover);
@@ -270,7 +271,7 @@ const BenefitsSection = styled.section`
 `;
 
 const BenefitsContainer = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
   padding: 0 var(--container-padding);
 `;
@@ -341,7 +342,7 @@ const CTASection = styled.section`
 `;
 
 const CTAContainer = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
   padding: 0 var(--container-padding);
   position: relative;
