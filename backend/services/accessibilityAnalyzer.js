@@ -29,6 +29,9 @@ class AccessibilityAnalyzer {
     this.formAnalyzer = new FormAnalyzer();
     this.tableAnalyzer = new TableAnalyzer();
     this.keyboardAnalyzer = new KeyboardAnalyzer();
+    
+    // Legacy compatibility
+    this.pdfCache = this.cacheManager;
   }
 
   async analyzeWebsite(url, reportType = 'overview', language = 'en') {
@@ -79,14 +82,16 @@ class AccessibilityAnalyzer {
           ariaData,
           formData,
           tableData,
-          keyboardData
+          keyboardData,
+          customChecks
         ] = await Promise.all([
           this.runAxeAnalysis(page, analysisId),
           this.structureAnalyzer.analyze(page, analysisId),
           this.ariaAnalyzer.analyze(page, analysisId),
           this.formAnalyzer.analyze(page, analysisId),
           this.tableAnalyzer.analyze(page, analysisId),
-          this.keyboardAnalyzer.analyze(page, analysisId)
+          this.keyboardAnalyzer.analyze(page, analysisId),
+          this.runLegacyCustomChecks(page, analysisId)
         ]);
         
         // Run color contrast analysis
@@ -106,6 +111,7 @@ class AccessibilityAnalyzer {
           formData,
           tableData,
           keyboardData,
+          customChecks,
           colorContrastAnalysis,
           analysisId,
           language: validLanguage
@@ -202,6 +208,7 @@ class AccessibilityAnalyzer {
       formData,
       tableData,
       keyboardData,
+      customChecks,
       colorContrastAnalysis,
       analysisId,
       language
@@ -218,8 +225,8 @@ class AccessibilityAnalyzer {
       axeScore: this.calculateAxeScore(axeResults)
     };
 
-    // Calculate weighted overall score
-    const overallScore = this.calculateOverallScore(individualScores);
+    // Calculate weighted overall score based primarily on axe violations
+    const overallScore = this.calculateOverallScore(individualScores, axeResults);
     
     // Create scores object matching frontend expectations
     const scores = {
@@ -263,17 +270,21 @@ class AccessibilityAnalyzer {
       url,
       timestamp: new Date().toISOString(),
       language,
+      reportType: 'detailed', // Frontend expects this to show detailed UI
       overallScore,
       scores,
       metadata,
       summary: this.generateSummary(axeResults, recommendations, individualScores, { 
-        totalTables: tableData?.totalTables || 0 
+        totalTables: tableData?.totalTables || 0,
+        customChecks: customChecks,
+        overallScore: overallScore
       }),
       structure: structureData,
       aria: ariaData,
       forms: formData,
       tables: tableData,
       keyboard: keyboardData,
+      customChecks: customChecks,
       colorContrast: colorContrastAnalysis,
       axeResults,
       recommendations: flatRecommendations, // Flat array for frontend compatibility
@@ -286,29 +297,73 @@ class AccessibilityAnalyzer {
     };
   }
 
-  calculateOverallScore(scores) {
-    // Weighted scoring based on importance
-    const weights = {
-      structure: 0.20,
-      aria: 0.15,
-      forms: 0.15,
-      tables: 0.10,
-      keyboard: 0.20,
-      colorContrast: 0.10,
-      axeScore: 0.10
+  calculateOverallScore(scores, axeResults) {
+    // Start with axe-core violations as the primary score factor
+    let score = this.calculateRealisticAxeScore(axeResults);
+    
+    // Apply modifiers based on individual analysis areas (smaller impact)
+    const modifiers = {
+      structure: 0.05,
+      aria: 0.05,
+      forms: 0.05,
+      tables: 0.02,
+      keyboard: 0.05,
+      colorContrast: 0.03
     };
 
-    let weightedSum = 0;
-    let totalWeight = 0;
-
-    Object.keys(weights).forEach(key => {
+    // Individual scores can only provide small bonuses/penalties
+    Object.keys(modifiers).forEach(key => {
       if (scores[key] !== undefined && scores[key] !== null) {
-        weightedSum += scores[key] * weights[key];
-        totalWeight += weights[key];
+        const modifier = (scores[key] - 80) * modifiers[key]; // Baseline 80, can add/subtract
+        score += modifier;
       }
     });
 
-    return totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }
+
+  calculateRealisticAxeScore(axeResults) {
+    if (!axeResults || !axeResults.violations || axeResults.violations.length === 0) {
+      return 95; // Not perfect due to potential issues our tools can't detect
+    }
+    
+    let score = 100;
+    
+    axeResults.violations.forEach(violation => {
+      const elementCount = Math.min(violation.nodes?.length || 1, 10); // Cap element count impact
+      const impact = violation.impact || 'moderate';
+      
+      // More balanced penalty system
+      let basePenalty = 0;
+      let elementMultiplier = 0;
+      
+      switch (impact) {
+        case 'critical':
+          basePenalty = 20; // Critical issues are serious but not devastating
+          elementMultiplier = 2; // Each additional element adds 2 points
+          break;
+        case 'serious':
+          basePenalty = 12; // Serious issues significantly impact accessibility
+          elementMultiplier = 1.5; // Each additional element adds 1.5 points
+          break;
+        case 'moderate':
+          basePenalty = 6; // Moderate issues are important but manageable
+          elementMultiplier = 1; // Each additional element adds 1 point
+          break;
+        case 'minor':
+          basePenalty = 2; // Minor issues have small impact
+          elementMultiplier = 0.5; // Each additional element adds 0.5 points
+          break;
+        default:
+          basePenalty = 8; // Unknown severity treated between moderate and serious
+          elementMultiplier = 1.2;
+      }
+      
+      const totalPenalty = basePenalty + (elementCount * elementMultiplier);
+      score -= totalPenalty;
+    });
+    
+    return Math.max(15, score); // Never go below 15 - even bad sites have some working elements
   }
 
   calculateAxeScore(axeResults) {
@@ -410,11 +465,21 @@ class AccessibilityAnalyzer {
     
     // Extract specific violation counts from axe results
     const axeViolations = axeResults.violations || [];
-    const imagesWithoutAlt = axeViolations.filter(v => v.id === 'image-alt').length;
+    
+    // Use custom checks data for more accurate counts
+    const customChecks = additionalData.customChecks || {};
+    const imagesWithoutAlt = customChecks.images ? 
+      customChecks.images.filter(img => !img.isDecorative && (!img.hasGoodAlt)).length :
+      axeViolations.filter(v => v.id === 'image-alt').length;
+      
     const formsWithoutLabels = axeViolations.filter(v => 
       v.id === 'label' || v.id === 'form-field-multiple-labels'
     ).length;
-    const emptyLinks = axeViolations.filter(v => v.id === 'link-name').length;
+    
+    const emptyLinks = customChecks.links ?
+      customChecks.links.filter(link => link.isEmpty).length :
+      axeViolations.filter(v => v.id === 'link-name').length;
+      
     const colorContrastViolations = axeViolations.filter(v => 
       v.id === 'color-contrast' || v.id === 'color-contrast-enhanced'
     ).length;
@@ -448,17 +513,21 @@ class AccessibilityAnalyzer {
       
       // Additional data
       axeViolations: axeResults.violations?.length || 0,
-      overallGrade: this.getGradeFromScore(individualScores),
+      overallGrade: this.getGradeFromOverallScore(additionalData.overallScore || 0),
       passedChecks: axeResults.passes?.length || 0,
-      hasExcellentAccessibility: this.calculateOverallScore(individualScores) >= 95,
+      hasExcellentAccessibility: (additionalData.overallScore || 0) >= 95,
       
       // Table-specific data (for conditional rendering)
       totalTables: additionalData.totalTables || 0
     };
   }
 
-  getGradeFromScore(individualScores) {
-    const overall = this.calculateOverallScore(individualScores);
+  getGradeFromScore(individualScores, axeResults) {
+    const overall = this.calculateOverallScore(individualScores, axeResults);
+    return this.getGradeFromOverallScore(overall);
+  }
+
+  getGradeFromOverallScore(overall) {
     if (overall >= 95) return 'A+';
     if (overall >= 90) return 'A';
     if (overall >= 85) return 'B+';
@@ -489,6 +558,7 @@ class AccessibilityAnalyzer {
       url: detailedReport.url,
       timestamp: detailedReport.timestamp,
       language: detailedReport.language,
+      reportType: 'overview', // Frontend expects this to show overview UI
       overallScore: detailedReport.overallScore,
       scores: detailedReport.scores,
       summary: detailedReport.summary,
@@ -539,6 +609,24 @@ class AccessibilityAnalyzer {
     }
   }
 
+  // Legacy method support for cached PDF retrieval
+  getCachedPDF(cacheKey) {
+    try {
+      // Handle both old-style cache keys and new format
+      if (cacheKey.includes('_')) {
+        // New format: analysisId_language
+        const [analysisId, language] = cacheKey.split('_');
+        return this.cacheManager.getPDF(analysisId, language);
+      } else {
+        // Old format: just analysisId
+        return this.cacheManager.getPDF(cacheKey, 'en');
+      }
+    } catch (error) {
+      logger.error('Failed to get cached PDF:', { error: error.message, cacheKey });
+      return null;
+    }
+  }
+
   // Legacy method support for PDF generation
   async generatePDF(analysisData, language = 'en') {
     try {
@@ -561,6 +649,86 @@ class AccessibilityAnalyzer {
     } catch (error) {
       logger.error('PDF generation failed:', error);
       throw error;
+    }
+  }
+
+  // Legacy custom checks method (temporary integration during refactoring)
+  async runLegacyCustomChecks(page, analysisId) {
+    try {
+      logger.info('Running legacy custom accessibility checks', { analysisId });
+      
+      const checks = await page.evaluate(() => {
+        const results = {
+          images: [],
+          forms: [],
+          headings: [],
+          links: [],
+          colors: [],
+          structure: {}
+        };
+
+        // Helper function to detect meaningless alt text
+        const isMeaninglessAlt = (altText) => {
+          if (!altText || altText.trim() === '') return false;
+          
+          const meaninglessPatterns = [
+            /^\.+$/, /^image$/i, /^photo$/i, /^picture$/i, /^img$/i, /^graphic$/i, 
+            /^logo$/i, /^icon$/i, /^\d+$/, /^untitled/i, /^dsc_?\d+/i, /^img_?\d+/i, 
+            /^screenshot/i, /^[a-z0-9_-]{1,3}$/i, /^(jpeg|jpg|png|gif|svg|webp)$/i
+          ];
+          
+          const trimmed = altText.trim().toLowerCase();
+          
+          if (meaninglessPatterns.some(pattern => pattern.test(trimmed))) return true;
+          if (trimmed.match(/\.(jpg|jpeg|png|gif|svg|webp|bmp)$/i)) return true;
+          if (trimmed.length < 3) return true;
+          
+          return false;
+        };
+
+        // Image analysis
+        const images = document.querySelectorAll('img');
+        images.forEach((img, index) => {
+          const isDecorative = 
+            img.hasAttribute('aria-hidden') || img.getAttribute('role') === 'presentation' ||
+            img.alt === '' || img.closest('[aria-hidden="true"]') ||
+            img.closest('.icon, .logo, .decoration, .bg-image, [role="img"]') ||
+            (img.naturalWidth > 0 && img.naturalWidth <= 16 && img.naturalHeight <= 16);
+
+          const hasValidAlt = img.alt !== null && img.alt !== undefined;
+          const altText = img.alt || '';
+          const hasMeaninglessAlt = hasValidAlt && isMeaninglessAlt(altText);
+          
+          results.images.push({
+            index, src: img.src, alt: altText, hasAlt: hasValidAlt,
+            isEmpty: !altText || altText.trim() === '', isDecorative, hasMeaninglessAlt,
+            hasGoodAlt: hasValidAlt && !hasMeaninglessAlt && altText.trim() !== ''
+          });
+        });
+
+        // Link analysis  
+        const links = document.querySelectorAll('a[href]');
+        links.forEach((link, index) => {
+          const text = link.textContent?.trim() || '';
+          const ariaLabel = link.getAttribute('aria-label') || '';
+          const hasText = text.length > 0;
+          const hasAriaLabel = ariaLabel.length > 0;
+          
+          results.links.push({
+            index, href: link.href, text, ariaLabel, hasText, hasAriaLabel,
+            isEmpty: !hasText && !hasAriaLabel,
+            isEmail: link.href.startsWith('mailto:'),
+            isPhone: link.href.startsWith('tel:')
+          });
+        });
+
+        return results;
+      });
+
+      return checks;
+    } catch (error) {
+      logger.error('Legacy custom checks failed:', { error: error.message, analysisId });
+      return { images: [], forms: [], headings: [], links: [], colors: [], structure: {} };
     }
   }
 

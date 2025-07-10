@@ -185,16 +185,8 @@ router.get('/detailed/:analysisId', async (req, res) => {
       });
     }
 
-    // If language is different from default, regenerate recommendations with proper language
-    if (language !== 'en') {
-      detailedReport.recommendations = accessibilityAnalyzer.generateRecommendations(
-        detailedReport.axeResults,
-        detailedReport.customChecks,
-        detailedReport.reportType,
-        language,
-        detailedReport.colorContrastAnalysis
-      );
-    }
+    // Note: Language-specific recommendations are now generated during analysis
+    // The detailed report already contains properly localized recommendations
     
     res.json({
       success: true,
