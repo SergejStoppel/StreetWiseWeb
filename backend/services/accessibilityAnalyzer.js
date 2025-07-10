@@ -868,18 +868,10 @@ class AccessibilityAnalyzer {
 
   async runKeyboardAccessibilityAnalysis(page, analysisId) {
     try {
-      logger.info('Running keyboard accessibility analysis', { analysisId });
+      logger.info('Running real keyboard accessibility analysis', { analysisId });
       
-      const keyboardAnalysis = await page.evaluate(() => {
-        const results = {
-          focusableElements: [],
-          focusTraps: [],
-          skipLinks: [],
-          tabOrder: [],
-          focusManagement: {}
-        };
-
-        // Find all focusable elements
+      // First, get all focusable elements without keyboard simulation
+      const initialAnalysis = await page.evaluate(() => {
         const focusableSelectors = [
           'a[href]',
           'button:not([disabled])',
@@ -898,21 +890,446 @@ class AccessibilityAnalyzer {
           '[role="tab"]:not([tabindex="-1"])'
         ];
 
-        const focusableElements = document.querySelectorAll(focusableSelectors.join(', '));
+        const elements = Array.from(document.querySelectorAll(focusableSelectors.join(', ')));
         
-        focusableElements.forEach((element, index) => {
+        return elements.map((element, index) => {
           const computedStyle = window.getComputedStyle(element);
+          const rect = element.getBoundingClientRect();
           const isVisible = computedStyle.display !== 'none' && 
                            computedStyle.visibility !== 'hidden' && 
                            computedStyle.opacity !== '0' &&
-                           element.offsetWidth > 0 && 
-                           element.offsetHeight > 0;
+                           rect.width > 0 && 
+                           rect.height > 0;
+          
+          return {
+            index,
+            tagName: element.tagName.toLowerCase(),
+            type: element.type || null,
+            id: element.id || null,
+            className: element.className || null,
+            tabIndex: element.tabIndex,
+            hasTabIndex: element.hasAttribute('tabindex'),
+            isVisible,
+            hasAriaLabel: element.hasAttribute('aria-label'),
+            ariaLabel: element.getAttribute('aria-label') || null,
+            text: element.textContent?.trim().substring(0, 50) || element.value?.substring(0, 50) || element.alt?.substring(0, 50) || '',
+            role: element.getAttribute('role') || null,
+            disabled: element.disabled || false,
+            rect: {
+              top: rect.top,
+              left: rect.left,
+              width: rect.width,
+              height: rect.height
+            }
+          };
+        }).filter(el => el.isVisible && !el.disabled);
+      });
 
-          const tabIndex = element.getAttribute('tabindex');
-          const hasVisibleFocus = computedStyle.outline !== 'none' || 
-                                 computedStyle.outlineWidth !== '0px' ||
-                                 computedStyle.boxShadow.includes('focus') ||
-                                 element.classList.contains('focus-visible') ||
+      logger.info(`Found ${initialAnalysis.length} focusable elements`, { analysisId });
+
+      // Now perform real keyboard navigation simulation
+      const keyboardTestResults = await this.simulateKeyboardNavigation(page, initialAnalysis);
+      
+      // Analyze skip links functionality
+      const skipLinksAnalysis = await this.analyzeSkipLinks(page);
+      
+      // Check for focus traps
+      const focusTrapsAnalysis = await this.detectFocusTraps(page, keyboardTestResults.tabOrder);
+      
+      // Analyze focus indicators
+      const focusIndicatorAnalysis = await this.analyzeFocusIndicators(page, keyboardTestResults.tabOrder);
+
+      return {
+        focusableElements: initialAnalysis,
+        tabOrder: keyboardTestResults.tabOrder,
+        skipLinks: skipLinksAnalysis,
+        focusTraps: focusTrapsAnalysis,
+        focusManagement: {
+          totalFocusableElements: initialAnalysis.length,
+          successfullyFocused: keyboardTestResults.successfullyFocused,
+          tabNavigationWorks: keyboardTestResults.tabNavigationWorks,
+          hasLogicalTabOrder: keyboardTestResults.hasLogicalTabOrder,
+          hasVisibleFocusIndicators: focusIndicatorAnalysis.hasVisibleIndicators,
+          focusIndicatorContrast: focusIndicatorAnalysis.contrastIssues,
+          skipLinksWork: skipLinksAnalysis.filter(link => link.works).length,
+          focusTrappedElements: focusTrapsAnalysis.length,
+          keyboardTraversalIssues: keyboardTestResults.issues
+        }
+      };
+    } catch (error) {
+      logger.error('Real keyboard accessibility analysis failed:', { error: error.message, analysisId });
+      return {
+        focusableElements: [],
+        focusTraps: [],
+        skipLinks: [],
+        tabOrder: [],
+        focusManagement: {
+          error: error.message
+        }
+      };
+    }
+  }
+
+  async simulateKeyboardNavigation(page, focusableElements) {
+    try {
+      const results = {
+        tabOrder: [],
+        successfullyFocused: 0,
+        tabNavigationWorks: false,
+        hasLogicalTabOrder: true,
+        issues: []
+      };
+
+      if (focusableElements.length === 0) {
+        return results;
+      }
+
+      // Reset focus to body
+      await page.evaluate(() => {
+        if (document.activeElement) {
+          document.activeElement.blur();
+        }
+        document.body.focus();
+      });
+
+      // Simulate Tab navigation through all elements
+      const maxTabs = Math.min(focusableElements.length + 5, 50); // Limit to prevent infinite loops
+      const tabSequence = [];
+      
+      for (let i = 0; i < maxTabs; i++) {
+        // Press Tab
+        await page.keyboard.press('Tab');
+        await page.waitForTimeout(50); // Small delay for focus to settle
+        
+        // Get currently focused element
+        const focusedElementInfo = await page.evaluate(() => {
+          const activeElement = document.activeElement;
+          if (!activeElement || activeElement === document.body) {
+            return null;
+          }
+          
+          const rect = activeElement.getBoundingClientRect();
+          const computedStyle = window.getComputedStyle(activeElement);
+          
+          return {
+            tagName: activeElement.tagName.toLowerCase(),
+            id: activeElement.id || null,
+            className: activeElement.className || null,
+            type: activeElement.type || null,
+            tabIndex: activeElement.tabIndex,
+            text: activeElement.textContent?.trim().substring(0, 50) || activeElement.value?.substring(0, 50) || '',
+            hasOutline: computedStyle.outline !== 'none' && computedStyle.outline !== '',
+            outlineColor: computedStyle.outlineColor,
+            outlineWidth: computedStyle.outlineWidth,
+            outlineStyle: computedStyle.outlineStyle,
+            focusVisible: activeElement.matches(':focus-visible') || false,
+            rect: {
+              top: rect.top,
+              left: rect.left,
+              width: rect.width,
+              height: rect.height
+            }
+          };
+        });
+
+        if (focusedElementInfo) {
+          tabSequence.push({
+            order: i + 1,
+            ...focusedElementInfo
+          });
+          results.successfullyFocused++;
+        }
+
+        // Check if we've completed a cycle (back to first element or body)
+        if (i > 0 && tabSequence.length > 1) {
+          const current = focusedElementInfo;
+          const first = tabSequence[0];
+          if (!current || (current.id === first.id && current.tagName === first.tagName)) {
+            break;
+          }
+        }
+      }
+
+      results.tabOrder = tabSequence;
+      results.tabNavigationWorks = tabSequence.length > 0;
+      
+      // Analyze tab order logic
+      results.hasLogicalTabOrder = this.analyzeTabOrderLogic(tabSequence, focusableElements);
+      
+      // Check for navigation issues
+      if (results.successfullyFocused < focusableElements.length * 0.8) {
+        results.issues.push({
+          type: 'incomplete_tab_navigation',
+          description: `Only ${results.successfullyFocused} of ${focusableElements.length} focusable elements were reachable via Tab navigation`,
+          severity: 'serious'
+        });
+      }
+
+      return results;
+    } catch (error) {
+      logger.error('Keyboard navigation simulation failed:', error);
+      return {
+        tabOrder: [],
+        successfullyFocused: 0,
+        tabNavigationWorks: false,
+        hasLogicalTabOrder: false,
+        issues: [{ type: 'simulation_error', description: error.message, severity: 'serious' }]
+      };
+    }
+  }
+
+  analyzeTabOrderLogic(tabSequence, focusableElements) {
+    if (tabSequence.length < 2) return true;
+    
+    // Check for reasonable spatial progression (generally left-to-right, top-to-bottom)
+    let logicalOrder = true;
+    for (let i = 1; i < tabSequence.length; i++) {
+      const current = tabSequence[i];
+      const previous = tabSequence[i - 1];
+      
+      // Skip if elements don't have valid positions
+      if (!current.rect || !previous.rect) continue;
+      
+      // Allow for some flexibility in tab order (elements close vertically)
+      const verticalTolerance = 50;
+      const isNextRow = current.rect.top > previous.rect.top + verticalTolerance;
+      const isSameRow = Math.abs(current.rect.top - previous.rect.top) <= verticalTolerance;
+      
+      // If moving to next row, that's generally acceptable
+      if (isNextRow) continue;
+      
+      // If same row, should generally go left to right
+      if (isSameRow && current.rect.left < previous.rect.left - 20) {
+        logicalOrder = false;
+        break;
+      }
+    }
+    
+    return logicalOrder;
+  }
+
+  async analyzeSkipLinks(page) {
+    try {
+      const skipLinks = await page.evaluate(() => {
+        // Common skip link patterns
+        const skipLinkSelectors = [
+          'a[href^="#skip"]',
+          'a[href^="#main"]',
+          'a[href^="#content"]',
+          '.skip-link',
+          '.skip-to-content',
+          '.sr-only a[href^="#"]',
+          'a[class*="skip"]'
+        ];
+        
+        const skipLinks = [];
+        
+        skipLinkSelectors.forEach(selector => {
+          const elements = document.querySelectorAll(selector);
+          elements.forEach(link => {
+            const href = link.getAttribute('href');
+            const target = href ? document.querySelector(href) : null;
+            const computedStyle = window.getComputedStyle(link);
+            
+            skipLinks.push({
+              text: link.textContent.trim(),
+              href,
+              hasTarget: !!target,
+              isVisible: computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden',
+              isVisuallyHidden: computedStyle.position === 'absolute' && 
+                               (computedStyle.left === '-9999px' || computedStyle.left === '-10000px' ||
+                                computedStyle.clip === 'rect(0px, 0px, 0px, 0px)'),
+              targetExists: !!target,
+              targetId: target ? target.id : null
+            });
+          });
+        });
+        
+        return skipLinks;
+      });
+
+      // Test skip link functionality
+      for (let skipLink of skipLinks) {
+        try {
+          if (skipLink.href && skipLink.hasTarget) {
+            // Focus the skip link and activate it
+            await page.evaluate((href) => {
+              const link = document.querySelector(`a[href="${href}"]`);
+              if (link) {
+                link.focus();
+                link.click();
+              }
+            }, skipLink.href);
+            
+            await page.waitForTimeout(100);
+            
+            // Check if focus moved to target
+            const focusMovedCorrectly = await page.evaluate((targetId) => {
+              if (!targetId) return false;
+              const target = document.getElementById(targetId);
+              return target && document.activeElement === target;
+            }, skipLink.targetId);
+            
+            skipLink.works = focusMovedCorrectly;
+          }
+        } catch (error) {
+          skipLink.works = false;
+          skipLink.error = error.message;
+        }
+      }
+
+      return skipLinks;
+    } catch (error) {
+      logger.error('Skip links analysis failed:', error);
+      return [];
+    }
+  }
+
+  async detectFocusTraps(page, tabOrder) {
+    try {
+      const focusTraps = [];
+      
+      // Look for potential focus traps in modals, overlays, etc.
+      const potentialTraps = await page.evaluate(() => {
+        const modals = Array.from(document.querySelectorAll('[role="dialog"], .modal, .overlay, .popup'));
+        return modals.map(modal => ({
+          id: modal.id || null,
+          className: modal.className || null,
+          isVisible: window.getComputedStyle(modal).display !== 'none',
+          hasTabIndex: modal.hasAttribute('tabindex'),
+          containsFocusableElements: modal.querySelectorAll('button, input, select, textarea, a[href]').length > 0
+        }));
+      });
+      
+      // Simple focus trap detection: if tab order gets stuck in a small subset
+      if (tabOrder.length > 0) {
+        const uniqueElements = new Set(tabOrder.map(el => `${el.tagName}-${el.id}-${el.className}`));
+        const repetitionThreshold = tabOrder.length > 10 ? 3 : 2;
+        
+        tabOrder.forEach((element, index) => {
+          const elementId = `${element.tagName}-${element.id}-${element.className}`;
+          const occurrences = tabOrder.filter(el => 
+            `${el.tagName}-${el.id}-${el.className}` === elementId
+          ).length;
+          
+          if (occurrences >= repetitionThreshold) {
+            focusTraps.push({
+              type: 'repeated_focus_cycle',
+              element: elementId,
+              occurrences,
+              severity: 'moderate'
+            });
+          }
+        });
+      }
+      
+      return focusTraps;
+    } catch (error) {
+      logger.error('Focus trap detection failed:', error);
+      return [];
+    }
+  }
+
+  async analyzeFocusIndicators(page, tabOrder) {
+    try {
+      let hasVisibleIndicators = false;
+      const contrastIssues = [];
+      
+      if (tabOrder.length > 0) {
+        // Check a sample of focused elements for visible focus indicators
+        const sampleSize = Math.min(5, tabOrder.length);
+        const sampleElements = tabOrder.slice(0, sampleSize);
+        
+        for (let element of sampleElements) {
+          if (element.hasOutline || element.focusVisible) {
+            hasVisibleIndicators = true;
+            
+            // Basic contrast check for outline color
+            if (element.outlineColor && element.outlineColor !== 'transparent') {
+              // Simple contrast check - this is basic, could be enhanced
+              const isLightColor = this.isLightColor(element.outlineColor);
+              if (isLightColor && !this.hasGoodContrast(element.outlineColor, '#ffffff')) {
+                contrastIssues.push({
+                  element: `${element.tagName}${element.id ? '#' + element.id : ''}`,
+                  issue: 'Low contrast focus indicator',
+                  outlineColor: element.outlineColor
+                });
+              }
+            }
+          }
+        }
+      }
+      
+      return {
+        hasVisibleIndicators,
+        contrastIssues
+      };
+    } catch (error) {
+      logger.error('Focus indicator analysis failed:', error);
+      return {
+        hasVisibleIndicators: false,
+        contrastIssues: []
+      };
+    }
+  }
+
+  isLightColor(color) {
+    // Simple light color detection - could be enhanced
+    const rgb = color.match(/\d+/g);
+    if (rgb && rgb.length >= 3) {
+      const r = parseInt(rgb[0]);
+      const g = parseInt(rgb[1]);
+      const b = parseInt(rgb[2]);
+      const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+      return brightness > 125;
+    }
+    return false;
+  }
+
+  hasGoodContrast(color1, color2) {
+    // Simplified contrast check - in a real implementation, you'd use proper WCAG contrast calculation
+    return true; // Placeholder
+  }
+
+  startCacheCleanup() {
+    // Clean up expired cache entries every 30 minutes
+    setInterval(() => {
+      this.cleanupExpiredCache();
+    }, 30 * 60 * 1000);
+  }
+
+  cleanupExpiredCache() {
+    const now = Date.now();
+    
+    // Clean up expired analysis cache
+    for (const [analysisId, cached] of this.analysisCache.entries()) {
+      if (now - cached.timestamp > this.ANALYSIS_CACHE_TTL) {
+        this.analysisCache.delete(analysisId);
+        logger.info(`Cleaned up expired analysis cache for ${analysisId}`);
+      }
+    }
+    
+    // Clean up expired PDF cache
+    for (const [analysisId, cached] of this.pdfCache.entries()) {
+      if (now - cached.timestamp > this.PDF_CACHE_TTL) {
+        this.pdfCache.delete(analysisId);
+        logger.info(`Cleaned up expired PDF cache for ${analysisId}`);
+      }
+    }
+    
+    logger.debug(`Cache cleanup completed. Analysis cache size: ${this.analysisCache.size}, PDF cache size: ${this.pdfCache.size}`);
+  }
+
+  generateRecommendations(axeResults, customChecks, reportType = 'overview', language = 'en', colorContrastAnalysis = null) {
+    const recommendations = [];
+    
+    if (reportType === 'detailed') {
+      // Detailed recommendations with specific counts and instructions
+      if (axeResults.violations.some(v => v.impact === 'critical')) {
+        const criticalCount = axeResults.violations.filter(v => v.impact === 'critical').length;
+        recommendations.push({
+          priority: 'high',
+          category: i18n.t('reports:recommendations.categories.criticalIssues', language),
                                  element.classList.contains('focus');
 
           results.focusableElements.push({
