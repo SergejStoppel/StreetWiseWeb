@@ -35,12 +35,14 @@
       "seriousIssues": "Schwerwiegende Probleme",
       "imagesWithoutAlt": "Bilder ohne Alt-Text",
       "unlabeledFormFields": "Unbeschriftete Formularfelder",
-      "emptyLinks": "Leere Links"
+      "emptyLinks": "Leere Links",
+      "colorContrastIssues": "Farbkontrast-Probleme"
     },
     "sections": {
       "recommendations": "Empfehlungen",
       "accessibilityViolations": "Barrierefreiheits-Verletzungen",
-      "issuesFound": "Gefundene Probleme"
+      "issuesFound": "Gefundene Probleme",
+      "colorContrastAnalysis": "Farbkontrast-Analyse"
     },
     "issuePreview": {
       "criticalAndSeriousIssues": "{{critical}} Kritische Probleme, {{serious}} Schwerwiegende Probleme Gefunden",
@@ -141,5 +143,26 @@
       "aria-required-attr": "Erforderliche ARIA-Attribute müssen bereitgestellt werden",
       "aria-required-attr-desc": "Stellen Sie sicher, dass Elemente mit ARIA-Rollen alle erforderlichen ARIA-Attribute haben"
     }
+  },
+  "colorContrast": {
+    "totalViolations": "Gesamt-Verstöße",
+    "totalDescription": "Elemente, die die Farbkontrast-Anforderungen nicht erfüllen",
+    "aaViolations": "WCAG AA Verstöße",
+    "aaDescription": "Elemente unter 4,5:1 Kontrastverhältnis (3:1 für großen Text)",
+    "aaaViolations": "WCAG AAA Verstöße", 
+    "aaaDescription": "Elemente unter 7:1 Kontrastverhältnis (4,5:1 für großen Text)",
+    "aaCompliance": "AA-Konformität",
+    "complianceDescription": "Prozentsatz der Elemente, die WCAG AA Standards erfüllen",
+    "exampleViolations": "Beispiel-Verstöße",
+    "contrastTooLow": "Textkontrast ist zu niedrig für Barrierefreiheitsstandards",
+    "ratioDetails": "Gefunden {{found}}:1, erforderlich {{required}}:1",
+    "additionalViolations": "{{count}} weitere Verstöße nicht angezeigt",
+    "actionGuidance": "So Beheben Sie Diese Probleme",
+    "mainIssue": "Textkontrast unter den Barrierefreiheitsstandards",
+    "elementsToFixWeb": "{{count}} Element benötigt Kontrastanpassung",
+    "elementsToFixWeb_plural": "{{count}} Elemente benötigen Kontrastanpassung",
+    "howToFixWeb": "Erhöhen Sie den Kontrast zwischen Text- und Hintergrundfarben, um WCAG AA-Standards zu erfüllen (4,5:1 für normalen Text, 3:1 für großen Text).",
+    "quickTip": "Schnelle Lösung",
+    "quickTipDetails": "Verwenden Sie die Entwicklertools Ihres Browsers, um Elemente zu inspizieren und CSS-Farbwerte anzupassen. Testen Sie Änderungen mit einem Kontrastprüfer vor der Veröffentlichung."
   }
 }

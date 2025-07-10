@@ -35,12 +35,20 @@
       "seriousIssues": "Serious Issues",
       "imagesWithoutAlt": "Images without Alt Text",
       "unlabeledFormFields": "Unlabeled Form Fields",
-      "emptyLinks": "Empty Links"
+      "emptyLinks": "Empty Links",
+      "colorContrastIssues": "Color Contrast Issues"
     },
     "sections": {
       "recommendations": "Recommendations",
       "accessibilityViolations": "Accessibility Violations",
-      "issuesFound": "Issues Found"
+      "issuesFound": "Issues Found",
+      "excellentAccessibility": "Excellent Accessibility",
+      "colorContrastAnalysis": "Color Contrast Analysis"
+    },
+    "excellent": {
+      "title": "🎉 Excellent Accessibility Detected!",
+      "description": "Your website shows outstanding accessibility compliance with no critical or serious issues found. The analysis detected minimal violations and your site appears to follow accessibility best practices.",
+      "noUpgradeNeeded": "No detailed report upgrade needed - your accessibility is already in great shape!"
     },
     "issuePreview": {
       "criticalAndSeriousIssues": "{{critical}} Critical Issues, {{serious}} Serious Issues Found",
@@ -141,5 +149,26 @@
       "aria-required-attr": "Required ARIA attributes must be provided",
       "aria-required-attr-desc": "Ensure elements with ARIA roles have all required ARIA attributes"
     }
+  },
+  "colorContrast": {
+    "totalViolations": "Total Violations",
+    "totalDescription": "Elements that fail color contrast requirements",
+    "aaViolations": "WCAG AA Violations",
+    "aaDescription": "Elements below 4.5:1 contrast ratio (3:1 for large text)",
+    "aaaViolations": "WCAG AAA Violations", 
+    "aaaDescription": "Elements below 7:1 contrast ratio (4.5:1 for large text)",
+    "aaCompliance": "AA Compliance",
+    "complianceDescription": "Percentage of elements meeting WCAG AA standards",
+    "exampleViolations": "Example Violations",
+    "contrastTooLow": "Text contrast is too low for accessibility standards",
+    "ratioDetails": "Found {{found}}:1, required {{required}}:1",
+    "additionalViolations": "{{count}} additional violations not shown",
+    "actionGuidance": "How to Fix These Issues",
+    "mainIssue": "Text contrast below accessibility standards",
+    "elementsToFixWeb": "{{count}} element needs contrast adjustment",
+    "elementsToFixWeb_plural": "{{count}} elements need contrast adjustment",
+    "howToFixWeb": "Increase contrast between text and background colors to meet WCAG AA standards (4.5:1 for normal text, 3:1 for large text).",
+    "quickTip": "Quick Fix",
+    "quickTipDetails": "Use your browser's developer tools to inspect elements and adjust CSS color values. Test changes with a contrast checker before publishing."
   }
 }

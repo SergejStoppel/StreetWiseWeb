@@ -1,0 +1,304 @@
+/**
+ * SiteCraft Design System - CSS Variables
+ * Single source of truth for all design tokens
+ * Supports automatic light/dark mode switching
+ */
+
+:root {
+  /* ========================================
+     COLOR SYSTEM - LIGHT MODE (DEFAULT)
+     ======================================== */
+  
+  /* Surface Colors */
+  --color-surface-primary: #ffffff;
+  --color-surface-secondary: #f8f9fa;
+  --color-surface-tertiary: #e9ecef;
+  --color-surface-elevated: #ffffff;
+  --color-surface-overlay: rgba(0, 0, 0, 0.5);
+  --color-surface-brand: #007bff;
+  --color-surface-brand-hover: #0056b3;
+  
+  /* Text Colors */
+  --color-text-primary: #212529;
+  --color-text-secondary: #6c757d;
+  --color-text-tertiary: #adb5bd;
+  --color-text-inverse: #ffffff;
+  --color-text-link: #007bff;
+  --color-text-link-hover: #0056b3;
+  --color-text-on-brand: #ffffff;
+  
+  /* Interactive Colors */
+  --color-interactive-primary: #007bff;
+  --color-interactive-primary-hover: #0056b3;
+  --color-interactive-primary-active: #004494;
+  --color-interactive-secondary: #6c757d;
+  --color-interactive-secondary-hover: #5a6268;
+  --color-interactive-secondary-active: #494f54;
+  
+  /* Border Colors */
+  --color-border-primary: #dee2e6;
+  --color-border-secondary: #e9ecef;
+  --color-border-focus: #007bff;
+  --color-border-error: #dc3545;
+  --color-border-success: #28a745;
+  --color-border-warning: #ffc107;
+  
+  /* Semantic Colors */
+  --color-success: #28a745;
+  --color-success-hover: #218838;
+  --color-success-light: #d4edda;
+  --color-success-text: #155724;
+  
+  --color-error: #dc3545;
+  --color-error-hover: #c82333;
+  --color-error-light: #f8d7da;
+  --color-error-text: #721c24;
+  
+  --color-warning: #ffc107;
+  --color-warning-hover: #e0a800;
+  --color-warning-light: #fff3cd;
+  --color-warning-text: #856404;
+  
+  --color-info: #17a2b8;
+  --color-info-hover: #138496;
+  --color-info-light: #d1ecf1;
+  --color-info-text: #0c5460;
+  
+  /* ========================================
+     TYPOGRAPHY SYSTEM
+     ======================================== */
+  
+  /* Font Families */
+  --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-secondary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family-monospace: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+  
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  
+  /* Font Sizes - Responsive with clamp */
+  --font-size-xs: clamp(0.75rem, 0.95vw, 0.875rem);
+  --font-size-sm: clamp(0.875rem, 1.1vw, 1rem);
+  --font-size-base: clamp(1rem, 1.25vw, 1.125rem);
+  --font-size-lg: clamp(1.125rem, 1.4vw, 1.25rem);
+  --font-size-xl: clamp(1.25rem, 1.6vw, 1.5rem);
+  --font-size-2xl: clamp(1.5rem, 2vw, 1.875rem);
+  --font-size-3xl: clamp(1.875rem, 2.5vw, 2.25rem);
+  --font-size-4xl: clamp(2.25rem, 3.2vw, 3rem);
+  --font-size-5xl: clamp(3rem, 4vw, 4rem);
+  
+  /* Line Heights */
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+  
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.025em;
+  
+  /* ========================================
+     SPACING SYSTEM
+     ======================================== */
+  
+  --spacing-xs: 0.5rem;    /* 8px */
+  --spacing-sm: 0.75rem;   /* 12px */
+  --spacing-md: 1rem;      /* 16px */
+  --spacing-lg: 1.5rem;    /* 24px */
+  --spacing-xl: 2rem;      /* 32px */
+  --spacing-2xl: 3rem;     /* 48px */
+  --spacing-3xl: 4rem;     /* 64px */
+  --spacing-4xl: 6rem;     /* 96px */
+  --spacing-5xl: 8rem;     /* 128px */
+  
+  /* ========================================
+     LAYOUT SYSTEM
+     ======================================== */
+  
+  --container-max-width: 1200px;
+  --container-padding: var(--spacing-md);
+  --content-max-width: 65ch;
+  
+  /* Border Radius */
+  --border-radius-sm: 0.25rem;
+  --border-radius-md: 0.5rem;
+  --border-radius-lg: 0.75rem;
+  --border-radius-xl: 1rem;
+  --border-radius-2xl: 1.5rem;
+  --border-radius-full: 9999px;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease-in-out;
+  --transition-normal: 250ms ease-in-out;
+  --transition-slow: 350ms ease-in-out;
+  
+  /* Z-Index Scale */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+  --z-index-toast: 1080;
+}
+
+/* ========================================
+   DARK MODE OVERRIDES
+   ======================================== */
+
+[data-theme="dark"] {
+  /* Surface Colors - Dark Mode */
+  --color-surface-primary: #1a1a1a;
+  --color-surface-secondary: #2d2d2d;
+  --color-surface-tertiary: #404040;
+  --color-surface-elevated: #2d2d2d;
+  --color-surface-overlay: rgba(0, 0, 0, 0.8);
+  --color-surface-brand: #0d6efd;
+  --color-surface-brand-hover: #0b5ed7;
+  
+  /* Text Colors - Dark Mode */
+  --color-text-primary: #f8f9fa;
+  --color-text-secondary: #e9ecef;
+  --color-text-tertiary: #adb5bd;
+  --color-text-inverse: #212529;
+  --color-text-link: #66b3ff;
+  --color-text-link-hover: #4da6ff;
+  --color-text-on-brand: #ffffff;
+  
+  /* Interactive Colors - Dark Mode */
+  --color-interactive-primary: #0d6efd;
+  --color-interactive-primary-hover: #0b5ed7;
+  --color-interactive-primary-active: #0a58ca;
+  --color-interactive-secondary: #6c757d;
+  --color-interactive-secondary-hover: #5c636a;
+  --color-interactive-secondary-active: #565e64;
+  
+  /* Border Colors - Dark Mode */
+  --color-border-primary: #495057;
+  --color-border-secondary: #404040;
+  --color-border-focus: #0d6efd;
+  --color-border-error: #dc3545;
+  --color-border-success: #28a745;
+  --color-border-warning: #ffc107;
+  
+  /* Semantic Colors - Dark Mode Adjustments */
+  --color-success: #32d74b;
+  --color-success-hover: #30d158;
+  --color-success-light: rgba(50, 215, 75, 0.15);
+  --color-success-text: #32d74b;
+  
+  --color-error: #ff453a;
+  --color-error-hover: #ff6961;
+  --color-error-light: rgba(255, 69, 58, 0.15);
+  --color-error-text: #ff453a;
+  
+  --color-warning: #ffd60a;
+  --color-warning-hover: #ffcc02;
+  --color-warning-light: rgba(255, 214, 10, 0.15);
+  --color-warning-text: #ffd60a;
+  
+  --color-info: #64d2ff;
+  --color-info-hover: #5ac8fa;
+  --color-info-light: rgba(100, 210, 255, 0.15);
+  --color-info-text: #64d2ff;
+  
+  /* Shadows - Dark Mode */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+/* ========================================
+   AUTOMATIC DARK MODE DETECTION
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    /* Apply dark mode colors when system preference is dark and no explicit light theme is set */
+    --color-surface-primary: #1a1a1a;
+    --color-surface-secondary: #2d2d2d;
+    --color-surface-tertiary: #404040;
+    --color-surface-elevated: #2d2d2d;
+    --color-surface-overlay: rgba(0, 0, 0, 0.8);
+    --color-surface-brand: #0d6efd;
+    --color-surface-brand-hover: #0b5ed7;
+    
+    --color-text-primary: #f8f9fa;
+    --color-text-secondary: #e9ecef;
+    --color-text-tertiary: #adb5bd;
+    --color-text-inverse: #212529;
+    --color-text-link: #66b3ff;
+    --color-text-link-hover: #4da6ff;
+    --color-text-on-brand: #ffffff;
+    
+    --color-interactive-primary: #0d6efd;
+    --color-interactive-primary-hover: #0b5ed7;
+    --color-interactive-primary-active: #0a58ca;
+    --color-interactive-secondary: #6c757d;
+    --color-interactive-secondary-hover: #5c636a;
+    --color-interactive-secondary-active: #565e64;
+    
+    --color-border-primary: #495057;
+    --color-border-secondary: #404040;
+    --color-border-focus: #0d6efd;
+    --color-border-error: #dc3545;
+    --color-border-success: #28a745;
+    --color-border-warning: #ffc107;
+    
+    --color-success: #32d74b;
+    --color-success-hover: #30d158;
+    --color-success-light: rgba(50, 215, 75, 0.15);
+    --color-success-text: #32d74b;
+    
+    --color-error: #ff453a;
+    --color-error-hover: #ff6961;
+    --color-error-light: rgba(255, 69, 58, 0.15);
+    --color-error-text: #ff453a;
+    
+    --color-warning: #ffd60a;
+    --color-warning-hover: #ffcc02;
+    --color-warning-light: rgba(255, 214, 10, 0.15);
+    --color-warning-text: #ffd60a;
+    
+    --color-info: #64d2ff;
+    --color-info-hover: #5ac8fa;
+    --color-info-light: rgba(100, 210, 255, 0.15);
+    --color-info-text: #64d2ff;
+    
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  }
+}
+
+/* ========================================
+   REDUCED MOTION SUPPORT
+   ======================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-normal: 0ms;
+    --transition-slow: 0ms;
+  }
+} 

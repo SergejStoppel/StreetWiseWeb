@@ -75,7 +75,7 @@ class ExecutiveSummaryComponent extends BasePDFDocument {
        .text(`• ${this.t('reports:pdf.executiveSummaryContent.totalViolationsFound', this.language, { count: this.formatNumber(reportData.summary.totalViolations, this.language) })}`, metricsX, boxY + 40)
        .text(`• ${this.t('reports:pdf.executiveSummaryContent.criticalIssuesFound', this.language, { count: this.formatNumber(reportData.summary.criticalViolations, this.language) })}`, metricsX, boxY + 55)
        .text(`• ${this.t('reports:pdf.executiveSummaryContent.seriousIssuesFound', this.language, { count: this.formatNumber(reportData.summary.seriousViolations, this.language) })}`, metricsX, boxY + 70)
-       .text(`• ${this.t('reports:pdf.executiveSummaryContent.wcagCompliance', this.language, { percentage: this.formatNumber(reportData.scores.accessibility, this.language) })}`, metricsX, boxY + 85);
+       .text(`• ${this.t('reports:pdf.executiveSummaryContent.wcagCompliance', this.language, { percentage: this.formatNumber(reportData.scores.overall, this.language) })}`, metricsX, boxY + 85);
   }
 
   /**

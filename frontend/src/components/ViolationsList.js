@@ -4,30 +4,34 @@ import styled from 'styled-components';
 import { FaChevronDown, FaExclamationTriangle, FaTimesCircle, FaInfoCircle, FaExclamationCircle } from 'react-icons/fa';
 
 const Container = styled.div`
-  background: white;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  background: var(--color-surface-elevated);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
+  border: 1px solid var(--color-border-primary);
 `;
 
 const EmptyState = styled.div`
-  padding: 3rem;
+  padding: var(--spacing-3xl);
   text-align: center;
-  color: #6b7280;
+  color: var(--color-text-secondary);
 `;
 
 const EmptyTitle = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-primary);
 `;
 
 const EmptyDescription = styled.p`
-  color: #9ca3af;
+  color: var(--color-text-tertiary);
+  font-family: var(--font-family-secondary);
 `;
 
 const ViolationCard = styled.div`
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--color-border-primary);
   
   &:last-child {
     border-bottom: none;
@@ -35,141 +39,149 @@ const ViolationCard = styled.div`
 `;
 
 const ViolationHeader = styled.div`
-  padding: 1.5rem;
+  padding: var(--spacing-lg);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  transition: background-color 0.2s ease;
+  gap: var(--spacing-md);
+  transition: background-color var(--transition-fast);
   
   &:hover {
-    background-color: #f9fafb;
+    background-color: var(--color-surface-secondary);
   }
 `;
 
 const ViolationHeaderLeft = styled.div`
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--spacing-md);
   flex: 1;
 `;
 
 const ImpactIcon = styled.div`
-  font-size: 1.25rem;
+  font-size: var(--font-size-xl);
   color: ${props => {
     switch (props.impact) {
-      case 'critical': return '#dc2626';
-      case 'serious': return '#f59e0b';
-      case 'moderate': return '#3b82f6';
-      case 'minor': return '#6b7280';
-      default: return '#6b7280';
+      case 'critical': return 'var(--color-error)';
+      case 'serious': return 'var(--color-warning)';
+      case 'moderate': return 'var(--color-info)';
+      case 'minor': return 'var(--color-text-tertiary)';
+      default: return 'var(--color-text-tertiary)';
     }
   }};
 `;
 
 const ViolationTitle = styled.h3`
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 0.25rem;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+  font-family: var(--font-family-primary);
 `;
 
 const ViolationMeta = styled.div`
   display: flex;
   align-items: center;
-  gap: 1rem;
-  font-size: 0.875rem;
-  color: #6b7280;
+  gap: var(--spacing-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
 `;
 
 const ImpactBadge = styled.span`
   background: ${props => {
     switch (props.impact) {
-      case 'critical': return '#fee2e2';
-      case 'serious': return '#fef3c7';
-      case 'moderate': return '#dbeafe';
-      case 'minor': return '#f3f4f6';
-      default: return '#f3f4f6';
+      case 'critical': return 'var(--color-error-light)';
+      case 'serious': return 'var(--color-warning-light)';
+      case 'moderate': return 'var(--color-info-light)';
+      case 'minor': return 'var(--color-surface-tertiary)';
+      default: return 'var(--color-surface-tertiary)';
     }
   }};
   color: ${props => {
     switch (props.impact) {
-      case 'critical': return '#dc2626';
-      case 'serious': return '#d97706';
-      case 'moderate': return '#2563eb';
-      case 'minor': return '#6b7280';
-      default: return '#6b7280';
+      case 'critical': return 'var(--color-error-text)';
+      case 'serious': return 'var(--color-warning-text)';
+      case 'moderate': return 'var(--color-info-text)';
+      case 'minor': return 'var(--color-text-tertiary)';
+      default: return 'var(--color-text-tertiary)';
     }
   }};
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
   text-transform: uppercase;
+  font-family: var(--font-family-secondary);
 `;
 
 const ElementCount = styled.span`
-  background: #e5e7eb;
-  color: #4b5563;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.75rem;
-  font-weight: 500;
+  background: var(--color-surface-tertiary);
+  color: var(--color-text-secondary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-secondary);
 `;
 
 const ExpandIcon = styled.div`
-  font-size: 1rem;
-  color: #6b7280;
-  transition: transform 0.2s ease;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  transition: transform var(--transition-fast);
   transform: ${props => props.expanded ? 'rotate(180deg)' : 'rotate(0deg)'};
 `;
 
 const ViolationDetails = styled.div`
-  padding: 0 1.5rem 1.5rem;
-  background: #f9fafb;
-  border-top: 1px solid #e5e7eb;
+  padding: 0 var(--spacing-lg) var(--spacing-lg);
+  background: var(--color-surface-secondary);
+  border-top: 1px solid var(--color-border-primary);
 `;
 
 const Description = styled.p`
-  color: #4b5563;
-  line-height: 1.6;
-  margin-bottom: 1rem;
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--spacing-md);
+  font-family: var(--font-family-secondary);
 `;
 
 
 const NodesSection = styled.div`
-  margin-top: 1rem;
+  margin-top: var(--spacing-md);
 `;
 
 const NodesTitle = styled.h4`
-  font-size: 1rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-family-primary);
 `;
 
 const NodeItem = styled.div`
-  background: white;
-  padding: 1rem;
-  border-radius: 0.375rem;
-  margin-bottom: 0.5rem;
-  border-left: 4px solid #e5e7eb;
+  background: var(--color-surface-elevated);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-sm);
+  border-left: 4px solid var(--color-border-primary);
+  border: 1px solid var(--color-border-secondary);
 `;
 
 const NodeSelector = styled.code`
-  background: #f3f4f6;
-  color: #1f2937;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.25rem;
-  font-size: 0.875rem;
-  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+  background: var(--color-surface-secondary);
+  color: var(--color-text-primary);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-monospace);
+  border: 1px solid var(--color-border-secondary);
 `;
 
 const NodeMessage = styled.p`
-  color: #6b7280;
-  font-size: 0.875rem;
-  margin-top: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-top: var(--spacing-sm);
+  font-family: var(--font-family-secondary);
 `;
 
 const getImpactIcon = (impact) => {

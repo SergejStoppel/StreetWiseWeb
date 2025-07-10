@@ -4,6 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
 const pdfGenerator = require('./pdfGenerator');
 const i18n = require('../utils/i18n');
+const colorContrastAnalyzer = require('./analysis/colorContrastAnalyzer');
 
 class AccessibilityAnalyzer {
   constructor() {
@@ -81,11 +82,12 @@ class AccessibilityAnalyzer {
       // Configure page settings
       await page.setRequestInterception(true);
       page.on('request', (request) => {
-        // Block unnecessary resources to speed up loading
+        // Block only non-essential resources to speed up loading while preserving accessibility analysis accuracy
         const resourceType = request.resourceType();
-        if (['image', 'stylesheet', 'font', 'media'].includes(resourceType)) {
+        if (['stylesheet', 'font', 'media'].includes(resourceType)) {
           request.abort();
         } else {
+          // Allow images and scripts to load for accurate accessibility analysis
           request.continue();
         }
       });
@@ -103,12 +105,51 @@ class AccessibilityAnalyzer {
       
       try {
         await page.goto(validUrl, { 
-          waitUntil: 'domcontentloaded',
+          waitUntil: 'networkidle2',
           timeout: 45000
         });
         
-        // Wait a bit for dynamic content
-        await page.waitForTimeout(2000);
+        // Production-ready wait strategy for dynamic content
+        // 1. Wait for any lazy-loaded content
+        await page.evaluate(() => {
+          return new Promise((resolve) => {
+            // Check if page uses Intersection Observer for lazy loading
+            if ('IntersectionObserver' in window) {
+              // Give lazy-loaded content time to initialize
+              setTimeout(resolve, 1000);
+            } else {
+              resolve();
+            }
+          });
+        });
+        
+        // 2. Wait for fonts to load (important for accurate text rendering)
+        await page.evaluateHandle(() => document.fonts.ready);
+        
+        // 3. Ensure no major layout shifts are happening
+        await page.waitForFunction(() => {
+          // Check if any animations or transitions are running
+          const animations = document.getAnimations();
+          return animations.length === 0 || animations.every(a => a.playState !== 'running');
+        }, { timeout: 5000 }).catch(() => {
+          // Don't fail analysis if animations timeout
+          logger.info('Some animations may still be running', { analysisId });
+        });
+        
+        // Wait for images to load or timeout after 10 seconds
+        try {
+          await page.waitForFunction(() => {
+            const images = document.querySelectorAll('img');
+            return Array.from(images).every(img => 
+              img.complete || 
+              img.naturalWidth > 0 ||
+              img.hasAttribute('aria-hidden') ||
+              img.getAttribute('role') === 'presentation'
+            );
+          }, { timeout: 10000 });
+        } catch (loadError) {
+          logger.warn('Some images may not have fully loaded', { analysisId });
+        }
         
         // Check if page loaded successfully
         const title = await page.title();
@@ -130,6 +171,13 @@ class AccessibilityAnalyzer {
       // Run custom accessibility checks
       const customChecks = await this.runCustomChecks(page, analysisId);
       
+      // Run comprehensive color contrast analysis
+      const colorContrastAnalysis = colorContrastAnalyzer.analyzeColorContrast(
+        axeResults, 
+        customChecks.colors, 
+        analysisId
+      );
+      
       // Get performance metrics
       const performanceMetrics = await this.getPerformanceMetrics(page, analysisId);
       
@@ -140,6 +188,7 @@ class AccessibilityAnalyzer {
         metadata,
         axeResults,
         customChecks,
+        colorContrastAnalysis,
         performanceMetrics,
         timestamp: new Date().toISOString(),
         reportType: 'detailed'
@@ -163,10 +212,22 @@ class AccessibilityAnalyzer {
         metadata,
         axeResults,
         customChecks,
+        colorContrastAnalysis,
         performanceMetrics,
         timestamp: new Date().toISOString(),
         reportType: 'overview'
       }, language);
+
+      // Final consistency check
+      logger.info(`Final report summary (axe-core standardized)`, {
+        analysisId,
+        requestedReportType: reportType,
+        actualReportType: report.reportType,
+        imagesWithoutAlt: report.summary.imagesWithoutAlt,
+        totalViolations: report.summary.totalViolations,
+        detailedReportImages: detailedReport.summary.imagesWithoutAlt,
+        dataSource: report.summary.dataSource
+      });
       
       logger.info(`Analysis completed for ${url}`, { analysisId, score: report.scores.overall, reportType });
       
@@ -289,16 +350,86 @@ class AccessibilityAnalyzer {
           structure: {}
         };
 
-        // Image analysis
+        // Helper function to detect meaningless alt text
+        const isMeaninglessAlt = (altText) => {
+          if (!altText || altText.trim() === '') return false; // Empty alt is valid for decorative images
+          
+          const meaninglessPatterns = [
+            /^\.+$/, // Just dots: ".", "..", "..."
+            /^image$/i, // Just "image"
+            /^photo$/i, // Just "photo" 
+            /^picture$/i, // Just "picture"
+            /^img$/i, // Just "img"
+            /^graphic$/i, // Just "graphic"
+            /^logo$/i, // Just "logo"
+            /^icon$/i, // Just "icon"
+            /^\d+$/, // Just numbers
+            /^untitled/i, // "untitled", "untitled-1", etc.
+            /^dsc_?\d+/i, // Camera defaults like "DSC_1234"
+            /^img_?\d+/i, // Generic like "IMG_1234"
+            /^screenshot/i, // "screenshot", "screenshot1", etc.
+            /^[a-z0-9_-]{1,3}$/i, // Very short meaningless strings
+            /^(jpeg|jpg|png|gif|svg|webp)$/i, // Just file extensions
+          ];
+          
+          const trimmed = altText.trim().toLowerCase();
+          
+          // Check against patterns
+          if (meaninglessPatterns.some(pattern => pattern.test(trimmed))) {
+            return true;
+          }
+          
+          // Check if it's just a filename (contains file extension)
+          if (trimmed.match(/\.(jpg|jpeg|png|gif|svg|webp|bmp)$/i)) {
+            return true;
+          }
+          
+          // Check if it's too short to be meaningful (less than 3 characters)
+          if (trimmed.length < 3) {
+            return true;
+          }
+          
+          return false;
+        };
+
+        // Image analysis with improved decorative image detection
         const images = document.querySelectorAll('img');
         images.forEach((img, index) => {
+          // More comprehensive decorative image detection
+          const isDecorative = 
+            img.hasAttribute('aria-hidden') ||
+            img.getAttribute('role') === 'presentation' ||
+            img.getAttribute('role') === 'img' ||
+            img.alt === '' || // Empty alt is valid for decorative images
+            img.closest('[aria-hidden="true"]') ||
+            img.hasAttribute('data-decorative') ||
+            // Check if image is in a decorative context
+            img.closest('.icon, .logo, .decoration, .bg-image, [role="img"]') ||
+            // SVG images are often decorative
+            img.src.includes('.svg') ||
+            // Very small images are often decorative (icons, spacers)
+            (img.naturalWidth > 0 && img.naturalWidth <= 16 && img.naturalHeight <= 16);
+
+          const hasValidAlt = img.alt !== null && img.alt !== undefined;
+          const altText = img.alt || '';
+          const hasMeaninglessAlt = hasValidAlt && isMeaninglessAlt(altText);
+          
+          
           results.images.push({
             index,
             src: img.src,
-            alt: img.alt,
-            hasAlt: !!img.alt,
-            isEmpty: !img.alt || img.alt.trim() === '',
-            isDecorative: img.hasAttribute('aria-hidden') || img.getAttribute('role') === 'presentation'
+            alt: altText,
+            hasAlt: hasValidAlt,
+            isEmpty: !altText || altText.trim() === '',
+            isDecorative,
+            hasMeaninglessAlt,
+            hasGoodAlt: hasValidAlt && !hasMeaninglessAlt && altText.trim() !== '',
+            naturalWidth: img.naturalWidth || 0,
+            naturalHeight: img.naturalHeight || 0,
+            isLoaded: img.complete && img.naturalWidth > 0,
+            // Add debugging info
+            selector: img.tagName.toLowerCase() + (img.id ? '#' + img.id : '') + (img.className ? '.' + img.className.split(' ').join('.') : ''),
+            context: img.closest('[class*="post"], [class*="content"], [class*="article"], main, section')?.tagName || 'unknown'
           });
         });
 
@@ -427,16 +558,16 @@ class AccessibilityAnalyzer {
   }
 
   generateReport(data, language = 'en') {
-    const { url, analysisId, metadata, axeResults, customChecks, performanceMetrics, timestamp, reportType = 'overview' } = data;
+    const { url, analysisId, metadata, axeResults, customChecks, colorContrastAnalysis, performanceMetrics, timestamp, reportType = 'overview' } = data;
     
-    // Calculate accessibility score
+    // Calculate accessibility score based on axe-core results
     const totalViolations = axeResults.violations.length;
     const criticalViolations = axeResults.violations.filter(v => v.impact === 'critical').length;
     const seriousViolations = axeResults.violations.filter(v => v.impact === 'serious').length;
     const moderateViolations = axeResults.violations.filter(v => v.impact === 'moderate').length;
     const minorViolations = axeResults.violations.filter(v => v.impact === 'minor').length;
     
-    // Scoring algorithm (0-100)
+    // Scoring algorithm (0-100) - primarily based on axe-core
     let accessibilityScore = 100;
     accessibilityScore -= (criticalViolations * 20);
     accessibilityScore -= (seriousViolations * 10);
@@ -444,24 +575,64 @@ class AccessibilityAnalyzer {
     accessibilityScore -= (minorViolations * 2);
     accessibilityScore = Math.max(0, accessibilityScore);
     
-    // Custom checks scoring
-    const imagesWithoutAlt = customChecks.images.filter(img => !img.hasAlt && !img.isDecorative).length;
-    const formsWithoutLabels = customChecks.forms.reduce((count, form) => 
-      count + form.inputs.filter(input => !input.hasLabel && !input.hasAriaLabel).length, 0);
-    const emptyLinks = customChecks.links.filter(link => link.isEmpty).length;
+    // Extract image-related data from axe-core violations instead of custom checks
+    const imageAltViolations = axeResults.violations.filter(v => v.id === 'image-alt');
+    const imagesWithoutAlt = imageAltViolations.reduce((count, violation) => count + violation.nodes.length, 0);
     
-    let customScore = 100;
-    customScore -= (imagesWithoutAlt * 5);
-    customScore -= (formsWithoutLabels * 8);
-    customScore -= (emptyLinks * 3);
-    customScore = Math.max(0, customScore);
+    // Extract form-related data from axe-core violations
+    const labelViolations = axeResults.violations.filter(v => v.id === 'label');
+    const formsWithoutLabels = labelViolations.reduce((count, violation) => count + violation.nodes.length, 0);
     
-    // Overall score
-    const overallScore = Math.round((accessibilityScore + customScore) / 2);
+    // Extract link-related data from axe-core violations  
+    const linkNameViolations = axeResults.violations.filter(v => v.id === 'link-name');
+    const emptyLinks = linkNameViolations.reduce((count, violation) => count + violation.nodes.length, 0);
+    
+    // Single unified score based on axe-core violations
+    const overallScore = Math.round(accessibilityScore);
     
     // Generate recommendations
-    const recommendations = this.generateRecommendations(axeResults, customChecks, reportType, language);
+    const recommendations = this.generateRecommendations(axeResults, customChecks, reportType, language, colorContrastAnalysis);
     
+    // Determine if site has excellent accessibility (very few/no real issues)
+    const hasExcellentAccessibility = 
+      criticalViolations === 0 && 
+      seriousViolations === 0 && 
+      moderateViolations <= 1 && 
+      imagesWithoutAlt === 0 &&
+      formsWithoutLabels === 0 &&
+      emptyLinks === 0;
+
+    // Log scoring details for debugging
+    logger.info('Accessibility scoring details (axe-core based)', {
+      analysisId,
+      url,
+      criticalViolations,
+      seriousViolations,
+      moderateViolations,
+      minorViolations,
+      imagesWithoutAlt,
+      imageAltViolationsCount: imageAltViolations.length,
+      formsWithoutLabels,
+      labelViolationsCount: labelViolations.length,
+      emptyLinks,
+      linkNameViolationsCount: linkNameViolations.length,
+      accessibilityScore: Math.round(accessibilityScore),
+      overallScore,
+      hasExcellentAccessibility
+    });
+    
+    // Log data consistency for debugging
+    logger.info(`Report generation for ${reportType} (axe-core standardized)`, {
+      analysisId,
+      url,
+      reportType,
+      imagesWithoutAlt,
+      totalViolations,
+      criticalViolations,
+      seriousViolations,
+      dataSource: 'axe-core'
+    });
+
     const baseReport = {
       analysisId,
       url,
@@ -469,9 +640,7 @@ class AccessibilityAnalyzer {
       reportType,
       metadata,
       scores: {
-        overall: overallScore,
-        accessibility: Math.round(accessibilityScore),
-        custom: Math.round(customScore)
+        overall: overallScore
       },
       summary: {
         totalViolations,
@@ -479,9 +648,13 @@ class AccessibilityAnalyzer {
         seriousViolations,
         moderateViolations,
         minorViolations,
-        imagesWithoutAlt,
-        formsWithoutLabels,
-        emptyLinks
+        imagesWithoutAlt, // From axe-core violations
+        formsWithoutLabels, // From axe-core violations
+        emptyLinks, // From axe-core violations
+        colorContrastViolations: colorContrastAnalysis?.totalViolations || 0,
+        colorContrastAAViolations: colorContrastAnalysis?.aaViolations || 0,
+        hasExcellentAccessibility,
+        dataSource: 'axe-core' // Flag to indicate data source
       },
       recommendations,
       reportGenerated: new Date().toISOString()
@@ -491,6 +664,7 @@ class AccessibilityAnalyzer {
     if (reportType === 'detailed') {
       baseReport.axeResults = axeResults;
       baseReport.customChecks = customChecks;
+      baseReport.colorContrastAnalysis = colorContrastAnalysis;
       baseReport.performanceMetrics = performanceMetrics;
     } else {
       // Overview report - show only basic issue counts, no specific violations
@@ -598,7 +772,7 @@ class AccessibilityAnalyzer {
     logger.debug(`Cache cleanup completed. Analysis cache size: ${this.analysisCache.size}, PDF cache size: ${this.pdfCache.size}`);
   }
 
-  generateRecommendations(axeResults, customChecks, reportType = 'overview', language = 'en') {
+  generateRecommendations(axeResults, customChecks, reportType = 'overview', language = 'en', colorContrastAnalysis = null) {
     const recommendations = [];
     
     if (reportType === 'detailed') {
@@ -614,26 +788,66 @@ class AccessibilityAnalyzer {
         });
       }
       
-      const imagesWithoutAlt = customChecks.images.filter(img => !img.hasAlt && !img.isDecorative);
-      if (imagesWithoutAlt.length > 0) {
+      // Use axe-core image-alt violations for consistency
+      const imageAltViolations = axeResults.violations.filter(v => v.id === 'image-alt');
+      const imagesWithoutAlt = imageAltViolations.reduce((count, violation) => count + violation.nodes.length, 0);
+      
+      if (imagesWithoutAlt > 0) {
         recommendations.push({
           priority: 'high',
           category: i18n.t('reports:recommendations.categories.images', language),
-          title: i18n.t('reports:recommendations.titles.addAltTextToImages', language),
-          description: i18n.t('reports:recommendations.descriptions.imagesMissingAltText', language, { count: imagesWithoutAlt.length }),
-          action: i18n.t('reports:recommendations.actions.addDescriptiveAltText', language)
+          title: i18n.t('reports:recommendations.titles.improveImageAltText', language),
+          description: i18n.t('reports:recommendations.descriptions.imagesMissingAltText', language, { count: imagesWithoutAlt }),
+          action: i18n.t('reports:recommendations.actions.addDescriptiveAltText', language),
+          details: {
+            violationCount: imagesWithoutAlt,
+            axeViolations: imageAltViolations.map(v => ({
+              description: v.description,
+              help: v.help,
+              helpUrl: v.helpUrl,
+              nodeCount: v.nodes.length
+            }))
+          }
         });
       }
       
-      const formsWithoutLabels = customChecks.forms.reduce((count, form) => 
-        count + form.inputs.filter(input => !input.hasLabel && !input.hasAriaLabel).length, 0);
+      // Use axe-core label violations for consistency
+      const labelViolations = axeResults.violations.filter(v => v.id === 'label');
+      const formsWithoutLabels = labelViolations.reduce((count, violation) => count + violation.nodes.length, 0);
+      
       if (formsWithoutLabels > 0) {
         recommendations.push({
           priority: 'medium',
           category: i18n.t('reports:recommendations.categories.forms', language),
           title: i18n.t('reports:recommendations.titles.addLabelsToFormFields', language),
           description: i18n.t('reports:recommendations.descriptions.formFieldsMissingLabels', language, { count: formsWithoutLabels }),
-          action: i18n.t('reports:recommendations.actions.associateLabelsWithFormFields', language)
+          action: i18n.t('reports:recommendations.actions.associateLabelsWithFormFields', language),
+          details: {
+            violationCount: formsWithoutLabels,
+            axeViolations: labelViolations.map(v => ({
+              description: v.description,
+              help: v.help,
+              helpUrl: v.helpUrl,
+              nodeCount: v.nodes.length
+            }))
+          }
+        });
+      }
+      
+      // Add color contrast recommendations if analysis is available
+      if (colorContrastAnalysis && colorContrastAnalysis.aaViolations > 0) {
+        recommendations.push({
+          priority: 'high',
+          category: i18n.t('reports:recommendations.categories.colorContrast', language),
+          title: i18n.t('reports:recommendations.titles.improveColorContrast', language),
+          description: i18n.t('reports:recommendations.descriptions.colorContrastViolations', language, { count: colorContrastAnalysis.aaViolations }),
+          action: i18n.t('reports:recommendations.actions.adjustColorContrast', language),
+          details: {
+            aaViolations: colorContrastAnalysis.aaViolations,
+            aaaViolations: colorContrastAnalysis.aaaViolations || 0,
+            complianceLevel: colorContrastAnalysis.summary?.aaComplianceLevel || 0,
+            recommendations: colorContrastAnalysis.summary?.recommendations || []
+          }
         });
       }
     } else {
@@ -648,8 +862,11 @@ class AccessibilityAnalyzer {
         });
       }
       
-      if (customChecks.images.some(img => !img.hasAlt) || 
-          customChecks.forms.some(form => form.inputs.some(input => !input.hasLabel))) {
+      // Use axe-core violations for overview recommendations
+      const imageViolations = axeResults.violations.filter(v => v.id === 'image-alt');
+      const labelViolations = axeResults.violations.filter(v => v.id === 'label');
+      
+      if (imageViolations.length > 0 || labelViolations.length > 0) {
         recommendations.push({
           priority: 'medium',
           category: i18n.t('reports:recommendations.categories.contentAndForms', language),
@@ -671,15 +888,26 @@ class AccessibilityAnalyzer {
         });
       }
       
-      // Low priority recommendations - only in detailed
-      const emptyLinks = customChecks.links.filter(link => link.isEmpty);
-      if (emptyLinks.length > 0) {
+      // Low priority recommendations - only in detailed - use axe-core data
+      const linkNameViolations = axeResults.violations.filter(v => v.id === 'link-name');
+      const emptyLinks = linkNameViolations.reduce((count, violation) => count + violation.nodes.length, 0);
+      
+      if (emptyLinks > 0) {
         recommendations.push({
           priority: 'low',
           category: i18n.t('reports:recommendations.categories.links', language),
           title: i18n.t('reports:recommendations.titles.fixEmptyLinks', language),
-          description: i18n.t('reports:recommendations.descriptions.emptyLinksNoTextContent', language, { count: emptyLinks.length }),
-          action: i18n.t('reports:recommendations.actions.addDescriptiveTextToLinks', language)
+          description: i18n.t('reports:recommendations.descriptions.emptyLinksNoTextContent', language, { count: emptyLinks }),
+          action: i18n.t('reports:recommendations.actions.addDescriptiveTextToLinks', language),
+          details: {
+            violationCount: emptyLinks,
+            axeViolations: linkNameViolations.map(v => ({
+              description: v.description,
+              help: v.help,
+              helpUrl: v.helpUrl,
+              nodeCount: v.nodes.length
+            }))
+          }
         });
       }
     }

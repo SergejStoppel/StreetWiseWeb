@@ -303,6 +303,7 @@ class ViolationsComponent extends BasePDFDocument {
     
     doc.y += 25;
     
+    // Use axe-core data consistently for both summary and violations display
     const summaryData = [
       { level: this.t('reports:pdf.violations.impactLevels.critical', this.language), count: reportData.summary.criticalViolations, color: this.criticalColor },
       { level: this.t('reports:pdf.violations.impactLevels.serious', this.language), count: reportData.summary.seriousViolations, color: this.seriousColor },

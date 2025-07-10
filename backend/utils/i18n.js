@@ -23,18 +23,13 @@ class I18nManager {
    */
   loadTranslations() {
     try {
-      console.log('DEBUG: i18n - Loading translations from:', this.localesPath);
-      console.log('DEBUG: i18n - Locales path exists:', fs.existsSync(this.localesPath));
       
       this.supportedLanguages.forEach(lang => {
         this.translations[lang] = {};
         const langPath = path.join(this.localesPath, lang);
-        console.log(`DEBUG: i18n - Checking language path for ${lang}:`, langPath);
-        console.log(`DEBUG: i18n - Language path exists for ${lang}:`, fs.existsSync(langPath));
         
         if (fs.existsSync(langPath)) {
           const files = fs.readdirSync(langPath);
-          console.log(`DEBUG: i18n - Found files for ${lang}:`, files);
           files.forEach(file => {
             if (file.endsWith('.json')) {
               const namespace = file.replace('.json', '');
@@ -42,9 +37,7 @@ class I18nManager {
               try {
                 const content = fs.readFileSync(filePath, 'utf8');
                 this.translations[lang][namespace] = JSON.parse(content);
-                console.log(`DEBUG: i18n - Loaded ${lang}/${namespace} with ${Object.keys(this.translations[lang][namespace]).length} keys`);
                 if (namespace === 'reports' && lang === 'de') {
-                  console.log('DEBUG: i18n - German reports translation sample:', this.translations[lang][namespace].pdf?.documentTitle);
                 }
               } catch (error) {
                 logger.error(`Failed to load translation file ${filePath}:`, error);
@@ -52,7 +45,6 @@ class I18nManager {
             }
           });
         } else {
-          console.log(`DEBUG: i18n - Language path does not exist for ${lang}:`, langPath);
         }
       });
       
@@ -74,55 +66,44 @@ class I18nManager {
    */
   t(key, language = this.defaultLanguage, params = {}) {
     try {
-      console.log(`DEBUG: i18n.t() called with key="${key}", language="${language}"`);
       
       // Ensure language is supported
       if (!this.supportedLanguages.includes(language)) {
-        console.log(`DEBUG: i18n.t() - Language ${language} not supported, falling back to ${this.defaultLanguage}`);
         language = this.defaultLanguage;
       }
 
       // Parse key into namespace and path
       const [namespace, ...keyParts] = key.split(':');
       const keyPath = keyParts.join(':');
-      console.log(`DEBUG: i18n.t() - Parsed namespace="${namespace}", keyPath="${keyPath}"`);
 
       // Get translation from namespace
       const translations = this.translations[language]?.[namespace];
-      console.log(`DEBUG: i18n.t() - Translations for ${language}/${namespace} exists:`, !!translations);
       
       if (!translations) {
         // Fallback to default language
         const fallbackTranslations = this.translations[this.defaultLanguage]?.[namespace];
-        console.log(`DEBUG: i18n.t() - Falling back to ${this.defaultLanguage}/${namespace}:`, !!fallbackTranslations);
         if (!fallbackTranslations) {
-          console.log(`DEBUG: i18n.t() - No translations found, returning key:`, key);
           return key; // Return key if no translation found
         }
         const result = this.getNestedValue(fallbackTranslations, keyPath, params) || key;
-        console.log(`DEBUG: i18n.t() - Fallback result:`, result);
         return result;
       }
 
       const translation = this.getNestedValue(translations, keyPath, params);
-      console.log(`DEBUG: i18n.t() - Found translation:`, translation);
       
       // Fallback to default language if not found
       if (!translation && language !== this.defaultLanguage) {
         const fallbackTranslations = this.translations[this.defaultLanguage]?.[namespace];
         if (fallbackTranslations) {
           const fallbackResult = this.getNestedValue(fallbackTranslations, keyPath, params) || key;
-          console.log(`DEBUG: i18n.t() - Using fallback result:`, fallbackResult);
           return fallbackResult;
         }
       }
 
       const result = translation || key;
-      console.log(`DEBUG: i18n.t() - Final result:`, result);
       return result;
     } catch (error) {
       logger.error('Translation error:', { key, language, error: error.message });
-      console.log(`DEBUG: i18n.t() - Error occurred, returning key:`, key);
       return key;
     }
   }

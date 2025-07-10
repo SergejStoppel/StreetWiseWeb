@@ -35,12 +35,14 @@
       "seriousIssues": "Problemas Graves",
       "imagesWithoutAlt": "Imágenes sin Texto Alt",
       "unlabeledFormFields": "Campos de Formulario sin Etiqueta",
-      "emptyLinks": "Enlaces Vacíos"
+      "emptyLinks": "Enlaces Vacíos",
+      "colorContrastIssues": "Problemas de Contraste de Color"
     },
     "sections": {
       "recommendations": "Recomendaciones",
       "accessibilityViolations": "Violaciones de Accesibilidad",
-      "issuesFound": "Problemas Encontrados"
+      "issuesFound": "Problemas Encontrados",
+      "colorContrastAnalysis": "Análisis de Contraste de Color"
     },
     "issuePreview": {
       "criticalAndSeriousIssues": "{{critical}} Problemas Críticos, {{serious}} Problemas Graves Encontrados",
@@ -141,5 +143,26 @@
       "aria-required-attr": "Los atributos ARIA requeridos deben ser proporcionados",
       "aria-required-attr-desc": "Asegúrese de que los elementos con roles ARIA tengan todos los atributos ARIA requeridos"
     }
+  },
+  "colorContrast": {
+    "totalViolations": "Violaciones Totales",
+    "totalDescription": "Elementos que no cumplen los requisitos de contraste de color",
+    "aaViolations": "Violaciones WCAG AA",
+    "aaDescription": "Elementos por debajo de la relación de contraste 4.5:1 (3:1 para texto grande)",
+    "aaaViolations": "Violaciones WCAG AAA", 
+    "aaaDescription": "Elementos por debajo de la relación de contraste 7:1 (4.5:1 para texto grande)",
+    "aaCompliance": "Cumplimiento AA",
+    "complianceDescription": "Porcentaje de elementos que cumplen los estándares WCAG AA",
+    "exampleViolations": "Ejemplos de Violaciones",
+    "contrastTooLow": "El contraste del texto es demasiado bajo para los estándares de accesibilidad",
+    "ratioDetails": "Encontrado {{found}}:1, requerido {{required}}:1",
+    "additionalViolations": "{{count}} violaciones adicionales no mostradas",
+    "actionGuidance": "Cómo Solucionar Estos Problemas",
+    "mainIssue": "Contraste de texto por debajo de los estándares de accesibilidad",
+    "elementsToFixWeb": "{{count}} elemento necesita ajuste de contraste",
+    "elementsToFixWeb_plural": "{{count}} elementos necesitan ajuste de contraste",
+    "howToFixWeb": "Aumentar el contraste entre los colores de texto y fondo para cumplir los estándares WCAG AA (4.5:1 para texto normal, 3:1 para texto grande).",
+    "quickTip": "Solución Rápida",
+    "quickTipDetails": "Use las herramientas de desarrollador de su navegador para inspeccionar elementos y ajustar valores de color CSS. Pruebe los cambios con un verificador de contraste antes de publicar."
   }
 }

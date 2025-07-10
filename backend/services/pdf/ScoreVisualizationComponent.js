@@ -29,34 +29,19 @@ class ScoreVisualizationComponent extends BasePDFDocument {
    * Add enhanced score cards with visual indicators
    */
   addScoreCards(doc, reportData) {
-    const scores = [
-      { 
-        label: this.t('reports:pdf.scoreVisualization.scoreCards.overallScore', this.language), 
-        value: reportData.scores.overall, 
-        description: this.t('reports:pdf.scoreVisualization.scoreCards.overallDescription', this.language),
-        category: 'overall'
-      },
-      { 
-        label: this.t('reports:pdf.scoreVisualization.scoreCards.wcagCompliance', this.language), 
-        value: reportData.scores.accessibility, 
-        description: this.t('reports:pdf.scoreVisualization.scoreCards.wcagDescription', this.language),
-        category: 'wcag'
-      },
-      { 
-        label: this.t('reports:pdf.scoreVisualization.scoreCards.customChecks', this.language), 
-        value: reportData.scores.custom, 
-        description: this.t('reports:pdf.scoreVisualization.scoreCards.customDescription', this.language),
-        category: 'custom'
-      }
-    ];
+    // Single unified accessibility score
+    const score = { 
+      label: this.t('reports:pdf.scoreVisualization.scoreCards.wcagCompliance', this.language), 
+      value: reportData.scores.overall, 
+      description: this.t('reports:pdf.scoreVisualization.scoreCards.wcagDescription', this.language),
+      category: 'accessibility'
+    };
 
-    let xPos = this.margins.left;
-    const cardSpacing = 170;
+    // Center the single score card
+    const cardWidth = 150;
+    const xPos = this.margins.left + (this.contentWidth - cardWidth) / 2;
     
-    scores.forEach((score, index) => {
-      this.addEnhancedScoreCard(doc, xPos, doc.y, score);
-      xPos += cardSpacing;
-    });
+    this.addEnhancedScoreCard(doc, xPos, doc.y, score);
 
     doc.y += 140;
   }
@@ -242,17 +227,14 @@ class ScoreVisualizationComponent extends BasePDFDocument {
    * Add progress bars for visual score representation
    */
   addProgressBars(doc, reportData) {
-    const scores = [
-      { label: 'Overall', value: reportData.scores.overall },
-      { label: 'WCAG Compliance', value: reportData.scores.accessibility },
-      { label: 'Custom Checks', value: reportData.scores.custom }
-    ];
+    // Single unified accessibility score
+    const score = { 
+      label: this.t('reports:pdf.scoreVisualization.scoreCards.wcagCompliance', this.language), 
+      value: reportData.scores.overall 
+    };
     
-    scores.forEach((score, index) => {
-      this.addProgressBar(doc, this.margins.left, doc.y + (index * 25), score);
-    });
-    
-    doc.y += scores.length * 25 + 20;
+    this.addProgressBar(doc, this.margins.left, doc.y, score);
+    doc.y += 45;
   }
 
   /**
