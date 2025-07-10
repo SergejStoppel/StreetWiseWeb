@@ -2,13 +2,20 @@ import React from 'react';
 import styled from 'styled-components';
 
 const Card = styled.div`
-  background: white;
-  padding: 2rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  background: var(--color-surface-elevated);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-md);
   text-align: center;
   position: relative;
   overflow: hidden;
+  border: 1px solid var(--color-border-primary);
+  transition: all var(--transition-fast);
+  
+  &:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
 `;
 
 const ScoreCircle = styled.div`
@@ -17,12 +24,12 @@ const ScoreCircle = styled.div`
   border-radius: 50%;
   background: conic-gradient(
     ${props => props.color} ${props => props.percentage}%,
-    #e5e7eb ${props => props.percentage}%
+    var(--color-border-secondary) ${props => props.percentage}%
   );
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 1rem;
+  margin: 0 auto var(--spacing-md);
   position: relative;
   
   &::before {
@@ -30,7 +37,7 @@ const ScoreCircle = styled.div`
     position: absolute;
     width: 90px;
     height: 90px;
-    background: white;
+    background: var(--color-surface-elevated);
     border-radius: 50%;
   }
 `;
@@ -38,27 +45,31 @@ const ScoreCircle = styled.div`
 const ScoreValue = styled.div`
   position: relative;
   z-index: 1;
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1f2937;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-primary);
 `;
 
 const ScoreUnit = styled.span`
-  font-size: 1rem;
-  color: #6b7280;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
 `;
 
 const Title = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-family-primary);
 `;
 
 const Description = styled.p`
-  color: #6b7280;
-  font-size: 0.875rem;
-  line-height: 1.5;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  font-family: var(--font-family-secondary);
 `;
 
 const ScoreCard = ({ title, score, description, color }) => {

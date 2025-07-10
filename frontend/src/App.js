@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import styled, { ThemeProvider } from 'styled-components';
+import styled from 'styled-components';
 
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -19,15 +19,16 @@ import ContactPage from './pages/ContactPage';
 import LoginPage from './pages/LoginPage';
 import CaseStudiesPage from './pages/CaseStudiesPage';
 import FreeAuditPage from './pages/FreeAuditPage';
-import GlobalStyles from './styles/GlobalStyles';
-import { theme } from './styles/theme';
+import { ThemeProvider } from './theme/ThemeContext';
+import ThemeToggle from './components/ThemeToggle';
+import './styles/globals.css';
 
 const AppContainer = styled.div`
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background-color: var(--color-bg-primary);
-  font-family: var(--font-secondary);
+  background-color: var(--color-surface-primary);
+  font-family: var(--font-family-secondary);
 `;
 
 const MainContent = styled.main`
@@ -42,20 +43,23 @@ const PlaceholderPage = styled.div`
   align-items: center;
   justify-content: center;
   flex-direction: column;
-  gap: var(--spacing-md);
-  padding: var(--spacing-xl);
+  gap: var(--spacing-lg);
+  padding: var(--spacing-4xl);
   text-align: center;
 `;
 
 const PlaceholderTitle = styled.h1`
-  font-size: var(--font-size-h1);
+  font-size: var(--font-size-5xl);
   color: var(--color-text-primary);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-bold);
 `;
 
 const PlaceholderText = styled.p`
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-lg);
   color: var(--color-text-secondary);
   max-width: 600px;
+  line-height: var(--line-height-relaxed);
 `;
 
 const ComingSoonPage = ({ title, description }) => (
@@ -67,9 +71,8 @@ const ComingSoonPage = ({ title, description }) => (
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider>
       <Router>
-        <GlobalStyles />
         <AppContainer>
           <Header />
           <MainContent>

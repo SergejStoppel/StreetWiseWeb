@@ -16,26 +16,28 @@ const LanguageSelectorContainer = styled.div`
 
 const LanguageButton = styled.button`
   background: transparent;
-  border: 1px solid ${({ theme }) => theme.colors.neutral[200]};
-  border-radius: 8px;
-  padding: 8px 12px;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-xs) var(--spacing-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: ${({ theme }) => theme.colors.neutral[700]};
-  transition: all 0.2s ease;
+  gap: var(--spacing-xs);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+  font-family: var(--font-family-secondary);
 
   &:hover {
-    background: ${({ theme }) => theme.colors.neutral[50]};
-    border-color: ${({ theme }) => theme.colors.primary[500]};
+    background: var(--color-surface-secondary);
+    border-color: var(--color-interactive-primary);
+    color: var(--color-text-primary);
   }
 
   &:focus {
     outline: none;
-    border-color: ${({ theme }) => theme.colors.primary[500]};
-    box-shadow: 0 0 0 2px ${({ theme }) => theme.colors.primary[500]}20;
+    border-color: var(--color-interactive-primary);
+    box-shadow: 0 0 0 2px var(--color-interactive-primary);
   }
 `;
 
@@ -43,11 +45,11 @@ const LanguageDropdown = styled.div`
   position: absolute;
   top: 100%;
   right: 0;
-  background: white;
-  border: 1px solid ${({ theme }) => theme.colors.neutral[200]};
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-index-dropdown);
   min-width: 160px;
   margin-top: 4px;
 `;
@@ -56,50 +58,54 @@ const LanguageOption = styled.button`
   width: 100%;
   background: none;
   border: none;
-  padding: 12px 16px;
+  padding: var(--spacing-sm) var(--spacing-md);
   text-align: left;
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 14px;
-  color: ${({ theme }) => theme.colors.neutral[700]};
-  transition: background-color 0.2s ease;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  transition: background-color var(--transition-fast);
+  font-family: var(--font-family-secondary);
 
   &:hover {
-    background: ${({ theme }) => theme.colors.neutral[50]};
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
   }
 
   &:focus {
     outline: none;
-    background: ${({ theme }) => theme.colors.neutral[50]};
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
   }
 
   &.active {
-    background: ${({ theme }) => theme.colors.primary[50]};
-    color: ${({ theme }) => theme.colors.primary[600]};
+    background: var(--color-interactive-primary);
+    color: var(--color-text-on-brand);
   }
 
   &:first-child {
-    border-radius: 8px 8px 0 0;
+    border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
   }
 
   &:last-child {
-    border-radius: 0 0 8px 8px;
+    border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
   }
 `;
 
 const LanguageFlag = styled.span`
-  font-size: 18px;
+  font-size: var(--font-size-lg);
 `;
 
 const LanguageName = styled.span`
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-secondary);
 `;
 
 const LanguageNativeName = styled.span`
-  font-size: 12px;
-  color: ${({ theme }) => theme.colors.neutral[500]};
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
 `;
 
 const LanguageSelector = () => {

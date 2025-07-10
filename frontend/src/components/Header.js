@@ -4,40 +4,43 @@ import styled from 'styled-components';
 import { FaAccessibleIcon, FaBars, FaTimes } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
+import { SimpleThemeToggle } from './ThemeToggle';
 
 const HeaderContainer = styled.header`
-  background-color: var(--color-white);
+  background-color: var(--color-surface-elevated);
   box-shadow: var(--shadow-md);
   position: sticky;
   top: 0;
-  z-index: var(--z-sticky);
+  z-index: var(--z-index-sticky);
+  border-bottom: 1px solid var(--color-border-primary);
 `;
 
 const HeaderContent = styled.div`
   max-width: var(--container-max-width);
   margin: 0 auto;
-  padding: var(--spacing-sm) var(--container-padding);
+  padding: var(--spacing-md) var(--container-padding);
   display: flex;
   justify-content: space-between;
   align-items: center;
   
   @media (min-width: 640px) {
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: var(--spacing-md) var(--spacing-xl);
   }
 `;
 
 const Logo = styled(Link)`
   display: flex;
   align-items: center;
-  font-size: var(--font-size-h4);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
+  color: var(--color-interactive-primary);
   text-decoration: none;
-  font-family: var(--font-primary);
+  font-family: var(--font-family-primary);
+  transition: color var(--transition-fast);
   
   &:hover {
     text-decoration: none;
-    color: var(--color-primary-hover);
+    color: var(--color-interactive-primary-hover);
   }
 `;
 
@@ -65,13 +68,19 @@ const MobileMenuButton = styled.button`
   background: none;
   border: none;
   color: var(--color-text-primary);
-  font-size: 1.25rem;
+  font-size: var(--font-size-xl);
   cursor: pointer;
   border-radius: var(--border-radius-md);
-  transition: background-color var(--transition-fast);
+  transition: all var(--transition-fast);
   
   &:hover {
-    background-color: var(--color-bg-secondary);
+    background-color: var(--color-surface-secondary);
+    color: var(--color-interactive-primary);
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-interactive-primary);
   }
   
   @media (min-width: 768px) {
@@ -84,14 +93,14 @@ const MobileNavigation = styled.nav`
   top: 100%;
   left: 0;
   right: 0;
-  background-color: var(--color-white);
+  background-color: var(--color-surface-elevated);
   box-shadow: var(--shadow-lg);
-  border-top: 1px solid var(--color-gray-border);
+  border-top: 1px solid var(--color-border-primary);
   transform: ${props => props.isOpen ? 'translateY(0)' : 'translateY(-100%)'};
   opacity: ${props => props.isOpen ? '1' : '0'};
   visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
   transition: all var(--transition-normal);
-  z-index: var(--z-dropdown);
+  z-index: var(--z-index-dropdown);
   
   @media (min-width: 768px) {
     display: none;
@@ -106,22 +115,28 @@ const MobileNavContent = styled.div`
 `;
 
 const NavLink = styled(Link)`
-  color: ${props => props.isActive ? 'var(--color-primary)' : 'var(--color-text-secondary)'};
+  color: ${props => props.isActive ? 'var(--color-interactive-primary)' : 'var(--color-text-secondary)'};
   font-weight: var(--font-weight-medium);
   text-decoration: none;
-  padding: var(--spacing-xs) 0;
+  padding: var(--spacing-sm) 0;
   border-bottom: 2px solid transparent;
   transition: all var(--transition-fast);
-  font-family: var(--font-primary);
+  font-family: var(--font-family-primary);
   position: relative;
   
   &:hover {
-    color: var(--color-primary);
+    color: var(--color-interactive-primary);
     text-decoration: none;
   }
   
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-interactive-primary);
+    border-radius: var(--border-radius-sm);
+  }
+  
   ${props => props.isActive && `
-    border-bottom-color: var(--color-primary);
+    border-bottom-color: var(--color-interactive-primary);
   `}
 `;
 
@@ -308,6 +323,8 @@ const Header = () => {
           
           <LanguageSelector />
           
+          <SimpleThemeToggle />
+          
           <CTAButton to="/free-audit">
             {t('freeAudit', 'Free Audit')}
           </CTAButton>
@@ -348,6 +365,7 @@ const Header = () => {
             {t('contact', 'Contact')}
           </MobileNavLink>
           <LanguageSelector />
+          <SimpleThemeToggle />
           <CTAButton to="/free-audit" onClick={closeMobileMenu}>
             {t('freeAudit', 'Free Audit')}
           </CTAButton>
