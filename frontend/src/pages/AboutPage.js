@@ -5,165 +5,303 @@ import { FaRocket, FaUsers, FaLightbulb, FaHeart, FaArrowRight } from 'react-ico
 
 const AboutContainer = styled.div`
   min-height: 100vh;
-  background-color: var(--color-bg-primary);
+  background-color: var(--color-surface-primary);
 `;
 
 const HeroSection = styled.section`
-  padding: var(--spacing-2xl) 0 var(--spacing-xl);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  color: var(--color-white);
+  padding: var(--spacing-4xl) 0 var(--spacing-2xl);
+  background: linear-gradient(135deg, var(--color-interactive-primary) 0%, var(--color-interactive-primary-hover) 100%);
+  color: var(--color-text-inverse);
   text-align: center;
 `;
 
 const HeroContent = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
-`;
-
-const HeroTitle = styled.h1`
-  font-size: var(--font-size-h1);
-  font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-white);
-`;
-
-const HeroSubtitle = styled.p`
-  font-size: var(--font-size-h4);
-  font-weight: var(--font-weight-regular);
-  margin-bottom: var(--spacing-lg);
-  color: var(--color-white);
-  opacity: 0.9;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
-`;
-
-const StorySection = styled.section`
-  padding: var(--spacing-2xl) 0;
-`;
-
-const StoryContainer = styled.div`
-  max-width: var(--container-max-width);
-  margin: 0 auto;
-  padding: 0 var(--container-padding);
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--spacing-2xl);
-  align-items: center;
+  padding: 0 var(--spacing-md);
   
-  @media (max-width: 768px) {
-    grid-template-columns: 1fr;
-    gap: var(--spacing-lg);
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
   }
 `;
 
-const StoryContent = styled.div``;
+const HeroTitle = styled.h1`
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-extrabold);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-inverse);
+  line-height: var(--line-height-tight);
+`;
+
+const HeroSubtitle = styled.p`
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-regular);
+  font-family: var(--font-family-secondary);
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-text-inverse);
+  opacity: 0.9;
+  max-width: var(--content-max-width);
+  margin-left: auto;
+  margin-right: auto;
+  line-height: var(--line-height-relaxed);
+`;
+
+const StorySection = styled.section`
+  padding: var(--spacing-4xl) 0;
+`;
+
+const StoryContainer = styled.div`
+  max-width: 75%;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: var(--spacing-4xl);
+  align-items: center;
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+    gap: var(--spacing-5xl);
+  }
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2xl);
+    max-width: 90%;
+  }
+`;
+
+const StoryContent = styled.div`
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -2rem;
+    width: 4px;
+    height: 60px;
+    background: var(--color-interactive-primary);
+    border-radius: var(--border-radius-full);
+    
+    @media (max-width: 768px) {
+      left: -1rem;
+      height: 40px;
+    }
+  }
+`;
 
 const SectionTitle = styled.h2`
-  font-size: var(--font-size-h2);
-  font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-xl);
   color: var(--color-text-primary);
 `;
 
 const StoryText = styled.p`
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-lg);
+  font-family: var(--font-family-secondary);
   color: var(--color-text-secondary);
   line-height: var(--line-height-relaxed);
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  padding-left: var(--spacing-md);
+  position: relative;
+  
+  &:first-of-type {
+    margin-top: var(--spacing-md);
+  }
+  
+  &:last-of-type {
+    margin-bottom: 0;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -1rem;
+      left: var(--spacing-md);
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(to right, var(--color-interactive-primary), transparent);
+    }
+  }
 `;
 
 const StoryImage = styled.div`
-  background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-secondary-light) 100%);
-  border-radius: var(--border-radius-lg);
+  background: linear-gradient(135deg, var(--color-interactive-primary) 0%, var(--color-interactive-primary-hover) 100%);
+  border-radius: var(--border-radius-2xl);
   height: 400px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 4rem;
-  color: var(--color-primary);
+  color: var(--color-text-on-brand);
+  padding: var(--spacing-xl);
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
   
   @media (max-width: 768px) {
     height: 300px;
+    padding: var(--spacing-lg);
+  }
+`;
+
+const StoryIconContainer = styled.div`
+  font-size: var(--font-size-6xl);
+  margin-bottom: var(--spacing-lg);
+  position: relative;
+  z-index: 1;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-5xl);
+    margin-bottom: var(--spacing-md);
+  }
+`;
+
+const StoryImageTitle = styled.h3`
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-primary);
+  text-align: center;
+  margin-bottom: var(--spacing-md);
+  position: relative;
+  z-index: 1;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-xl);
+  }
+`;
+
+const StoryImageText = styled.p`
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-secondary);
+  text-align: center;
+  opacity: 0.9;
+  line-height: var(--line-height-relaxed);
+  position: relative;
+  z-index: 1;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-sm);
   }
 `;
 
 const ValuesSection = styled.section`
-  padding: var(--spacing-2xl) 0;
-  background-color: var(--color-bg-secondary);
+  padding: var(--spacing-4xl) 0;
+  background-color: var(--color-surface-secondary);
 `;
 
 const ValuesContainer = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const ValuesGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--spacing-xl);
-  margin-top: var(--spacing-lg);
+  margin-top: var(--spacing-2xl);
 `;
 
 const ValueCard = styled.div`
   text-align: center;
-  padding: var(--spacing-lg);
-  background-color: var(--color-white);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
+  padding: var(--spacing-xl);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-primary);
   transition: all var(--transition-fast);
   
   &:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-interactive-primary);
   }
 `;
 
 const ValueIcon = styled.div`
   width: 4rem;
   height: 4rem;
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  background-color: var(--color-interactive-primary);
+  color: var(--color-text-on-brand);
   border-radius: var(--border-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  margin: 0 auto var(--spacing-md) auto;
+  font-size: var(--font-size-xl);
+  margin: 0 auto var(--spacing-lg) auto;
 `;
 
 const ValueTitle = styled.h3`
-  font-size: var(--font-size-h4);
-  font-weight: var(--font-weight-semibold);
-  margin-bottom: var(--spacing-sm);
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-md);
   color: var(--color-text-primary);
 `;
 
 const ValueDescription = styled.p`
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-secondary);
   color: var(--color-text-secondary);
   line-height: var(--line-height-relaxed);
 `;
 
 const MissionSection = styled.section`
-  padding: var(--spacing-2xl) 0;
+  padding: var(--spacing-4xl) 0;
 `;
 
 const MissionContainer = styled.div`
   max-width: 800px;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
   text-align: center;
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const MissionQuote = styled.blockquote`
-  font-size: var(--font-size-h3);
+  font-size: var(--font-size-2xl);
   font-style: italic;
+  font-family: var(--font-family-secondary);
   color: var(--color-text-primary);
   line-height: var(--line-height-relaxed);
-  margin: var(--spacing-lg) 0;
+  margin: var(--spacing-xl) 0;
   position: relative;
   
   &::before {
@@ -171,112 +309,142 @@ const MissionQuote = styled.blockquote`
     position: absolute;
     top: -1rem;
     left: -1rem;
-    font-size: 4rem;
-    color: var(--color-primary);
+    font-size: var(--font-size-6xl);
+    color: var(--color-interactive-primary);
     font-family: serif;
   }
 `;
 
 const StatsSection = styled.section`
-  padding: var(--spacing-2xl) 0;
-  background-color: var(--color-primary-dark);
-  color: var(--color-white);
+  padding: var(--spacing-4xl) 0;
+  background-color: var(--color-interactive-primary);
+  color: var(--color-text-on-brand);
 `;
 
 const StatsContainer = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const StatsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-lg);
+  gap: var(--spacing-xl);
   text-align: center;
 `;
 
 const StatCard = styled.div`
-  padding: var(--spacing-md);
+  padding: var(--spacing-lg);
 `;
 
 const StatNumber = styled.div`
-  font-size: 3rem;
-  font-weight: var(--font-weight-bold);
-  color: var(--color-white);
-  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-extrabold);
+  font-family: var(--font-family-primary);
+  color: var(--color-text-on-brand);
+  margin-bottom: var(--spacing-sm);
 `;
 
 const StatLabel = styled.div`
-  font-size: var(--font-size-body);
-  color: var(--color-white);
+  font-size: var(--font-size-lg);
+  font-family: var(--font-family-secondary);
+  color: var(--color-text-on-brand);
   opacity: 0.9;
 `;
 
 const TeamSection = styled.section`
-  padding: var(--spacing-2xl) 0;
+  padding: var(--spacing-4xl) 0;
 `;
 
 const TeamContainer = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
   text-align: center;
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const TeamText = styled.p`
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-lg);
+  font-family: var(--font-family-secondary);
   color: var(--color-text-secondary);
   line-height: var(--line-height-relaxed);
-  max-width: 600px;
-  margin: 0 auto var(--spacing-lg) auto;
+  max-width: var(--content-max-width);
+  margin: 0 auto var(--spacing-xl) auto;
 `;
 
 const CTASection = styled.section`
-  padding: var(--spacing-2xl) 0;
-  background-color: var(--color-bg-secondary);
+  padding: var(--spacing-4xl) 0;
+  background-color: var(--color-surface-secondary);
   text-align: center;
 `;
 
 const CTAContainer = styled.div`
   max-width: 600px;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const CTATitle = styled.h2`
-  font-size: var(--font-size-h2);
+  font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-md);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-lg);
   color: var(--color-text-primary);
 `;
 
 const CTAText = styled.p`
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-lg);
+  font-family: var(--font-family-secondary);
   color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
   line-height: var(--line-height-relaxed);
 `;
 
 const CTAButton = styled(Link)`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: 1rem 2rem;
-  background-color: var(--color-primary);
-  color: var(--color-white);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
+  background-color: var(--color-interactive-primary);
+  color: var(--color-text-on-brand);
   text-decoration: none;
-  border-radius: var(--border-radius-md);
-  font-weight: var(--font-weight-medium);
-  font-family: var(--font-primary);
+  border-radius: var(--border-radius-lg);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
   transition: all var(--transition-fast);
   
   &:hover {
-    background-color: var(--color-primary-hover);
-    color: var(--color-white);
+    background-color: var(--color-interactive-primary-hover);
+    color: var(--color-text-on-brand);
     text-decoration: none;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
   }
 `;
 
@@ -307,7 +475,13 @@ const AboutPage = () => {
             </StoryText>
           </StoryContent>
           <StoryImage>
-            <FaRocket />
+            <StoryIconContainer>
+              <FaRocket />
+            </StoryIconContainer>
+            <StoryImageTitle>Innovation & Growth</StoryImageTitle>
+            <StoryImageText>
+              Empowering small businesses to reach new heights through accessible web solutions and cutting-edge technology.
+            </StoryImageText>
           </StoryImage>
         </StoryContainer>
       </StorySection>
@@ -375,7 +549,7 @@ const AboutPage = () => {
 
       <StatsSection>
         <StatsContainer>
-          <SectionTitle style={{ color: 'var(--color-white)', textAlign: 'center', marginBottom: 'var(--spacing-xl)' }}>
+          <SectionTitle style={{ color: 'var(--color-text-on-brand)', textAlign: 'center', marginBottom: 'var(--spacing-xl)' }}>
             Our Impact So Far
           </SectionTitle>
           <StatsGrid>

@@ -5,81 +5,117 @@ import { FaCheck, FaTimes, FaStar, FaArrowRight, FaPhoneAlt } from 'react-icons/
 
 const PricingContainer = styled.div`
   min-height: 100vh;
-  background-color: var(--color-bg-primary);
+  background-color: var(--color-surface-primary);
 `;
 
 const HeroSection = styled.section`
-  padding: var(--spacing-2xl) 0 var(--spacing-xl);
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
-  color: var(--color-white);
+  padding: var(--spacing-4xl) 0 var(--spacing-2xl);
+  background: linear-gradient(135deg, var(--color-interactive-primary) 0%, var(--color-interactive-primary-hover) 100%);
+  color: var(--color-text-inverse);
   text-align: center;
 `;
 
 const HeroContent = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const HeroTitle = styled.h1`
-  font-size: var(--font-size-h1);
-  font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-sm);
-  color: var(--color-white);
+  font-size: var(--font-size-5xl);
+  font-weight: var(--font-weight-extrabold);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-inverse);
 `;
 
 const HeroSubtitle = styled.p`
-  font-size: var(--font-size-h4);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-regular);
+  font-family: var(--font-family-secondary);
   margin-bottom: var(--spacing-lg);
-  color: var(--color-white);
+  color: var(--color-text-inverse);
   opacity: 0.9;
-  max-width: 600px;
+  max-width: var(--content-max-width);
   margin-left: auto;
   margin-right: auto;
+  line-height: var(--line-height-relaxed);
 `;
 
 const PricingSection = styled.section`
-  padding: var(--spacing-2xl) 0;
+  padding: var(--spacing-4xl) 0;
 `;
 
 const PricingContent = styled.div`
-  max-width: var(--container-max-width);
+  max-width: 75%;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const SectionTitle = styled.h2`
-  font-size: var(--font-size-h2);
-  font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-3xl);
   color: var(--color-text-primary);
   text-align: center;
 `;
 
 const ServiceCards = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-  gap: var(--spacing-xl);
-  margin-bottom: var(--spacing-2xl);
+  grid-template-columns: 1fr;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-4xl);
+  align-items: start;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: var(--spacing-xl);
+  }
+  
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--spacing-2xl);
+  }
 `;
 
 const ServiceCard = styled.div`
-  background-color: var(--color-white);
-  border-radius: var(--border-radius-lg);
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--border-radius-xl);
   padding: var(--spacing-xl);
-  box-shadow: var(--shadow-md);
-  border: 2px solid var(--color-gray-border);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--color-border-primary);
   transition: all var(--transition-fast);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   
   &:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--color-interactive-primary);
   }
   
   &.featured {
-    border-color: var(--color-primary);
+    border-color: var(--color-interactive-primary);
     position: relative;
+    background-color: var(--color-surface-elevated);
     
     &::before {
       content: 'Most Popular';
@@ -87,184 +123,219 @@ const ServiceCard = styled.div`
       top: -0.75rem;
       left: 50%;
       transform: translateX(-50%);
-      background-color: var(--color-primary);
-      color: var(--color-white);
-      padding: 0.5rem 1.5rem;
+      background-color: var(--color-interactive-primary);
+      color: var(--color-text-on-brand);
+      padding: var(--spacing-sm) var(--spacing-lg);
       border-radius: var(--border-radius-full);
-      font-size: var(--font-size-small);
+      font-size: var(--font-size-sm);
       font-weight: var(--font-weight-bold);
+      font-family: var(--font-family-primary);
     }
   }
 `;
 
 const ServiceHeader = styled.div`
   text-align: center;
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-md);
-  border-bottom: 1px solid var(--color-gray-border);
+  margin-bottom: var(--spacing-xl);
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border-secondary);
 `;
 
 const ServiceIcon = styled.div`
   width: 4rem;
   height: 4rem;
-  background-color: ${props => props.color || 'var(--color-primary)'};
-  color: var(--color-white);
+  background-color: ${props => props.color || 'var(--color-interactive-primary)'};
+  color: var(--color-text-on-brand);
   border-radius: var(--border-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
-  margin: 0 auto var(--spacing-md) auto;
+  font-size: var(--font-size-xl);
+  margin: 0 auto var(--spacing-lg) auto;
 `;
 
 const ServiceTitle = styled.h3`
-  font-size: var(--font-size-h3);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-md);
   color: var(--color-text-primary);
 `;
 
 const ServiceDescription = styled.p`
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-secondary);
   color: var(--color-text-secondary);
   margin-bottom: var(--spacing-md);
   line-height: var(--line-height-relaxed);
+  flex-grow: 0;
 `;
 
 const TierContainer = styled.div`
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+  flex-grow: 1;
 `;
 
 const TierHeader = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border-secondary);
 `;
 
 const TierTitle = styled.h4`
-  font-size: var(--font-size-h4);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
   color: var(--color-text-primary);
 `;
 
 const TierPrice = styled.div`
-  font-size: var(--font-size-h4);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
+  font-family: var(--font-family-primary);
+  color: var(--color-interactive-primary);
 `;
 
 const TierFeatures = styled.ul`
   list-style: none;
   padding: 0;
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+  min-height: 140px;
 `;
 
 const TierFeature = styled.li`
   display: flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: var(--spacing-xs) 0;
-  font-size: var(--font-size-body);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) 0;
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-secondary);
   color: var(--color-text-secondary);
 `;
 
 const FeatureIcon = styled.div`
-  color: ${props => props.included ? 'var(--color-success)' : 'var(--color-text-muted)'};
+  color: ${props => props.included ? 'var(--color-success)' : 'var(--color-text-tertiary)'};
   flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const ServiceCTA = styled(Link)`
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
-  padding: 0.75rem 1.5rem;
-  background-color: ${props => props.color || 'var(--color-primary)'};
-  color: var(--color-white);
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background-color: ${props => props.color || 'var(--color-interactive-primary)'};
+  color: var(--color-text-on-brand);
   text-decoration: none;
-  border-radius: var(--border-radius-md);
-  font-weight: var(--font-weight-medium);
+  border-radius: var(--border-radius-lg);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
   transition: all var(--transition-fast);
   width: 100%;
   justify-content: center;
+  margin-top: auto;
   
   &:hover {
-    background-color: ${props => props.hoverColor || 'var(--color-primary-hover)'};
-    color: var(--color-white);
+    background-color: ${props => props.hoverColor || 'var(--color-interactive-primary-hover)'};
+    color: var(--color-text-on-brand);
     text-decoration: none;
-    transform: translateY(-1px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
   }
 `;
 
 const ContactSection = styled.section`
-  padding: var(--spacing-xl) 0;
-  background-color: var(--color-bg-secondary);
+  padding: var(--spacing-4xl) 0;
+  background-color: var(--color-surface-secondary);
   text-align: center;
 `;
 
 const ContactContainer = styled.div`
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
-  padding: 0 var(--container-padding);
+  padding: 0 var(--spacing-md);
+  
+  @media (min-width: 768px) {
+    padding: 0 var(--spacing-lg);
+  }
+  
+  @media (min-width: 1200px) {
+    padding: 0 var(--spacing-xl);
+  }
 `;
 
 const ContactTitle = styled.h2`
-  font-size: var(--font-size-h2);
+  font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-bold);
-  margin-bottom: var(--spacing-md);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-lg);
   color: var(--color-text-primary);
 `;
 
 const ContactText = styled.p`
-  font-size: var(--font-size-body);
+  font-size: var(--font-size-lg);
+  font-family: var(--font-family-secondary);
   color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
   line-height: var(--line-height-relaxed);
 `;
 
 const ContactButtons = styled.div`
   display: flex;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
   justify-content: center;
   flex-wrap: wrap;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    align-items: center;
+  }
 `;
 
 const ContactButton = styled(Link)`
-  padding: 1rem 2rem;
-  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md) var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
   text-decoration: none;
-  font-weight: var(--font-weight-medium);
-  font-family: var(--font-primary);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
   transition: all var(--transition-fast);
   display: inline-flex;
   align-items: center;
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
   
   &.primary {
-    background-color: var(--color-primary);
-    color: var(--color-white);
+    background-color: var(--color-interactive-primary);
+    color: var(--color-text-on-brand);
     
     &:hover {
-      background-color: var(--color-primary-hover);
-      color: var(--color-white);
+      background-color: var(--color-interactive-primary-hover);
+      color: var(--color-text-on-brand);
       text-decoration: none;
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
   }
   
   &.secondary {
-    background-color: var(--color-white);
-    color: var(--color-primary);
-    border: 2px solid var(--color-primary);
+    background-color: var(--color-surface-elevated);
+    color: var(--color-interactive-primary);
+    border: 2px solid var(--color-interactive-primary);
     
     &:hover {
-      background-color: var(--color-primary);
-      color: var(--color-white);
+      background-color: var(--color-interactive-primary);
+      color: var(--color-text-on-brand);
       text-decoration: none;
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
     }
   }
 `;
@@ -358,7 +429,7 @@ const PricingPage = () => {
             </ServiceCard>
 
             {/* SEO & Content Service */}
-            <ServiceCard className="featured">
+            <ServiceCard>
               <ServiceHeader>
                 <ServiceIcon color="var(--color-success)">
                   <FaStar />
@@ -431,7 +502,7 @@ const PricingPage = () => {
             {/* Website Overhaul Service */}
             <ServiceCard>
               <ServiceHeader>
-                <ServiceIcon color="var(--color-primary)">
+                <ServiceIcon color="var(--color-interactive-primary)">
                   <FaStar />
                 </ServiceIcon>
                 <ServiceTitle>Website Overhaul</ServiceTitle>
@@ -494,7 +565,7 @@ const PricingPage = () => {
                 </TierFeatures>
               </TierContainer>
               
-              <ServiceCTA to="/services/website-overhaul" color="var(--color-primary)">
+              <ServiceCTA to="/services/website-overhaul" color="var(--color-interactive-primary)">
                 Learn More <FaArrowRight />
               </ServiceCTA>
             </ServiceCard>
