@@ -313,9 +313,9 @@ const Header = () => {
             {t('about', 'About')}
           </NavLink>
           
-          <NavLink to="/blog" isActive={isActive('/blog')}>
+          {/* <NavLink to="/blog" isActive={isActive('/blog')}>
             {t('blog', 'Blog')}
-          </NavLink>
+          </NavLink> */}
           
           <NavLink to="/contact" isActive={isActive('/contact')}>
             {t('contact', 'Contact')}
@@ -358,9 +358,9 @@ const Header = () => {
           <MobileNavLink to="/about" isActive={isActive('/about')} onClick={closeMobileMenu}>
             {t('about', 'About')}
           </MobileNavLink>
-          <MobileNavLink to="/blog" isActive={isActive('/blog')} onClick={closeMobileMenu}>
+          {/* <MobileNavLink to="/blog" isActive={isActive('/blog')} onClick={closeMobileMenu}>
             {t('blog', 'Blog')}
-          </MobileNavLink>
+          </MobileNavLink> */}
           <MobileNavLink to="/contact" isActive={isActive('/contact')} onClick={closeMobileMenu}>
             {t('contact', 'Contact')}
           </MobileNavLink>
