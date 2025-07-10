@@ -141,52 +141,69 @@ const NavLink = styled(Link)`
 `;
 
 const MobileNavLink = styled(Link)`
-  color: ${props => props.isActive ? 'var(--color-primary)' : 'var(--color-text-primary)'};
+  color: ${props => props.isActive ? 'var(--color-interactive-primary)' : 'var(--color-text-primary)'};
   font-weight: var(--font-weight-medium);
   text-decoration: none;
   padding: var(--spacing-sm);
   border-radius: var(--border-radius-md);
   transition: all var(--transition-fast);
-  font-family: var(--font-primary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
   
   &:hover {
-    color: var(--color-primary);
-    background-color: var(--color-bg-secondary);
+    color: var(--color-interactive-primary);
+    background-color: var(--color-surface-secondary);
     text-decoration: none;
   }
   
   ${props => props.isActive && `
-    background-color: var(--color-primary);
-    color: var(--color-white);
+    background-color: var(--color-interactive-primary);
+    color: var(--color-text-inverse);
     
     &:hover {
-      background-color: var(--color-primary-hover);
-      color: var(--color-white);
+      background-color: var(--color-interactive-primary-hover);
+      color: var(--color-text-inverse);
     }
   `}
 `;
 
 const DropdownContainer = styled.div`
   position: relative;
+  
+  &:hover {
+    z-index: var(--z-index-dropdown);
+  }
 `;
 
 const DropdownTrigger = styled.button`
   background: none;
   border: none;
-  color: ${props => props.isActive ? 'var(--color-primary)' : 'var(--color-text-secondary)'};
+  color: ${props => props.isActive ? 'var(--color-interactive-primary)' : 'var(--color-text-secondary)'};
   font-weight: var(--font-weight-medium);
-  padding: var(--spacing-xs) 0;
+  padding: var(--spacing-sm) 0;
   cursor: pointer;
-  font-family: var(--font-primary);
-  font-size: var(--font-size-body);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
   display: flex;
   align-items: center;
   gap: 0.25rem;
-  transition: color var(--transition-fast);
+  transition: all var(--transition-fast);
+  border-bottom: 2px solid transparent;
+  position: relative;
   
   &:hover {
-    color: var(--color-primary);
+    color: var(--color-interactive-primary);
   }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-interactive-primary);
+    border-radius: var(--border-radius-sm);
+  }
+  
+  ${props => props.isActive && `
+    border-bottom-color: var(--color-interactive-primary);
+  `}
   
   &::after {
     content: '▼';
@@ -198,32 +215,50 @@ const DropdownTrigger = styled.button`
 
 const DropdownMenu = styled.div`
   position: absolute;
-  top: 100%;
+  top: calc(100% + 4px);
   left: 0;
-  background-color: var(--color-white);
+  background-color: var(--color-surface-elevated);
   box-shadow: var(--shadow-lg);
-  border-radius: var(--border-radius-md);
-  padding: var(--spacing-xs);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border-primary);
+  padding: var(--spacing-sm);
   min-width: 200px;
   transform: ${props => props.isOpen ? 'translateY(0)' : 'translateY(-8px)'};
   opacity: ${props => props.isOpen ? '1' : '0'};
   visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
   transition: all var(--transition-fast);
-  z-index: var(--z-dropdown);
+  z-index: var(--z-index-dropdown);
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 0;
+    right: 0;
+    height: 8px;
+    background: transparent;
+  }
 `;
 
 const DropdownLink = styled(Link)`
   display: block;
   color: var(--color-text-primary);
   text-decoration: none;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
   transition: all var(--transition-fast);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
   
   &:hover {
-    background-color: var(--color-bg-secondary);
-    color: var(--color-primary);
+    background-color: var(--color-surface-secondary);
+    color: var(--color-interactive-primary);
     text-decoration: none;
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-interactive-primary);
   }
 `;
 
@@ -234,21 +269,27 @@ const ActionButtons = styled.div`
 `;
 
 const CTAButton = styled(Link)`
-  background-color: var(--color-primary);
-  color: var(--color-white);
-  padding: 0.75rem 1.5rem;
+  background-color: var(--color-interactive-primary);
+  color: var(--color-text-inverse);
+  padding: var(--spacing-sm) var(--spacing-lg);
   border-radius: var(--border-radius-md);
   text-decoration: none;
   font-weight: var(--font-weight-medium);
-  font-family: var(--font-primary);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
   transition: all var(--transition-fast);
   
   &:hover {
-    background-color: var(--color-primary-hover);
-    color: var(--color-white);
+    background-color: var(--color-interactive-primary-hover);
+    color: var(--color-text-inverse);
     text-decoration: none;
     transform: translateY(-1px);
     box-shadow: var(--shadow-md);
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-interactive-primary);
   }
 `;
 
@@ -293,7 +334,7 @@ const Header = () => {
             <DropdownTrigger 
               isActive={isServicesActive()} 
               isOpen={isServicesDropdownOpen}
-              onClick={toggleServicesDropdown}
+              onClick={() => setIsServicesDropdownOpen(!isServicesDropdownOpen)}
             >
               {t('services', 'Services')}
             </DropdownTrigger>
