@@ -257,7 +257,7 @@ class StructureAnalyzer {
       score -= 10;
     }
     
-    return Math.max(0, Math.round(score));
+    return Math.max(0, Math.min(100, Math.round(score)));
   }
 
   generateRecommendations(structureData, language = 'en') {

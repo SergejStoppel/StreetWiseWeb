@@ -17,7 +17,9 @@ import {
   FaCrown,
   FaLock,
   FaStar,
-  FaLanguage
+  FaLanguage,
+  FaCompass,
+  FaRoute
 } from 'react-icons/fa';
 import ScoreCard from '../components/ScoreCard';
 import ViolationsList from '../components/ViolationsList';
@@ -793,6 +795,23 @@ const ResultsPage = () => {
             </SummaryCard>
           )}
           
+          {/* Navigation Summary Cards */}
+          <SummaryCard>
+            <SummaryIcon color={results.summary.hasSkipLinks ? "#10b981" : "#ef4444"}>
+              <FaCompass />
+            </SummaryIcon>
+            <SummaryValue>{results.summary.hasSkipLinks ? "Yes" : "No"}</SummaryValue>
+            <SummaryLabel>Skip Links</SummaryLabel>
+          </SummaryCard>
+          
+          <SummaryCard>
+            <SummaryIcon color={results.summary.hasBreadcrumbs ? "#10b981" : "#f59e0b"}>
+              <FaRoute />
+            </SummaryIcon>
+            <SummaryValue>{results.summary.hasBreadcrumbs ? "Yes" : "No"}</SummaryValue>
+            <SummaryLabel>Breadcrumbs</SummaryLabel>
+          </SummaryCard>
+          
           {results.summary.structureScore !== null && (
             <SummaryCard>
               <SummaryIcon color={results.summary.structureScore >= 80 ? "#10b981" : results.summary.structureScore >= 60 ? "#f59e0b" : "#ef4444"}>
@@ -800,6 +819,16 @@ const ResultsPage = () => {
               </SummaryIcon>
               <SummaryValue>{results.summary.structureScore}%</SummaryValue>
               <SummaryLabel>{t('results.summary.structureScore')}</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.navigationScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.navigationScore >= 80 ? "#10b981" : results.summary.navigationScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaCompass />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.navigationScore}%</SummaryValue>
+              <SummaryLabel>Navigation Score</SummaryLabel>
             </SummaryCard>
           )}
           

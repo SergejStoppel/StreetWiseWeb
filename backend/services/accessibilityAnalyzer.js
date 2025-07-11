@@ -18,6 +18,7 @@ const KeyboardAnalyzer = require('./analysis/KeyboardAnalyzer');
 const TextReadabilityAnalyzer = require('./analysis/TextReadabilityAnalyzer');
 const EnhancedImageAnalyzer = require('./analysis/EnhancedImageAnalyzer');
 const FocusManagementAnalyzer = require('./analysis/FocusManagementAnalyzer');
+const NavigationAnalyzer = require('./analysis/NavigationAnalyzer');
 
 class AccessibilityAnalyzer {
   constructor() {
@@ -35,6 +36,7 @@ class AccessibilityAnalyzer {
     this.textReadabilityAnalyzer = new TextReadabilityAnalyzer();
     this.enhancedImageAnalyzer = new EnhancedImageAnalyzer();
     this.focusManagementAnalyzer = new FocusManagementAnalyzer();
+    this.navigationAnalyzer = new NavigationAnalyzer();
     
     // Legacy compatibility
     this.pdfCache = this.cacheManager;
@@ -92,6 +94,7 @@ class AccessibilityAnalyzer {
           textReadabilityData,
           enhancedImageData,
           focusManagementData,
+          navigationData,
           customChecks
         ] = await Promise.all([
           this.runAxeAnalysis(page, analysisId),
@@ -103,6 +106,7 @@ class AccessibilityAnalyzer {
           this.textReadabilityAnalyzer.analyze(page, analysisId),
           this.enhancedImageAnalyzer.analyze(page, analysisId),
           this.focusManagementAnalyzer.analyze(page, analysisId),
+          this.navigationAnalyzer.analyze(page, analysisId),
           this.runLegacyCustomChecks(page, analysisId)
         ]);
         
@@ -126,6 +130,7 @@ class AccessibilityAnalyzer {
           textReadabilityData,
           enhancedImageData,
           focusManagementData,
+          navigationData,
           customChecks,
           colorContrastAnalysis,
           analysisId,
@@ -226,6 +231,7 @@ class AccessibilityAnalyzer {
       textReadabilityData,
       enhancedImageData,
       focusManagementData,
+      navigationData,
       customChecks,
       colorContrastAnalysis,
       analysisId,
@@ -242,6 +248,7 @@ class AccessibilityAnalyzer {
       textReadability: this.textReadabilityAnalyzer.calculateScore(textReadabilityData),
       enhancedImages: this.enhancedImageAnalyzer.calculateScore(enhancedImageData),
       focusManagement: this.focusManagementAnalyzer.calculateScore(focusManagementData),
+      navigation: this.navigationAnalyzer.calculateNavigationScore(navigationData),
       colorContrast: this.calculateColorContrastScore(colorContrastAnalysis),
       axeScore: this.calculateAxeScore(axeResults)
     };
@@ -260,6 +267,7 @@ class AccessibilityAnalyzer {
       textReadability: individualScores.textReadability,
       enhancedImages: individualScores.enhancedImages,
       focusManagement: individualScores.focusManagement,
+      navigation: individualScores.navigation,
       colorContrast: individualScores.colorContrast,
       axeScore: individualScores.axeScore
     };
@@ -274,6 +282,7 @@ class AccessibilityAnalyzer {
       textReadabilityData,
       enhancedImageData,
       focusManagementData,
+      navigationData,
       axeResults,
       language
     });
@@ -307,7 +316,8 @@ class AccessibilityAnalyzer {
         enhancedImageData: enhancedImageData,
         overallScore: overallScore,
         structureData: structureData,
-        formData: formData
+        formData: formData,
+        navigationData: navigationData
       }),
       structure: structureData,
       aria: ariaData,
@@ -317,6 +327,7 @@ class AccessibilityAnalyzer {
       textReadability: textReadabilityData,
       enhancedImages: enhancedImageData,
       focusManagement: focusManagementData,
+      navigation: navigationData,
       customChecks: customChecks,
       colorContrast: colorContrastAnalysis,
       axeResults,
@@ -344,6 +355,7 @@ class AccessibilityAnalyzer {
       textReadability: 0.04,
       enhancedImages: 0.04,
       focusManagement: 0.06,
+      navigation: 0.05,
       colorContrast: 0.03
     };
 
@@ -431,7 +443,7 @@ class AccessibilityAnalyzer {
     const { 
       structureData, ariaData, formData, tableData, keyboardData,
       textReadabilityData, enhancedImageData, focusManagementData,
-      axeResults, language 
+      navigationData, axeResults, language 
     } = data;
     
     try {
@@ -492,6 +504,13 @@ class AccessibilityAnalyzer {
         allRecommendations.push(...focusManagementRecs);
       } catch (error) {
         logger.warn('Focus management recommendations failed:', error.message);
+      }
+      
+      try {
+        const navigationRecs = this.navigationAnalyzer.generateRecommendations(navigationData, language) || [];
+        allRecommendations.push(...navigationRecs);
+      } catch (error) {
+        logger.warn('Navigation recommendations failed:', error.message);
       }
 
       // Group by priority and type
@@ -572,6 +591,12 @@ class AccessibilityAnalyzer {
     const controlsWithErrorMessages = formData?.errorHandling?.errorIdentification?.controlsWithProperErrorAssociation || 0;
     const controlsWithInstructions = formData?.errorHandling?.labelsAndInstructions?.controlsWithInstructions || 0;
     
+    // Navigation information
+    const navigationData = additionalData.navigationData;
+    const hasSkipLinks = navigationData?.skipNavigationAnalysis?.hasSkipLinks || false;
+    const hasBreadcrumbs = navigationData?.breadcrumbAnalysis?.hasBreadcrumbs || false;
+    const navigationScore = navigationData?.overallScore || 100;
+    
     return {
       // Legacy fields that frontend expects
       totalViolations: axeViolations.length,
@@ -618,7 +643,12 @@ class AccessibilityAnalyzer {
       formErrorHandlingIssues: formErrorHandlingIssues,
       formErrorHandlingScore: formErrorHandlingScore,
       controlsWithErrorMessages: controlsWithErrorMessages,
-      controlsWithInstructions: controlsWithInstructions
+      controlsWithInstructions: controlsWithInstructions,
+      
+      // Navigation data
+      hasSkipLinks: hasSkipLinks,
+      hasBreadcrumbs: hasBreadcrumbs,
+      navigationScore: navigationScore
     };
   }
 

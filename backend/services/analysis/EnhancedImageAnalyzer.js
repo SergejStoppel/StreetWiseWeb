@@ -603,7 +603,7 @@ class EnhancedImageAnalyzer {
     // Suspected text images
     score -= Math.min(summary.suspectedTextImages * 6, 15);
 
-    return Math.max(score, 0);
+    return Math.max(0, Math.min(100, score));
   }
 
   /**

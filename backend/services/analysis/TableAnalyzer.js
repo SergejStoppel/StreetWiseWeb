@@ -274,7 +274,7 @@ class TableAnalyzer {
       score -= 5;
     }
     
-    return Math.max(0, Math.round(score));
+    return Math.max(0, Math.min(100, Math.round(score)));
   }
 
   generateRecommendations(tableData, language = 'en') {

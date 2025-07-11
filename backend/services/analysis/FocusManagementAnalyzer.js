@@ -762,7 +762,7 @@ class FocusManagementAnalyzer {
     // Custom focus handling penalties
     score -= Math.min(summary.customFocusIssues * 5, 15);
 
-    return Math.max(score, 0);
+    return Math.max(0, Math.min(100, score));
   }
 
   /**

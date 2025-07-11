@@ -228,7 +228,7 @@ class AriaAnalyzer {
       score -= Math.min(ariaData.hiddenContent.hiddenInteractive * 15, 30);
     }
     
-    return Math.max(0, Math.round(score));
+    return Math.max(0, Math.min(100, Math.round(score)));
   }
 
   generateRecommendations(ariaData, language = 'en') {

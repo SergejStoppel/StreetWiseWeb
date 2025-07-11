@@ -392,7 +392,7 @@ class KeyboardAnalyzer {
       score -= 15;
     }
     
-    return Math.max(0, Math.round(score));
+    return Math.max(0, Math.min(100, Math.round(score)));
   }
 
   generateRecommendations(keyboardData, language = 'en') {

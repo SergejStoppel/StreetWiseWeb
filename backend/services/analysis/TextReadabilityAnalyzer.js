@@ -490,7 +490,7 @@ class TextReadabilityAnalyzer {
       score -= Math.min(summary.responsiveIssues * 8, 20);
     }
 
-    return Math.max(score, 0);
+    return Math.max(0, Math.min(100, score));
   }
 
   /**
