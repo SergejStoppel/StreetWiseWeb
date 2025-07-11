@@ -24,6 +24,7 @@ import {
 import ScoreCard from '../components/ScoreCard';
 import ViolationsList from '../components/ViolationsList';
 import RecommendationsList from '../components/RecommendationsList';
+import NavigationResults from '../components/NavigationResults';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { accessibilityAPI } from '../services/api';
 
@@ -1116,6 +1117,11 @@ const ResultsPage = () => {
                 </SummaryCard>
               </SummaryGrid>
             </Section>
+          )}
+
+          {/* Navigation Analysis */}
+          {results.navigation && (
+            <NavigationResults navigationData={results.navigation} />
           )}
 
           {/* Color Contrast Analysis for detailed reports */}
