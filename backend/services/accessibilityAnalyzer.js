@@ -306,7 +306,8 @@ class AccessibilityAnalyzer {
         customChecks: customChecks,
         enhancedImageData: enhancedImageData,
         overallScore: overallScore,
-        structureData: structureData
+        structureData: structureData,
+        formData: formData
       }),
       structure: structureData,
       aria: ariaData,
@@ -564,6 +565,13 @@ class AccessibilityAnalyzer {
     const isValidLanguageCode = structureData?.languageValidation?.isValidLangCode || false;
     const languageScore = structureData?.languageValidation?.score || 100;
     
+    // Form error handling information
+    const formData = additionalData.formData;
+    const formErrorHandlingIssues = formData?.errorHandling?.totalIssues || 0;
+    const formErrorHandlingScore = formData?.errorHandling?.overallScore || 100;
+    const controlsWithErrorMessages = formData?.errorHandling?.errorIdentification?.controlsWithProperErrorAssociation || 0;
+    const controlsWithInstructions = formData?.errorHandling?.labelsAndInstructions?.controlsWithInstructions || 0;
+    
     return {
       // Legacy fields that frontend expects
       totalViolations: axeViolations.length,
@@ -604,7 +612,13 @@ class AccessibilityAnalyzer {
       languageIssues: languageIssues,
       hasLanguageAttribute: hasLanguageAttribute,
       isValidLanguageCode: isValidLanguageCode,
-      languageScore: languageScore
+      languageScore: languageScore,
+      
+      // Form error handling data
+      formErrorHandlingIssues: formErrorHandlingIssues,
+      formErrorHandlingScore: formErrorHandlingScore,
+      controlsWithErrorMessages: controlsWithErrorMessages,
+      controlsWithInstructions: controlsWithInstructions
     };
   }
 

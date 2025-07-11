@@ -783,6 +783,16 @@ const ResultsPage = () => {
             </SummaryCard>
           )}
           
+          {results.summary.formErrorHandlingIssues > 0 && (
+            <SummaryCard>
+              <SummaryIcon color="#dc2626">
+                <FaExclamationTriangle />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.formErrorHandlingIssues}</SummaryValue>
+              <SummaryLabel>Form Error Issues</SummaryLabel>
+            </SummaryCard>
+          )}
+          
           {results.summary.structureScore !== null && (
             <SummaryCard>
               <SummaryIcon color={results.summary.structureScore >= 80 ? "#10b981" : results.summary.structureScore >= 60 ? "#f59e0b" : "#ef4444"}>
@@ -823,6 +833,16 @@ const ResultsPage = () => {
             </SummaryCard>
           )}
           
+          {results.summary.formErrorHandlingScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.formErrorHandlingScore >= 80 ? "#10b981" : results.summary.formErrorHandlingScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaExclamationTriangle />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.formErrorHandlingScore}%</SummaryValue>
+              <SummaryLabel>Error Handling</SummaryLabel>
+            </SummaryCard>
+          )}
+          
           {results.summary.languageScore !== null && (
             <SummaryCard>
               <SummaryIcon color={results.summary.languageScore >= 80 ? "#10b981" : results.summary.languageScore >= 60 ? "#f59e0b" : "#ef4444"}>
@@ -853,6 +873,42 @@ const ResultsPage = () => {
       {results.reportType === 'detailed' ? (
         <>
           {/* Enhanced Analysis Sections for detailed reports */}
+          {results.forms?.errorHandling && (
+            <Section>
+              <SectionTitle>Form Error Handling Analysis</SectionTitle>
+              <SummaryGrid>
+                <SummaryCard>
+                  <SummaryIcon color="#6b7280">
+                    <FaExclamationTriangle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.forms.errorHandling.errorElementsFound || 0}</SummaryValue>
+                  <SummaryLabel>Error Elements Found</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.forms.errorHandling.errorIdentification?.controlsWithProperErrorAssociation > 0 ? "#10b981" : "#ef4444"}>
+                    <FaCheckCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.forms.errorHandling.errorIdentification?.controlsWithProperErrorAssociation || 0}</SummaryValue>
+                  <SummaryLabel>Proper Error Association</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color="#6b7280">
+                    <FaInfoCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.forms.errorHandling.labelsAndInstructions?.controlsWithInstructions || 0}</SummaryValue>
+                  <SummaryLabel>Controls With Instructions</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.forms.errorHandling.overallScore >= 80 ? "#10b981" : results.forms.errorHandling.overallScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                    <FaStar />
+                  </SummaryIcon>
+                  <SummaryValue>{results.forms.errorHandling.overallScore || 0}%</SummaryValue>
+                  <SummaryLabel>Error Handling Score</SummaryLabel>
+                </SummaryCard>
+              </SummaryGrid>
+            </Section>
+          )}
+
           {results.customChecks?.formAnalysis && results.customChecks.formAnalysis.totalForms > 0 && (
             <Section>
               <SectionTitle>Form Accessibility Analysis</SectionTitle>

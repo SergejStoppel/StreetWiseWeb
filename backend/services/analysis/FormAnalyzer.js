@@ -232,25 +232,216 @@ class FormAnalyzer {
             return buttonData;
           })(),
           
-          // Error handling analysis
+          // Comprehensive error handling analysis (WCAG 3.3.1, 3.3.2, 3.3.3)
           errorHandling: (() => {
-            const errorElements = Array.from(document.querySelectorAll('.error, .invalid, [role="alert"], [aria-invalid="true"]'));
             const errorData = {
-              errorElementsFound: errorElements.length,
-              controlsWithAriaInvalid: document.querySelectorAll('[aria-invalid="true"]').length,
-              controlsWithAriaDescribedby: document.querySelectorAll('input[aria-describedby], select[aria-describedby], textarea[aria-describedby]').length,
-              alertRoles: document.querySelectorAll('[role="alert"]').length
+              // Basic error element detection
+              errorElementsFound: 0,
+              controlsWithAriaInvalid: 0,
+              controlsWithAriaDescribedby: 0,
+              alertRoles: 0,
+              formsWithValidation: 0,
+              
+              // WCAG 3.3.1 - Error Identification
+              errorIdentification: {
+                controlsWithErrors: 0,
+                controlsWithClearErrorMessages: 0,
+                controlsWithProperErrorAssociation: 0,
+                issues: []
+              },
+              
+              // WCAG 3.3.2 - Labels or Instructions
+              labelsAndInstructions: {
+                controlsWithInstructions: 0,
+                controlsWithFormatHints: 0,
+                controlsWithExamples: 0,
+                issues: []
+              },
+              
+              // WCAG 3.3.3 - Error Suggestion
+              errorSuggestion: {
+                controlsWithSuggestions: 0,
+                controlsWithCorrectiveText: 0,
+                issues: []
+              },
+              
+              // Error prevention analysis
+              errorPrevention: {
+                formsWithConfirmation: 0,
+                formsWithReviewStep: 0,
+                controlsWithRealTimeValidation: 0,
+                issues: []
+              }
             };
             
-            // Check for form validation patterns
-            const formsWithValidation = Array.from(document.querySelectorAll('form')).filter(form => {
-              return form.getAttribute('novalidate') !== null || 
-                     form.querySelector('[required]') || 
-                     form.querySelector('[pattern]') ||
-                     form.querySelector('[aria-invalid]');
+            // Find all error-related elements
+            const errorSelectors = [
+              '.error', '.invalid', '.field-error', '.form-error',
+              '.error-message', '.validation-error', '.help-block.error',
+              '[role="alert"]', '[aria-invalid="true"]', '.alert-danger',
+              '.is-invalid', '.has-error'
+            ];
+            
+            const errorElements = Array.from(document.querySelectorAll(errorSelectors.join(', ')));
+            errorData.errorElementsFound = errorElements.length;
+            
+            // Analyze form controls for error handling
+            const formControls = Array.from(document.querySelectorAll('input, select, textarea'));
+            
+            formControls.forEach((control, index) => {
+              const controlId = control.id || `control-${index}`;
+              const controlType = control.type || control.tagName.toLowerCase();
+              
+              // Check for aria-invalid
+              if (control.getAttribute('aria-invalid') === 'true') {
+                errorData.controlsWithAriaInvalid++;
+                errorData.errorIdentification.controlsWithErrors++;
+                
+                // Check if error is properly described
+                const describedBy = control.getAttribute('aria-describedby');
+                if (describedBy) {
+                  const errorElement = document.getElementById(describedBy);
+                  if (errorElement) {
+                    errorData.errorIdentification.controlsWithProperErrorAssociation++;
+                    
+                    // Check if error message is clear and helpful
+                    const errorText = errorElement.textContent.trim();
+                    if (errorText.length > 5 && !errorText.toLowerCase().includes('error')) {
+                      errorData.errorIdentification.controlsWithClearErrorMessages++;
+                    }
+                    
+                    // Check if error suggests correction
+                    const suggestionKeywords = ['try', 'should', 'must', 'example', 'format', 'use'];
+                    if (suggestionKeywords.some(keyword => errorText.toLowerCase().includes(keyword))) {
+                      errorData.errorSuggestion.controlsWithSuggestions++;
+                    }
+                  } else {
+                    errorData.errorIdentification.issues.push({
+                      type: 'missing_error_element',
+                      control: controlId,
+                      message: `Control references error element '${describedBy}' that doesn't exist`
+                    });
+                  }
+                } else {
+                  errorData.errorIdentification.issues.push({
+                    type: 'missing_error_association',
+                    control: controlId,
+                    message: 'Control marked as invalid but no error message associated'
+                  });
+                }
+              }
+              
+              // Check for aria-describedby (instructions/hints)
+              if (control.getAttribute('aria-describedby')) {
+                errorData.controlsWithAriaDescribedby++;
+                errorData.labelsAndInstructions.controlsWithInstructions++;
+                
+                const describedBy = control.getAttribute('aria-describedby');
+                const descriptionElement = document.getElementById(describedBy);
+                if (descriptionElement) {
+                  const descText = descriptionElement.textContent.trim();
+                  
+                  // Check for format hints
+                  const formatKeywords = ['format', 'example', 'pattern', 'must be', 'should be', 'yyyy-mm-dd', '@'];
+                  if (formatKeywords.some(keyword => descText.toLowerCase().includes(keyword))) {
+                    errorData.labelsAndInstructions.controlsWithFormatHints++;
+                  }
+                  
+                  // Check for examples
+                  if (descText.includes('example') || descText.includes('e.g.') || descText.includes('Ex:')) {
+                    errorData.labelsAndInstructions.controlsWithExamples++;
+                  }
+                }
+              }
+              
+              // Check for real-time validation
+              if (control.getAttribute('oninput') || control.getAttribute('onblur') || 
+                  control.getAttribute('onchange') || control.classList.contains('validate')) {
+                errorData.errorPrevention.controlsWithRealTimeValidation++;
+              }
+              
+              // Check for missing instructions on complex inputs
+              if (['email', 'password', 'tel', 'url', 'date'].includes(controlType)) {
+                if (!control.getAttribute('aria-describedby') && 
+                    !control.getAttribute('placeholder') && 
+                    !control.getAttribute('title')) {
+                  errorData.labelsAndInstructions.issues.push({
+                    type: 'missing_instructions',
+                    control: controlId,
+                    controlType: controlType,
+                    message: `${controlType} input lacks format instructions or examples`
+                  });
+                }
+              }
             });
             
-            errorData.formsWithValidation = formsWithValidation.length;
+            // Analyze forms for error prevention
+            const forms = Array.from(document.querySelectorAll('form'));
+            forms.forEach((form, index) => {
+              const formId = form.id || `form-${index}`;
+              
+              // Check for validation
+              if (form.getAttribute('novalidate') === null && 
+                  (form.querySelector('[required]') || form.querySelector('[pattern]'))) {
+                errorData.formsWithValidation++;
+              }
+              
+              // Check for confirmation patterns
+              if (form.querySelector('input[type="password"]') && 
+                  form.querySelectorAll('input[type="password"]').length > 1) {
+                errorData.errorPrevention.formsWithConfirmation++;
+              }
+              
+              // Check for review/preview steps
+              if (form.querySelector('.review, .preview, .summary') || 
+                  form.querySelector('input[type="submit"][value*="review"]') ||
+                  form.querySelector('button[type="submit"]')?.textContent.toLowerCase().includes('review')) {
+                errorData.errorPrevention.formsWithReviewStep++;
+              }
+              
+              // Check for critical form without confirmation
+              const isCriticalForm = form.querySelector('input[type="password"]') || 
+                                   form.querySelector('input[name*="delete"]') ||
+                                   form.querySelector('input[name*="remove"]') ||
+                                   form.action.includes('delete') ||
+                                   form.action.includes('remove');
+              
+              if (isCriticalForm && !form.querySelector('.confirm, .confirmation') && 
+                  !form.querySelector('input[type="checkbox"][required]')) {
+                errorData.errorPrevention.issues.push({
+                  type: 'missing_confirmation',
+                  form: formId,
+                  message: 'Critical form action lacks confirmation mechanism'
+                });
+              }
+            });
+            
+            // Count alert roles
+            errorData.alertRoles = document.querySelectorAll('[role="alert"]').length;
+            
+            // Calculate score based on error handling completeness
+            const totalControls = formControls.length;
+            const totalForms = forms.length;
+            
+            if (totalControls > 0) {
+              const errorScore = Math.round(
+                ((errorData.errorIdentification.controlsWithProperErrorAssociation / Math.max(errorData.errorIdentification.controlsWithErrors, 1)) * 25) +
+                ((errorData.labelsAndInstructions.controlsWithInstructions / totalControls) * 25) +
+                ((errorData.errorSuggestion.controlsWithSuggestions / Math.max(errorData.errorIdentification.controlsWithErrors, 1)) * 25) +
+                ((errorData.errorPrevention.controlsWithRealTimeValidation / totalControls) * 25)
+              );
+              
+              errorData.overallScore = Math.max(0, Math.min(100, errorScore));
+            } else {
+              errorData.overallScore = 100; // No forms = no error handling issues
+            }
+            
+            // Generate issues summary
+            errorData.totalIssues = 
+              errorData.errorIdentification.issues.length +
+              errorData.labelsAndInstructions.issues.length +
+              errorData.errorSuggestion.issues.length +
+              errorData.errorPrevention.issues.length;
             
             return errorData;
           })(),
@@ -340,6 +531,37 @@ class FormAnalyzer {
       score -= 5;
     }
     
+    // Error handling score impact
+    if (formData.errorHandling) {
+      const errorHandling = formData.errorHandling;
+      
+      // Penalize missing error identification
+      if (errorHandling.errorIdentification.issues.length > 0) {
+        score -= Math.min(errorHandling.errorIdentification.issues.length * 10, 25);
+      }
+      
+      // Penalize missing instructions
+      if (errorHandling.labelsAndInstructions.issues.length > 0) {
+        score -= Math.min(errorHandling.labelsAndInstructions.issues.length * 5, 15);
+      }
+      
+      // Penalize missing error suggestions
+      if (errorHandling.errorIdentification.controlsWithErrors > 0 && 
+          errorHandling.errorSuggestion.controlsWithSuggestions === 0) {
+        score -= 10;
+      }
+      
+      // Penalize missing error prevention
+      if (errorHandling.errorPrevention.issues.length > 0) {
+        score -= Math.min(errorHandling.errorPrevention.issues.length * 8, 20);
+      }
+      
+      // Bonus for good error handling
+      if (errorHandling.overallScore > 80) {
+        score += 5;
+      }
+    }
+    
     return Math.max(0, Math.round(score));
   }
 
@@ -403,15 +625,77 @@ class FormAnalyzer {
       });
     }
     
-    // No error handling mechanisms
-    if (formData.totalForms > 0 && formData.errorHandling?.formsWithValidation === 0) {
-      recommendations.push({
-        type: 'form',
-        priority: 'medium',
-        issue: 'No form validation detected',
-        description: 'Forms should provide validation and error handling',
-        suggestion: 'Implement client-side validation with proper error messaging'
-      });
+    // Error handling recommendations
+    if (formData.errorHandling) {
+      const errorHandling = formData.errorHandling;
+      
+      // Missing error identification (WCAG 3.3.1)
+      if (errorHandling.errorIdentification.issues.length > 0) {
+        errorHandling.errorIdentification.issues.forEach(issue => {
+          recommendations.push({
+            type: 'form',
+            priority: 'high',
+            issue: 'Error identification issue',
+            description: issue.message,
+            suggestion: issue.type === 'missing_error_association' ? 
+              'Add aria-describedby attribute to associate error messages with form controls' :
+              'Ensure error elements referenced by aria-describedby actually exist',
+            wcagCriterion: '3.3.1'
+          });
+        });
+      }
+      
+      // Missing instructions (WCAG 3.3.2)
+      if (errorHandling.labelsAndInstructions.issues.length > 0) {
+        errorHandling.labelsAndInstructions.issues.forEach(issue => {
+          recommendations.push({
+            type: 'form',
+            priority: 'medium',
+            issue: 'Missing input instructions',
+            description: issue.message,
+            suggestion: 'Add aria-describedby with format instructions, examples, or helpful hints',
+            wcagCriterion: '3.3.2'
+          });
+        });
+      }
+      
+      // Missing error suggestions (WCAG 3.3.3)
+      if (errorHandling.errorIdentification.controlsWithErrors > 0 && 
+          errorHandling.errorSuggestion.controlsWithSuggestions === 0) {
+        recommendations.push({
+          type: 'form',
+          priority: 'high',
+          issue: 'Error messages lack suggestions',
+          description: 'Form controls have errors but error messages don\'t suggest how to fix them',
+          suggestion: 'Include specific suggestions in error messages (e.g., "Use format: name@example.com")',
+          wcagCriterion: '3.3.3'
+        });
+      }
+      
+      // Missing error prevention
+      if (errorHandling.errorPrevention.issues.length > 0) {
+        errorHandling.errorPrevention.issues.forEach(issue => {
+          recommendations.push({
+            type: 'form',
+            priority: 'medium',
+            issue: 'Missing error prevention',
+            description: issue.message,
+            suggestion: 'Add confirmation mechanisms for critical actions (checkboxes, confirmation dialogs)',
+            wcagCriterion: '3.3.4'
+          });
+        });
+      }
+      
+      // No validation mechanisms
+      if (formData.totalForms > 0 && errorHandling.formsWithValidation === 0) {
+        recommendations.push({
+          type: 'form',
+          priority: 'medium',
+          issue: 'No form validation detected',
+          description: 'Forms should provide validation and error handling',
+          suggestion: 'Implement client-side validation with proper error messaging'
+        });
+      }
     }
     
     // Forms without submit buttons
