@@ -98,6 +98,96 @@ class StructureAnalyzer {
             hasMetaViewport: !!document.querySelector('meta[name="viewport"]')
           },
           
+          // Language attribute validation (WCAG 3.1.1)
+          languageValidation: (() => {
+            const htmlElement = document.documentElement;
+            const langAttr = htmlElement.getAttribute('lang');
+            const xmlLangAttr = htmlElement.getAttribute('xml:lang');
+            
+            // Common valid language codes (ISO 639-1)
+            const validLanguageCodes = [
+              'en', 'es', 'fr', 'de', 'it', 'pt', 'ru', 'ja', 'ko', 'zh', 
+              'ar', 'hi', 'nl', 'sv', 'no', 'da', 'fi', 'pl', 'tr', 'el',
+              'he', 'th', 'vi', 'id', 'ms', 'cs', 'hu', 'ro', 'uk', 'bg'
+            ];
+            
+            // Check if language code is valid (basic validation)
+            const isValidLangCode = (code) => {
+              if (!code) return false;
+              // Extract primary language code (e.g., "en-US" -> "en")
+              const primaryCode = code.split('-')[0].toLowerCase();
+              // Check if it's a 2-letter code and in our valid list
+              return (primaryCode.length === 2 && validLanguageCodes.includes(primaryCode));
+              // TODO: Add proper 3-letter ISO 639-2 code validation in the future
+            };
+            
+            const issues = [];
+            
+            // Check if lang attribute exists
+            if (!langAttr) {
+              issues.push({
+                type: 'missing_lang',
+                severity: 'critical',
+                message: 'The html element is missing the lang attribute',
+                element: 'html'
+              });
+            } else if (!isValidLangCode(langAttr)) {
+              issues.push({
+                type: 'invalid_lang',
+                severity: 'serious',
+                message: `The lang attribute value "${langAttr}" is not a valid language code`,
+                element: 'html',
+                currentValue: langAttr
+              });
+            }
+            
+            // Check for xml:lang if present (for XHTML compatibility)
+            if (xmlLangAttr && xmlLangAttr !== langAttr) {
+              issues.push({
+                type: 'mismatched_lang',
+                severity: 'moderate',
+                message: 'The xml:lang attribute does not match the lang attribute',
+                element: 'html',
+                langValue: langAttr,
+                xmlLangValue: xmlLangAttr
+              });
+            }
+            
+            // Check for language changes in the document
+            const elementsWithLang = document.querySelectorAll('[lang]:not(html)');
+            const langChanges = Array.from(elementsWithLang).map(el => ({
+              tag: el.tagName.toLowerCase(),
+              lang: el.getAttribute('lang'),
+              text: el.textContent.substring(0, 50) + '...',
+              isValid: isValidLangCode(el.getAttribute('lang'))
+            }));
+            
+            // Find invalid language codes in content
+            langChanges.forEach((change, index) => {
+              if (!change.isValid) {
+                issues.push({
+                  type: 'invalid_content_lang',
+                  severity: 'moderate',
+                  message: `Invalid language code "${change.lang}" on ${change.tag} element`,
+                  element: change.tag,
+                  langValue: change.lang
+                });
+              }
+            });
+            
+            return {
+              hasLangAttribute: !!langAttr,
+              langValue: langAttr || '',
+              isValidLangCode: langAttr ? isValidLangCode(langAttr) : false,
+              hasXmlLang: !!xmlLangAttr,
+              xmlLangValue: xmlLangAttr || '',
+              langMatchesXmlLang: !xmlLangAttr || langAttr === xmlLangAttr,
+              contentLanguageChanges: langChanges,
+              issues: issues,
+              score: issues.length === 0 ? 100 : Math.max(0, 100 - (issues.filter(i => i.severity === 'critical').length * 50) - (issues.filter(i => i.severity === 'serious').length * 25) - (issues.filter(i => i.severity === 'moderate').length * 10))
+            };
+          })(),
+          
           // Navigation structure
           navigationStructure: {
             skipLinksCount: document.querySelectorAll('a[href^="#skip"], .skip-link, .sr-only a[href^="#"]').length,
@@ -153,9 +243,19 @@ class StructureAnalyzer {
     if (!structureData.ariaLandmarks?.hasNavigationLandmark) score -= 5;
     
     // Check document structure
-    if (!structureData.documentStructure?.hasLang) score -= 10;
     if (!structureData.documentStructure?.hasTitle) score -= 10;
     if (!structureData.documentStructure?.hasMetaDescription) score -= 5;
+    
+    // Language validation score (use the calculated score from languageValidation)
+    if (structureData.languageValidation) {
+      const langScore = structureData.languageValidation.score;
+      // Convert language score to impact on overall score (max 15 point deduction)
+      const langDeduction = Math.round((100 - langScore) * 0.15);
+      score -= langDeduction;
+    } else if (!structureData.documentStructure?.hasLang) {
+      // Fallback to old logic if languageValidation not available
+      score -= 10;
+    }
     
     return Math.max(0, Math.round(score));
   }
@@ -209,14 +309,40 @@ class StructureAnalyzer {
       });
     }
     
-    // Missing language declaration
-    if (!structureData.documentStructure?.hasLang) {
-      recommendations.push({
-        type: 'structure',
-        priority: 'high',
-        issue: 'Missing language declaration',
-        description: 'HTML element should have a lang attribute to specify the page language',
-        suggestion: 'Add lang="en" (or appropriate language code) to the <html> element'
+    // Language attribute validation recommendations
+    if (structureData.languageValidation && structureData.languageValidation.issues.length > 0) {
+      structureData.languageValidation.issues.forEach(issue => {
+        let priority = 'medium';
+        let suggestion = '';
+        
+        switch(issue.type) {
+          case 'missing_lang':
+            priority = 'high';
+            suggestion = 'Add lang="en" (or appropriate language code) to the <html> element. Example: <html lang="en">';
+            break;
+          case 'invalid_lang':
+            priority = 'high';
+            suggestion = `Change the lang attribute to a valid language code. For example, use "en" for English, "es" for Spanish, "fr" for French, etc.`;
+            break;
+          case 'mismatched_lang':
+            priority = 'medium';
+            suggestion = `Ensure the xml:lang attribute matches the lang attribute, or remove the xml:lang attribute if not needed.`;
+            break;
+          case 'invalid_content_lang':
+            priority = 'medium';
+            suggestion = `Use a valid language code for the lang attribute on the ${issue.element} element.`;
+            break;
+        }
+        
+        recommendations.push({
+          type: 'structure',
+          priority: priority,
+          issue: issue.message,
+          description: 'WCAG 3.1.1 requires that the primary language of the page be programmatically determinable',
+          suggestion: suggestion,
+          element: issue.element,
+          wcagCriterion: '3.1.1'
+        });
       });
     }
     

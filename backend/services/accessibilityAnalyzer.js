@@ -305,7 +305,8 @@ class AccessibilityAnalyzer {
         totalTables: tableData?.totalTables || 0,
         customChecks: customChecks,
         enhancedImageData: enhancedImageData,
-        overallScore: overallScore
+        overallScore: overallScore,
+        structureData: structureData
       }),
       structure: structureData,
       aria: ariaData,
@@ -528,6 +529,7 @@ class AccessibilityAnalyzer {
     // Use enhanced image analyzer data if available, otherwise fall back to custom checks
     const enhancedImageData = additionalData.enhancedImageData;
     const customChecks = additionalData.customChecks || {};
+    const structureData = additionalData.structureData;
     
     let imagesWithoutAlt = 0;
     let imagesWithMeaninglessAlt = 0;
@@ -555,6 +557,12 @@ class AccessibilityAnalyzer {
     // Count violations by severity
     const criticalViolations = axeViolations.filter(v => v.impact === 'critical').length;
     const seriousViolations = axeViolations.filter(v => v.impact === 'serious').length;
+    
+    // Language validation information
+    const languageIssues = structureData?.languageValidation?.issues?.length || 0;
+    const hasLanguageAttribute = structureData?.languageValidation?.hasLangAttribute || false;
+    const isValidLanguageCode = structureData?.languageValidation?.isValidLangCode || false;
+    const languageScore = structureData?.languageValidation?.score || 100;
     
     return {
       // Legacy fields that frontend expects
@@ -590,7 +598,13 @@ class AccessibilityAnalyzer {
       hasExcellentAccessibility: (additionalData.overallScore || 0) >= 95,
       
       // Table-specific data (for conditional rendering)
-      totalTables: additionalData.totalTables || 0
+      totalTables: additionalData.totalTables || 0,
+      
+      // Language validation data
+      languageIssues: languageIssues,
+      hasLanguageAttribute: hasLanguageAttribute,
+      isValidLanguageCode: isValidLanguageCode,
+      languageScore: languageScore
     };
   }
 

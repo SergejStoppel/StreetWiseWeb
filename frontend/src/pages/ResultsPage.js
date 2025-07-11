@@ -16,7 +16,8 @@ import {
   FaPalette,
   FaCrown,
   FaLock,
-  FaStar
+  FaStar,
+  FaLanguage
 } from 'react-icons/fa';
 import ScoreCard from '../components/ScoreCard';
 import ViolationsList from '../components/ViolationsList';
@@ -772,6 +773,16 @@ const ResultsPage = () => {
             <SummaryLabel>{t('results.summary.colorContrastIssues')}</SummaryLabel>
           </SummaryCard>
           
+          {results.summary.languageIssues > 0 && (
+            <SummaryCard>
+              <SummaryIcon color="#dc2626">
+                <FaLanguage />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.languageIssues}</SummaryValue>
+              <SummaryLabel>Language Issues</SummaryLabel>
+            </SummaryCard>
+          )}
+          
           {results.summary.structureScore !== null && (
             <SummaryCard>
               <SummaryIcon color={results.summary.structureScore >= 80 ? "#10b981" : results.summary.structureScore >= 60 ? "#f59e0b" : "#ef4444"}>
@@ -809,6 +820,16 @@ const ResultsPage = () => {
               </SummaryIcon>
               <SummaryValue>{results.summary.formScore}%</SummaryValue>
               <SummaryLabel>Form Accessibility</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.languageScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.languageScore >= 80 ? "#10b981" : results.summary.languageScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaLanguage />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.languageScore}%</SummaryValue>
+              <SummaryLabel>Language Declaration</SummaryLabel>
             </SummaryCard>
           )}
           
@@ -863,6 +884,42 @@ const ResultsPage = () => {
                   </SummaryIcon>
                   <SummaryValue>{results.customChecks.formAnalysis.inputAnalysis?.required || 0}</SummaryValue>
                   <SummaryLabel>Required Fields</SummaryLabel>
+                </SummaryCard>
+              </SummaryGrid>
+            </Section>
+          )}
+
+          {results.structure?.languageValidation && (
+            <Section>
+              <SectionTitle>Language Declaration Analysis</SectionTitle>
+              <SummaryGrid>
+                <SummaryCard>
+                  <SummaryIcon color={results.structure.languageValidation.hasLangAttribute ? "#10b981" : "#ef4444"}>
+                    <FaLanguage />
+                  </SummaryIcon>
+                  <SummaryValue>{results.structure.languageValidation.hasLangAttribute ? "✓" : "✗"}</SummaryValue>
+                  <SummaryLabel>Lang Attribute Present</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.structure.languageValidation.isValidLangCode ? "#10b981" : "#ef4444"}>
+                    <FaCheckCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.structure.languageValidation.isValidLangCode ? "Valid" : "Invalid"}</SummaryValue>
+                  <SummaryLabel>Language Code</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color="#6b7280">
+                    <FaInfoCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.structure.languageValidation.langValue || "None"}</SummaryValue>
+                  <SummaryLabel>Current Value</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.structure.languageValidation.issues?.length > 0 ? "#ef4444" : "#10b981"}>
+                    <FaExclamationTriangle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.structure.languageValidation.issues?.length || 0}</SummaryValue>
+                  <SummaryLabel>Language Issues</SummaryLabel>
                 </SummaryCard>
               </SummaryGrid>
             </Section>
