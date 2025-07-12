@@ -409,19 +409,19 @@ const AccessibilityServicePage = () => {
     <AccessibilityContainer>
       <HeroSection>
         <HeroContent>
-          <HeroTitle>Avoid Legal Risks & Reach More Customers</HeroTitle>
+          <HeroTitle>Protect Your Business & Serve All Customers</HeroTitle>
           <HeroSubtitle>
-            Our AI-powered tools and expert services help small businesses achieve and maintain ADA and WCAG compliance, protecting you from lawsuits and expanding your audience.
+            Is your website open for business to everyone, including people with disabilities? We ensure your site meets legal requirements and serves all customers while protecting you from expensive lawsuits.
           </HeroSubtitle>
           <HeroCTA to="/free-audit">
-            Get Your Free Accessibility Scan <FaArrowRight />
+            Get Your Free Accessibility Analysis <FaArrowRight />
           </HeroCTA>
         </HeroContent>
       </HeroSection>
 
       <ProblemSection>
         <ProblemContainer>
-          <SectionTitle>The Hidden Dangers of Inaccessible Websites</SectionTitle>
+          <SectionTitle>Could Your Website Get You in Legal Trouble?</SectionTitle>
           <ProblemGrid>
             <ProblemCard>
               <ProblemIcon>
@@ -584,13 +584,13 @@ const AccessibilityServicePage = () => {
 
       <CTASection>
         <CTAContainer>
-          <CTATitle>Ready to Make Your Website Accessible?</CTATitle>
+          <CTATitle>Ready to Protect Your Business?</CTATitle>
           <CTAButtons>
             <CTAButton to="/free-audit" className="primary">
-              Start Your Free Scan <FaArrowRight />
+              Get Your Free Accessibility Analysis <FaArrowRight />
             </CTAButton>
             <CTAButton to="/contact" className="secondary">
-              Contact Us to Discuss Your Needs <FaArrowRight />
+              Talk to Our Accessibility Team <FaArrowRight />
             </CTAButton>
           </CTAButtons>
         </CTAContainer>

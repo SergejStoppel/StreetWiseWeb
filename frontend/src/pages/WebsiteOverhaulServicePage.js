@@ -409,19 +409,19 @@ const WebsiteOverhaulServicePage = () => {
     <OverhaulContainer>
       <HeroSection>
         <HeroContent>
-          <HeroTitle>Transform Your Website Into a Lead Generation Machine</HeroTitle>
+          <HeroTitle>Is Your Website Fast, Secure & Easy to Use?</HeroTitle>
           <HeroSubtitle>
-            Modern design, lightning-fast performance, and mobile optimization that converts visitors into customers and drives business growth.
+            We check everything from loading speed to mobile-friendliness to ensure your website delivers a great experience on all devices. A healthy website means more customers and better business results.
           </HeroSubtitle>
           <HeroCTA to="/free-audit">
-            Get Your Free Website Analysis <FaArrowRight />
+            Get Your Free Website Health Check <FaArrowRight />
           </HeroCTA>
         </HeroContent>
       </HeroSection>
 
       <ProblemSection>
         <ProblemContainer>
-          <SectionTitle>Is Your Website Hurting Your Business?</SectionTitle>
+          <SectionTitle>Is Your Website Turning People Away?</SectionTitle>
           <ProblemGrid>
             <ProblemCard>
               <ProblemIcon>
@@ -437,9 +437,9 @@ const WebsiteOverhaulServicePage = () => {
               <ProblemIcon>
                 <FaTachometerAlt />
               </ProblemIcon>
-              <ProblemTitle>Slow Loading Times</ProblemTitle>
+              <ProblemTitle>Slow, Confusing & Broken</ProblemTitle>
               <ProblemDescription>
-                Pages take forever to load, causing visitors to leave before they even see what you offer, hurting both user experience and SEO.
+                A slow, confusing, or broken website frustrates visitors and sends them straight to your competitors. Every second counts when it comes to first impressions.
               </ProblemDescription>
             </ProblemCard>
             
@@ -584,13 +584,13 @@ const WebsiteOverhaulServicePage = () => {
 
       <CTASection>
         <CTAContainer>
-          <CTATitle>Ready to Transform Your Online Presence?</CTATitle>
+          <CTATitle>Ready to Fix Your Website's Health Issues?</CTATitle>
           <CTAButtons>
             <CTAButton to="/free-audit" className="primary">
-              Start Your Free Website Analysis <FaArrowRight />
+              Get Your Free Website Health Check <FaArrowRight />
             </CTAButton>
             <CTAButton to="/contact" className="secondary">
-              Discuss Your Project Requirements <FaArrowRight />
+              Talk to Our Website Team <FaArrowRight />
             </CTAButton>
           </CTAButtons>
         </CTAContainer>

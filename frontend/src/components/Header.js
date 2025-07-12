@@ -319,7 +319,7 @@ const Header = () => {
       <HeaderContent>
         <Logo to="/" onClick={closeMobileMenu}>
           <LogoIcon aria-hidden="true" />
-          SiteCraft
+          StreetWiseWeb
         </Logo>
         
         <DesktopNavigation>
