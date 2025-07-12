@@ -106,24 +106,30 @@
   "aiStats": {
     "title": "El Futuro de la Búsqueda Está Aquí",
     "subtitle": "Los asistentes de IA como ChatGPT y Perplexity están cambiando cómo los clientes encuentran negocios. ¿Está listo?",
+    "description": "Las referencias de IA han explotado—subieron 2,200% el año pasado. Sin embargo, la mayoría de sitios web ni siquiera las rastrean. Ayudamos a las empresas a adaptarse a la próxima generación de búsqueda—no solo Google, sino ChatGPT, Perplexity y más allá.",
     "stats": [
       {
-        "number": "10%",
-        "label": "Cuota esperada de tráfico IA para finales de 2025"
+        "number": "5–7%",
+        "label": "de todo el tráfico web podría provenir de herramientas de IA como ChatGPT para finales de 2025",
+        "detail": "Las referencias impulsadas por IA aumentaron más del 1000% el año pasado—y esa tendencia solo se está acelerando."
       },
       {
-        "number": "40x",
-        "label": "Crecimiento en tráfico de referencia IA durante 2024"
+        "number": "1,300%+",
+        "label": "Crecimiento en tráfico de referencia de IA en 2024",
+        "detail": "Los sitios de retail y editorial vieron aumentos de más de 10× de usuarios de ChatGPT y Perplexity."
       },
       {
-        "number": "37%",
-        "label": "Del tráfico IA proviene de ChatGPT y Perplexity"
+        "number": "90%+",
+        "label": "de las referencias de IA provienen de ChatGPT y Perplexity",
+        "detail": "ChatGPT por sí solo representa ~80%, convirtiéndolo en el motor de búsqueda de IA #1 hoy."
       },
       {
-        "number": "<90%",
-        "label": "Cuota de búsqueda de Google por primera vez en años"
+        "number": "Breaking",
+        "label": "El monopolio de Google se está agrietando: la búsqueda de IA está robando atención",
+        "detail": "Por primera vez, el dominio de Google está siendo desafiado activamente por resultados impulsados por LLM."
       }
-    ]
+    ],
+    "insight": "Los visitantes de herramientas de IA como ChatGPT ven 12% más páginas y rebotan 23% menos que los de Google. Mejores leads. Mejor SEO."
   },
   "testimonial": {
     "title": "Confiado por Pequeños Negocios Como el Suyo",

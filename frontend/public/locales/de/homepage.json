@@ -106,24 +106,30 @@
   "aiStats": {
     "title": "Die Zukunft der Suche Ist Da",
     "subtitle": "KI-Assistenten wie ChatGPT und Perplexity verändern, wie Kunden Unternehmen finden. Sind Sie bereit?",
+    "description": "KI-Verweise sind explodiert—um 2.200% letztes Jahr gestiegen. Doch die meisten Websites verfolgen sie nicht einmal. Wir helfen Unternehmen, sich der nächsten Generation der Suche anzupassen—nicht nur Google, sondern ChatGPT, Perplexity und darüber hinaus.",
     "stats": [
       {
-        "number": "10%",
-        "label": "Erwarteter KI-Traffic-Anteil bis Ende 2025"
+        "number": "5–7%",
+        "label": "des gesamten Web-Traffics könnte bis Ende 2025 von KI-Tools wie ChatGPT kommen",
+        "detail": "KI-getriebene Verweise stiegen letztes Jahr um über 1000%—und dieser Trend beschleunigt sich nur."
       },
       {
-        "number": "40x",
-        "label": "Wachstum bei KI-Verweis-Traffic während 2024"
+        "number": "1.300%+",
+        "label": "Wachstum bei KI-Verweis-Traffic in 2024",
+        "detail": "Einzelhandels- und Verlagsseiten sahen über 10× Zunahmen von ChatGPT- und Perplexity-Nutzern."
       },
       {
-        "number": "37%",
-        "label": "Des KI-Traffics kommt von ChatGPT & Perplexity"
+        "number": "90%+",
+        "label": "der KI-Verweise kommen von ChatGPT & Perplexity",
+        "detail": "ChatGPT allein macht ~80% aus und ist damit heute die #1 KI-Suchmaschine."
       },
       {
-        "number": "<90%",
-        "label": "Googles Suchanteil zum ersten Mal seit Jahren"
+        "number": "Breaking",
+        "label": "Googles Monopol bricht: KI-Suche stiehlt Aufmerksamkeit",
+        "detail": "Zum ersten Mal wird Googles Dominanz aktiv von LLM-getriebenen Ergebnissen herausgefordert."
       }
-    ]
+    ],
+    "insight": "Besucher von KI-Tools wie ChatGPT betrachten 12% mehr Seiten und haben 23% weniger Absprünge als die von Google. Bessere Leads. Bessere SEO."
   },
   "testimonial": {
     "title": "Vertraut von Kleinen Unternehmen Wie Ihrem",

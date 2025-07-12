@@ -106,24 +106,30 @@
   "aiStats": {
     "title": "The Future of Search is Here",
     "subtitle": "AI assistants like ChatGPT and Perplexity are changing how customers find businesses. Are you ready?",
+    "description": "AI referrals have exploded—up 2,200% last year. Yet most websites aren't even tracking them. We help businesses adapt to the next generation of search—not just Google, but ChatGPT, Perplexity, and beyond.",
     "stats": [
       {
-        "number": "10%",
-        "label": "Expected AI traffic share by end of 2025"
+        "number": "5–7%",
+        "label": "of all web traffic could come from AI tools like ChatGPT by end of 2025",
+        "detail": "AI-driven referrals surged over 1000% last year—and that trend is only accelerating."
       },
       {
-        "number": "40x",
-        "label": "Growth in AI referral traffic during 2024"
+        "number": "1,300%+",
+        "label": "Growth in AI referral traffic in 2024",
+        "detail": "Retail and publishing sites saw over 10× increases from ChatGPT and Perplexity users."
       },
       {
-        "number": "37%",
-        "label": "Of AI traffic comes from ChatGPT & Perplexity"
+        "number": "90%+",
+        "label": "of AI referrals come from ChatGPT & Perplexity",
+        "detail": "ChatGPT alone accounts for ~80%, making it the #1 AI search engine today."
       },
       {
-        "number": "<90%",
-        "label": "Google's search share for first time in years"
+        "number": "Breaking",
+        "label": "Google's monopoly is cracking: AI search is stealing attention",
+        "detail": "For the first time, Google's dominance is actively being challenged by LLM-driven results."
       }
-    ]
+    ],
+    "insight": "Visitors from AI tools like ChatGPT view 12% more pages and bounce 23% less than those from Google. Better leads. Better SEO."
   },
   "testimonial": {
     "title": "Trusted by Small Businesses Like Yours",

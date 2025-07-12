@@ -16,7 +16,8 @@ import {
   FaMobile,
   FaRobot,
   FaCheckCircle,
-  FaArrowRight
+  FaArrowRight,
+  FaPlay
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { accessibilityAPI } from '../services/api';
@@ -117,12 +118,13 @@ const FormTitle = styled.h2`
 
 const InputGroup = styled.div`
   display: flex;
+  flex-direction: column;
   gap: var(--spacing-md);
   margin-bottom: var(--spacing-lg);
   
-  @media (max-width: 768px) {
-    flex-direction: column;
-    gap: var(--spacing-md);
+  @media (min-width: 640px) {
+    flex-direction: row;
+    align-items: stretch;
   }
 `;
 
@@ -136,6 +138,7 @@ const URLInput = styled.input`
   color: var(--color-text-primary);
   transition: all var(--transition-fast);
   background: var(--color-surface-primary);
+  min-height: 48px;
   
   &:focus {
     outline: none;
@@ -151,16 +154,12 @@ const URLInput = styled.input`
   &::placeholder {
     color: var(--color-text-tertiary);
   }
-  
-  @media (max-width: 768px) {
-    width: 100%;
-  }
 `;
 
 const AnalyzeButton = styled.button`
   background: var(--color-interactive-primary);
   color: var(--color-text-on-brand);
-  padding: var(--spacing-md) var(--spacing-xl);
+  padding: var(--spacing-md) var(--spacing-lg);
   border: none;
   border-radius: var(--border-radius-lg);
   font-size: var(--font-size-base);
@@ -170,9 +169,17 @@ const AnalyzeButton = styled.button`
   transition: all var(--transition-fast);
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-sm);
-  white-space: nowrap;
   box-shadow: var(--shadow-md);
+  min-height: 48px;
+  text-align: center;
+  line-height: 1.4;
+  
+  @media (min-width: 640px) {
+    min-width: 140px;
+    flex-shrink: 0;
+  }
   
   &:hover:not(:disabled) {
     background: var(--color-interactive-primary-hover);
@@ -184,12 +191,6 @@ const AnalyzeButton = styled.button`
     background: var(--color-text-tertiary);
     cursor: not-allowed;
     transform: none;
-  }
-  
-  @media (max-width: 768px) {
-    width: 100%;
-    justify-content: center;
-    padding: var(--spacing-lg);
   }
 `;
 
@@ -203,7 +204,7 @@ const ExampleText = styled.p`
 
 const ContentSection = styled.section`
   background: var(--color-surface-primary);
-  padding: var(--spacing-5xl) var(--spacing-xl);
+  padding: var(--spacing-4xl) var(--spacing-xl);
   
   @media (max-width: 768px) {
     padding: var(--spacing-3xl) var(--spacing-md);
@@ -248,12 +249,12 @@ const QuestionsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--spacing-xl);
-  margin-top: var(--spacing-3xl);
+  margin-top: var(--spacing-2xl);
 `;
 
 const QuestionCard = styled.div`
   background: var(--color-surface-elevated);
-  padding: var(--spacing-2xl);
+  padding: var(--spacing-xl);
   border-radius: var(--border-radius-xl);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border-primary);
@@ -279,47 +280,6 @@ const QuestionDescription = styled.p`
   font-family: var(--font-family-secondary);
 `;
 
-const AgitateSection = styled(ContentSection)`
-  background: var(--color-surface-primary);
-`;
-
-const PointsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-xl);
-  margin-top: var(--spacing-3xl);
-`;
-
-const PointCard = styled.div`
-  text-align: center;
-  padding: var(--spacing-xl);
-  border-radius: var(--border-radius-lg);
-  background: var(--color-surface-secondary);
-  border: 1px solid var(--color-border-primary);
-`;
-
-const PointIcon = styled.div`
-  font-size: var(--font-size-4xl);
-  color: var(--color-error);
-  margin-bottom: var(--spacing-lg);
-  display: flex;
-  justify-content: center;
-`;
-
-const PointTitle = styled.h3`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing-md);
-  font-family: var(--font-family-primary);
-`;
-
-const PointDescription = styled.p`
-  color: var(--color-text-secondary);
-  line-height: var(--line-height-relaxed);
-  font-family: var(--font-family-secondary);
-`;
-
 const SolutionSection = styled(ContentSection)`
   background: linear-gradient(135deg, var(--color-success-100) 0%, var(--color-surface-primary) 100%);
 `;
@@ -328,12 +288,12 @@ const PromiseGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--spacing-xl);
-  margin-top: var(--spacing-3xl);
+  margin-top: var(--spacing-2xl);
 `;
 
 const PromiseCard = styled.div`
   background: var(--color-surface-elevated);
-  padding: var(--spacing-2xl);
+  padding: var(--spacing-xl);
   border-radius: var(--border-radius-xl);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--color-success-300);
@@ -352,13 +312,23 @@ const HowItWorksSection = styled(ContentSection)`
 const StepsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: var(--spacing-2xl);
-  margin-top: var(--spacing-3xl);
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-2xl);
 `;
 
 const StepCard = styled.div`
   text-align: center;
   position: relative;
+  padding: var(--spacing-lg);
+  background: var(--color-surface-elevated);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border-primary);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-fast);
+  }
 `;
 
 const StepNumber = styled.div`
@@ -374,6 +344,7 @@ const StepNumber = styled.div`
   font-weight: var(--font-weight-bold);
   margin: 0 auto var(--spacing-lg);
   font-family: var(--font-family-primary);
+  box-shadow: var(--shadow-md);
 `;
 
 const StepTitle = styled.h3`
@@ -398,12 +369,12 @@ const ServicesGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--spacing-xl);
-  margin-top: var(--spacing-3xl);
+  margin-top: var(--spacing-2xl);
 `;
 
 const ServiceCard = styled.div`
   background: var(--color-surface-elevated);
-  padding: var(--spacing-2xl);
+  padding: var(--spacing-xl);
   border-radius: var(--border-radius-xl);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border-primary);
@@ -448,13 +419,33 @@ const ServiceDetails = styled.p`
 
 const AIStatsSection = styled(ContentSection)`
   background: linear-gradient(135deg, var(--color-interactive-primary-50) 0%, var(--color-surface-primary) 100%);
+  padding: var(--spacing-5xl) var(--spacing-xl);
+  
+  @media (max-width: 768px) {
+    padding: var(--spacing-4xl) var(--spacing-md);
+  }
 `;
 
 const StatsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--spacing-xl);
-  margin: var(--spacing-4xl) 0;
+  margin: var(--spacing-2xl) 0;
+  align-items: stretch;
+  
+  @media (min-width: 1200px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const StatCard = styled.div`
@@ -464,14 +455,52 @@ const StatCard = styled.div`
   background: var(--color-surface-elevated);
   border: 1px solid var(--color-interactive-primary-200);
   box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 340px;
+  height: 100%;
+  
+  @media (max-width: 768px) {
+    min-height: 300px;
+    padding: var(--spacing-lg);
+  }
+  
+  @media (max-width: 480px) {
+    min-height: 280px;
+    padding: var(--spacing-md);
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    transition: all var(--transition-fast);
+  }
+`;
+
+const StatContent = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  flex-grow: 1;
+  width: 100%;
 `;
 
 const StatNumber = styled.div`
-  font-size: var(--font-size-4xl);
+  font-size: ${props => props.isBreaking ? 'var(--font-size-2xl)' : 'var(--font-size-4xl)'};
   font-weight: var(--font-weight-extrabold);
   font-family: var(--font-family-primary);
   color: var(--color-interactive-primary);
-  margin-bottom: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  text-transform: ${props => props.isBreaking ? 'uppercase' : 'none'};
+  letter-spacing: ${props => props.isBreaking ? '0.05em' : 'normal'};
+  line-height: 1.1;
+  min-height: ${props => props.isBreaking ? '60px' : '80px'};
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
 
 const StatLabel = styled.div`
@@ -479,6 +508,77 @@ const StatLabel = styled.div`
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-medium);
   font-family: var(--font-family-secondary);
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+  line-height: var(--line-height-normal);
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
+
+const StatDetail = styled.div`
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  font-style: italic;
+  font-family: var(--font-family-secondary);
+  line-height: var(--line-height-relaxed);
+  padding: var(--spacing-md) var(--spacing-sm) 0;
+  border-top: 1px solid var(--color-border-secondary);
+  margin-top: auto;
+  width: 100%;
+  text-align: center;
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+`;
+
+const AIDescription = styled.div`
+  background: var(--color-surface-elevated);
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  margin: var(--spacing-xl) 0;
+  border-left: 4px solid var(--color-interactive-primary);
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  
+  p {
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-relaxed);
+    margin: 0;
+    text-align: center;
+  }
+`;
+
+const AIInsight = styled.div`
+  background: linear-gradient(135deg, var(--color-success-100) 0%, var(--color-surface-elevated) 100%);
+  padding: var(--spacing-xl) var(--spacing-2xl);
+  border-radius: var(--border-radius-lg);
+  margin-top: var(--spacing-2xl);
+  border: 1px solid var(--color-success-300);
+  text-align: center;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  
+  p {
+    color: var(--color-text-primary);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-medium);
+    margin: 0;
+    line-height: var(--line-height-relaxed);
+  }
+  
+  &::before {
+    content: "💡";
+    display: block;
+    font-size: var(--font-size-2xl);
+    margin-bottom: var(--spacing-sm);
+  }
 `;
 
 const TestimonialSection = styled(ContentSection)`
@@ -494,6 +594,12 @@ const TestimonialCard = styled.div`
   text-align: center;
   max-width: 600px;
   margin: 0 auto;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    transition: all var(--transition-fast);
+  }
 `;
 
 const TestimonialText = styled.p`
@@ -530,10 +636,11 @@ const FinalCTASection = styled(ContentSection)`
   background: linear-gradient(135deg, var(--color-interactive-primary) 0%, var(--color-interactive-primary-hover) 100%);
   color: var(--color-text-inverse);
   text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-xl);
 `;
 
 const CTATitle = styled.h2`
-  font-size: var(--font-size-4xl);
+  font-size: var(--font-size-3xl);
   font-weight: var(--font-weight-extrabold);
   margin-bottom: var(--spacing-md);
   color: var(--color-text-inverse);
@@ -541,27 +648,41 @@ const CTATitle = styled.h2`
 `;
 
 const CTASubtitle = styled.p`
-  font-size: var(--font-size-xl);
-  margin-bottom: var(--spacing-3xl);
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-2xl);
   opacity: 0.95;
   color: var(--color-text-inverse);
   font-family: var(--font-family-secondary);
 `;
 
-const CTAForm = styled.form`
-  max-width: 500px;
-  margin: 0 auto;
-`;
-
-const CTAButton = styled(AnalyzeButton)`
+const CTAButton = styled.button`
   background: var(--color-warning);
   color: var(--color-text-primary);
-  font-size: var(--font-size-lg);
   padding: var(--spacing-lg) var(--spacing-2xl);
+  border: none;
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  box-shadow: var(--shadow-lg);
+  min-height: 56px;
   
   &:hover:not(:disabled) {
     background: var(--color-warning-hover);
     transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+  }
+  
+  &:disabled {
+    background: var(--color-text-tertiary);
+    cursor: not-allowed;
+    transform: none;
   }
 `;
 
@@ -622,7 +743,7 @@ const HomePage = () => {
 
   return (
     <>
-      {/* 1. Hero Section */}
+      {/* Hero Section */}
       <HomeContainer>
         <HeroSection>
           <HeroTitle>
@@ -636,12 +757,13 @@ const HomePage = () => {
             <FormTitle>{t('homepage:hero.formTitle')}</FormTitle>
             <InputGroup>
               <URLInput
-                type="text"
+                type="url"
                 placeholder={t('homepage:hero.microcopy')}
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 disabled={isAnalyzing}
                 required
+                aria-label={t('forms:labels.websiteUrl')}
               />
               <AnalyzeButton type="submit" disabled={isAnalyzing}>
                 {isAnalyzing ? (
@@ -651,8 +773,8 @@ const HomePage = () => {
                   </>
                 ) : (
                   <>
-                    <FaRocket aria-hidden="true" />
-                    {t('homepage:hero.formTitle')}
+                    <FaPlay aria-hidden="true" />
+                    {t('forms:buttons.analyze')}
                   </>
                 )}
               </AnalyzeButton>
@@ -664,7 +786,7 @@ const HomePage = () => {
         </HeroSection>
       </HomeContainer>
 
-      {/* 2. Problem Section */}
+      {/* Problem Section */}
       <ProblemSection>
         <ContentContainer>
           <SectionTitle>{t('homepage:problem.title')}</SectionTitle>
@@ -683,31 +805,7 @@ const HomePage = () => {
         </ContentContainer>
       </ProblemSection>
 
-      {/* 3. Agitate Section */}
-      <AgitateSection>
-        <ContentContainer>
-          <SectionTitle>{t('homepage:agitate.title')}</SectionTitle>
-          <SectionSubtitle>
-            {t('homepage:agitate.content')}
-          </SectionSubtitle>
-          
-          <PointsGrid>
-            {t('homepage:agitate.points', { returnObjects: true }).map((point, index) => (
-              <PointCard key={index}>
-                <PointIcon>
-                  {index === 0 && <FaDollarSign />}
-                  {index === 1 && <FaUsers />}
-                  {index === 2 && <FaExclamationTriangle />}
-                </PointIcon>
-                <PointTitle>{point.title}</PointTitle>
-                <PointDescription>{point.description}</PointDescription>
-              </PointCard>
-            ))}
-          </PointsGrid>
-        </ContentContainer>
-      </AgitateSection>
-
-      {/* 4. Solution Section */}
+      {/* Solution Section */}
       <SolutionSection>
         <ContentContainer>
           <SectionTitle>{t('homepage:solution.title')}</SectionTitle>
@@ -715,7 +813,7 @@ const HomePage = () => {
             {t('homepage:solution.subtitle')}
           </SectionSubtitle>
           
-          <SectionTitle style={{ fontSize: 'var(--font-size-2xl)', marginTop: 'var(--spacing-3xl)' }}>
+          <SectionTitle style={{ fontSize: 'var(--font-size-2xl)', marginTop: 'var(--spacing-2xl)' }}>
             {t('homepage:solution.promise.title')}
           </SectionTitle>
           
@@ -735,7 +833,7 @@ const HomePage = () => {
         </ContentContainer>
       </SolutionSection>
 
-      {/* 5. How It Works Section */}
+      {/* How It Works Section */}
       <HowItWorksSection>
         <ContentContainer>
           <SectionTitle>{t('homepage:howItWorks.title')}</SectionTitle>
@@ -752,7 +850,7 @@ const HomePage = () => {
         </ContentContainer>
       </HowItWorksSection>
 
-      {/* 6. Services Overview Section */}
+      {/* Services Overview Section */}
       <ServicesSection>
         <ContentContainer>
           <SectionTitle>{t('homepage:services.title')}</SectionTitle>
@@ -782,18 +880,31 @@ const HomePage = () => {
             {t('homepage:aiStats.subtitle')}
           </SectionSubtitle>
           
+          <AIDescription>
+            <p>{t('homepage:aiStats.description')}</p>
+          </AIDescription>
+          
           <StatsGrid>
             {t('homepage:aiStats.stats', { returnObjects: true }).map((stat, index) => (
               <StatCard key={index}>
-                <StatNumber>{stat.number}</StatNumber>
-                <StatLabel>{stat.label}</StatLabel>
+                <StatContent>
+                  <StatNumber isBreaking={stat.number === "Breaking"}>{stat.number}</StatNumber>
+                  <StatLabel>{stat.label}</StatLabel>
+                </StatContent>
+                {stat.detail && <StatDetail>{stat.detail}</StatDetail>}
               </StatCard>
             ))}
           </StatsGrid>
+          
+          {t('homepage:aiStats.insight') && (
+            <AIInsight>
+              <p>{t('homepage:aiStats.insight')}</p>
+            </AIInsight>
+          )}
         </ContentContainer>
       </AIStatsSection>
 
-      {/* 7. Social Proof/Testimonial Section */}
+      {/* Social Proof/Testimonial Section */}
       <TestimonialSection>
         <ContentContainer>
           <SectionTitle>{t('homepage:testimonial.title')}</SectionTitle>
@@ -814,38 +925,16 @@ const HomePage = () => {
         </ContentContainer>
       </TestimonialSection>
 
-      {/* 8. Final Call-to-Action Section */}
+      {/* Final Call-to-Action Section */}
       <FinalCTASection>
         <ContentContainer>
           <CTATitle>{t('homepage:finalCta.title')}</CTATitle>
           <CTASubtitle>{t('homepage:finalCta.subtitle')}</CTASubtitle>
           
-          <CTAForm onSubmit={handleSubmit}>
-            <InputGroup>
-              <URLInput
-                type="text"
-                placeholder={t('homepage:hero.microcopy')}
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                disabled={isAnalyzing}
-                required
-                style={{ border: '2px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.1)', color: 'white' }}
-              />
-              <CTAButton type="submit" disabled={isAnalyzing}>
-                {isAnalyzing ? (
-                  <>
-                    <LoadingSpinner size="small" />
-                    {t('forms:buttons.analyzing')}
-                  </>
-                ) : (
-                  <>
-                    <FaArrowRight aria-hidden="true" />
-                    {t('homepage:finalCta.button')}
-                  </>
-                )}
-              </CTAButton>
-            </InputGroup>
-          </CTAForm>
+          <CTAButton onClick={() => document.querySelector('form').scrollIntoView({ behavior: 'smooth' })}>
+            <FaArrowRight aria-hidden="true" />
+            {t('homepage:finalCta.button')}
+          </CTAButton>
         </ContentContainer>
       </FinalCTASection>
     </>
