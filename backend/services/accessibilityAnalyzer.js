@@ -22,6 +22,7 @@ const NavigationAnalyzer = require('./analysis/NavigationAnalyzer');
 const TouchTargetAnalyzer = require('./analysis/TouchTargetAnalyzer');
 const KeyboardShortcutAnalyzer = require('./analysis/KeyboardShortcutAnalyzer');
 const ContentStructureAnalyzer = require('./analysis/ContentStructureAnalyzer');
+const MobileAccessibilityAnalyzer = require('./analysis/MobileAccessibilityAnalyzer');
 
 class AccessibilityAnalyzer {
   constructor() {
@@ -43,6 +44,7 @@ class AccessibilityAnalyzer {
     this.touchTargetAnalyzer = new TouchTargetAnalyzer();
     this.keyboardShortcutAnalyzer = new KeyboardShortcutAnalyzer();
     this.contentStructureAnalyzer = new ContentStructureAnalyzer();
+    this.mobileAccessibilityAnalyzer = new MobileAccessibilityAnalyzer();
     
     // Legacy compatibility
     this.pdfCache = this.cacheManager;
@@ -104,6 +106,7 @@ class AccessibilityAnalyzer {
           touchTargetData,
           keyboardShortcutData,
           contentStructureData,
+          mobileAccessibilityData,
           customChecks
         ] = await Promise.all([
           this.runAxeAnalysis(page, analysisId),
@@ -119,6 +122,7 @@ class AccessibilityAnalyzer {
           this.touchTargetAnalyzer.analyze(page, analysisId),
           this.keyboardShortcutAnalyzer.analyze(page, analysisId),
           this.contentStructureAnalyzer.analyze(page, analysisId),
+          this.mobileAccessibilityAnalyzer.analyze(page, analysisId),
           this.runLegacyCustomChecks(page, analysisId)
         ]);
         
@@ -146,6 +150,7 @@ class AccessibilityAnalyzer {
           touchTargetData,
           keyboardShortcutData,
           contentStructureData,
+          mobileAccessibilityData,
           customChecks,
           colorContrastAnalysis,
           analysisId,
@@ -250,6 +255,7 @@ class AccessibilityAnalyzer {
       touchTargetData,
       keyboardShortcutData,
       contentStructureData,
+      mobileAccessibilityData,
       customChecks,
       colorContrastAnalysis,
       analysisId,
@@ -270,6 +276,7 @@ class AccessibilityAnalyzer {
       touchTargets: this.touchTargetAnalyzer.calculateScore(touchTargetData),
       keyboardShortcuts: this.keyboardShortcutAnalyzer.calculateScore(keyboardShortcutData),
       contentStructure: this.contentStructureAnalyzer.calculateScore(contentStructureData),
+      mobileAccessibility: this.mobileAccessibilityAnalyzer.calculateScore(mobileAccessibilityData),
       colorContrast: this.calculateColorContrastScore(colorContrastAnalysis),
       axeScore: this.calculateAxeScore(axeResults)
     };
@@ -292,6 +299,7 @@ class AccessibilityAnalyzer {
       touchTargets: individualScores.touchTargets,
       keyboardShortcuts: individualScores.keyboardShortcuts,
       contentStructure: individualScores.contentStructure,
+      mobileAccessibility: individualScores.mobileAccessibility,
       colorContrast: individualScores.colorContrast,
       axeScore: individualScores.axeScore
     };
@@ -310,6 +318,7 @@ class AccessibilityAnalyzer {
       touchTargetData,
       keyboardShortcutData,
       contentStructureData,
+      mobileAccessibilityData,
       axeResults,
       language
     });
@@ -347,7 +356,8 @@ class AccessibilityAnalyzer {
         navigationData: navigationData,
         touchTargetData: touchTargetData,
         keyboardShortcutData: keyboardShortcutData,
-        contentStructureData: contentStructureData
+        contentStructureData: contentStructureData,
+        mobileAccessibilityData: mobileAccessibilityData
       }),
       structure: structureData,
       aria: ariaData,
@@ -361,6 +371,7 @@ class AccessibilityAnalyzer {
       touchTargets: touchTargetData,
       keyboardShortcuts: keyboardShortcutData,
       contentStructure: contentStructureData,
+      mobileAccessibility: mobileAccessibilityData,
       customChecks: customChecks,
       colorContrast: colorContrastAnalysis,
       axeResults,
@@ -392,6 +403,7 @@ class AccessibilityAnalyzer {
       touchTargets: 0.05,
       keyboardShortcuts: 0.04,
       contentStructure: 0.04,
+      mobileAccessibility: 0.05,
       colorContrast: 0.03
     };
 
@@ -479,7 +491,7 @@ class AccessibilityAnalyzer {
     const { 
       structureData, ariaData, formData, tableData, keyboardData,
       textReadabilityData, enhancedImageData, focusManagementData,
-      navigationData, touchTargetData, keyboardShortcutData, contentStructureData, axeResults, language 
+      navigationData, touchTargetData, keyboardShortcutData, contentStructureData, mobileAccessibilityData, axeResults, language 
     } = data;
     
     try {
@@ -568,6 +580,13 @@ class AccessibilityAnalyzer {
         allRecommendations.push(...contentStructureRecs);
       } catch (error) {
         logger.warn('Content structure recommendations failed:', error.message);
+      }
+      
+      try {
+        const mobileAccessibilityRecs = this.mobileAccessibilityAnalyzer.generateRecommendations(mobileAccessibilityData, language) || [];
+        allRecommendations.push(...mobileAccessibilityRecs);
+      } catch (error) {
+        logger.warn('Mobile accessibility recommendations failed:', error.message);
       }
 
       // Group by priority and type
@@ -677,6 +696,15 @@ class AccessibilityAnalyzer {
     const whiteSpaceScore = contentStructureData?.summary?.whiteSpaceScore || 100;
     const contentIssues = contentStructureData?.issues?.length || 0;
     
+    // Mobile accessibility information
+    const mobileAccessibilityData = additionalData.mobileAccessibilityData;
+    const mobileNavigationScore = mobileAccessibilityData?.summary?.mobileNavigationScore || 100;
+    const formCompatibilityScore = mobileAccessibilityData?.summary?.formCompatibilityScore || 100;
+    const mobileAccessibilityScore = mobileAccessibilityData?.summary?.overallScore || 100;
+    const hasViewportMeta = mobileAccessibilityData?.responsive?.hasViewportMeta || false;
+    const zoomSupport = mobileAccessibilityData?.touchInteractions?.zoomSupport || true;
+    const mobileIssues = mobileAccessibilityData?.issues?.length || 0;
+    
     
     return {
       // Legacy fields that frontend expects
@@ -749,7 +777,15 @@ class AccessibilityAnalyzer {
       averageLineLength: averageLineLength,
       contentStructureScore: contentStructureScore,
       whiteSpaceScore: whiteSpaceScore,
-      contentIssues: contentIssues
+      contentIssues: contentIssues,
+      
+      // Mobile accessibility data
+      mobileNavigationScore: mobileNavigationScore,
+      formCompatibilityScore: formCompatibilityScore,
+      mobileAccessibilityScore: mobileAccessibilityScore,
+      hasViewportMeta: hasViewportMeta,
+      zoomSupport: zoomSupport,
+      mobileIssues: mobileIssues
     };
   }
 

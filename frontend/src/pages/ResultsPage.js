@@ -22,7 +22,8 @@ import {
   FaRoute,
   FaHandPointer,
   FaKeyboard,
-  FaAlignLeft
+  FaAlignLeft,
+  FaMobile
 } from 'react-icons/fa';
 import ScoreCard from '../components/ScoreCard';
 import ViolationsList from '../components/ViolationsList';
@@ -31,6 +32,7 @@ import NavigationResults from '../components/NavigationResults';
 import TouchTargetResults from '../components/TouchTargetResults';
 import KeyboardShortcutResults from '../components/KeyboardShortcutResults';
 import ContentStructureResults from '../components/ContentStructureResults';
+import MobileAccessibilityResults from '../components/MobileAccessibilityResults';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { accessibilityAPI } from '../services/api';
 
@@ -891,6 +893,27 @@ const ResultsPage = () => {
               <SummaryLabel>Content Structure Score</SummaryLabel>
             </SummaryCard>
           )}
+
+          {/* Mobile Accessibility Summary Cards */}
+          {results.summary.mobileAccessibilityScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.mobileAccessibilityScore >= 80 ? "#10b981" : results.summary.mobileAccessibilityScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaMobile />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.mobileAccessibilityScore}%</SummaryValue>
+              <SummaryLabel>Mobile Accessibility Score</SummaryLabel>
+            </SummaryCard>
+          )}
+
+          {results.summary.hasViewportMeta !== undefined && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.hasViewportMeta ? "#10b981" : "#ef4444"}>
+                <FaMobile />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.hasViewportMeta ? 'Yes' : 'No'}</SummaryValue>
+              <SummaryLabel>Mobile Viewport</SummaryLabel>
+            </SummaryCard>
+          )}
           
           {results.summary.keyboardScore !== null && (
             <SummaryCard>
@@ -1196,6 +1219,11 @@ const ResultsPage = () => {
           {/* Content Structure Analysis */}
           {results.contentStructure && (
             <ContentStructureResults contentStructureData={results.contentStructure} />
+          )}
+
+          {/* Mobile Accessibility Analysis */}
+          {results.mobileAccessibility && (
+            <MobileAccessibilityResults mobileAccessibilityData={results.mobileAccessibility} />
           )}
 
           {/* Color Contrast Analysis for detailed reports */}
