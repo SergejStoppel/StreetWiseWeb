@@ -20,6 +20,7 @@ const EnhancedImageAnalyzer = require('./analysis/EnhancedImageAnalyzer');
 const FocusManagementAnalyzer = require('./analysis/FocusManagementAnalyzer');
 const NavigationAnalyzer = require('./analysis/NavigationAnalyzer');
 const TouchTargetAnalyzer = require('./analysis/TouchTargetAnalyzer');
+const KeyboardShortcutAnalyzer = require('./analysis/KeyboardShortcutAnalyzer');
 
 class AccessibilityAnalyzer {
   constructor() {
@@ -39,6 +40,7 @@ class AccessibilityAnalyzer {
     this.focusManagementAnalyzer = new FocusManagementAnalyzer();
     this.navigationAnalyzer = new NavigationAnalyzer();
     this.touchTargetAnalyzer = new TouchTargetAnalyzer();
+    this.keyboardShortcutAnalyzer = new KeyboardShortcutAnalyzer();
     
     // Legacy compatibility
     this.pdfCache = this.cacheManager;
@@ -98,6 +100,7 @@ class AccessibilityAnalyzer {
           focusManagementData,
           navigationData,
           touchTargetData,
+          keyboardShortcutData,
           customChecks
         ] = await Promise.all([
           this.runAxeAnalysis(page, analysisId),
@@ -111,6 +114,7 @@ class AccessibilityAnalyzer {
           this.focusManagementAnalyzer.analyze(page, analysisId),
           this.navigationAnalyzer.analyze(page, analysisId),
           this.touchTargetAnalyzer.analyze(page, analysisId),
+          this.keyboardShortcutAnalyzer.analyze(page, analysisId),
           this.runLegacyCustomChecks(page, analysisId)
         ]);
         
@@ -136,6 +140,7 @@ class AccessibilityAnalyzer {
           focusManagementData,
           navigationData,
           touchTargetData,
+          keyboardShortcutData,
           customChecks,
           colorContrastAnalysis,
           analysisId,
@@ -238,6 +243,7 @@ class AccessibilityAnalyzer {
       focusManagementData,
       navigationData,
       touchTargetData,
+      keyboardShortcutData,
       customChecks,
       colorContrastAnalysis,
       analysisId,
@@ -256,6 +262,7 @@ class AccessibilityAnalyzer {
       focusManagement: this.focusManagementAnalyzer.calculateScore(focusManagementData),
       navigation: this.navigationAnalyzer.calculateNavigationScore(navigationData),
       touchTargets: this.touchTargetAnalyzer.calculateScore(touchTargetData),
+      keyboardShortcuts: this.keyboardShortcutAnalyzer.calculateScore(keyboardShortcutData),
       colorContrast: this.calculateColorContrastScore(colorContrastAnalysis),
       axeScore: this.calculateAxeScore(axeResults)
     };
@@ -276,6 +283,7 @@ class AccessibilityAnalyzer {
       focusManagement: individualScores.focusManagement,
       navigation: individualScores.navigation,
       touchTargets: individualScores.touchTargets,
+      keyboardShortcuts: individualScores.keyboardShortcuts,
       colorContrast: individualScores.colorContrast,
       axeScore: individualScores.axeScore
     };
@@ -292,6 +300,7 @@ class AccessibilityAnalyzer {
       focusManagementData,
       navigationData,
       touchTargetData,
+      keyboardShortcutData,
       axeResults,
       language
     });
@@ -327,7 +336,8 @@ class AccessibilityAnalyzer {
         structureData: structureData,
         formData: formData,
         navigationData: navigationData,
-        touchTargetData: touchTargetData
+        touchTargetData: touchTargetData,
+        keyboardShortcutData: keyboardShortcutData
       }),
       structure: structureData,
       aria: ariaData,
@@ -339,6 +349,7 @@ class AccessibilityAnalyzer {
       focusManagement: focusManagementData,
       navigation: navigationData,
       touchTargets: touchTargetData,
+      keyboardShortcuts: keyboardShortcutData,
       customChecks: customChecks,
       colorContrast: colorContrastAnalysis,
       axeResults,
@@ -368,6 +379,7 @@ class AccessibilityAnalyzer {
       focusManagement: 0.06,
       navigation: 0.05,
       touchTargets: 0.05,
+      keyboardShortcuts: 0.04,
       colorContrast: 0.03
     };
 
@@ -455,7 +467,7 @@ class AccessibilityAnalyzer {
     const { 
       structureData, ariaData, formData, tableData, keyboardData,
       textReadabilityData, enhancedImageData, focusManagementData,
-      navigationData, touchTargetData, axeResults, language 
+      navigationData, touchTargetData, keyboardShortcutData, axeResults, language 
     } = data;
     
     try {
@@ -530,6 +542,13 @@ class AccessibilityAnalyzer {
         allRecommendations.push(...touchTargetRecs);
       } catch (error) {
         logger.warn('Touch target recommendations failed:', error.message);
+      }
+      
+      try {
+        const keyboardShortcutRecs = this.keyboardShortcutAnalyzer.generateRecommendations(keyboardShortcutData, language) || [];
+        allRecommendations.push(...keyboardShortcutRecs);
+      } catch (error) {
+        logger.warn('Keyboard shortcut recommendations failed:', error.message);
       }
 
       // Group by priority and type
@@ -623,6 +642,13 @@ class AccessibilityAnalyzer {
     const touchTargetScore = touchTargetData?.summary?.score || 100;
     const averageTargetSize = touchTargetData?.summary?.averageTargetSize || 0;
     
+    // Keyboard shortcut information
+    const keyboardShortcutData = additionalData.keyboardShortcutData;
+    const totalAccessKeys = keyboardShortcutData?.summary?.totalAccessKeys || 0;
+    const conflictingAccessKeys = keyboardShortcutData?.summary?.conflictingAccessKeys || 0;
+    const keyboardShortcutScore = keyboardShortcutData?.summary?.score || 100;
+    const reservedConflicts = keyboardShortcutData?.summary?.reservedConflicts || 0;
+    
     
     
     return {
@@ -682,7 +708,13 @@ class AccessibilityAnalyzer {
       smallTargets: smallTargets,
       totalInteractiveElements: totalInteractiveElements,
       touchTargetScore: touchTargetScore,
-      averageTargetSize: averageTargetSize
+      averageTargetSize: averageTargetSize,
+      
+      // Keyboard shortcut data
+      totalAccessKeys: totalAccessKeys,
+      conflictingAccessKeys: conflictingAccessKeys,
+      keyboardShortcutScore: keyboardShortcutScore,
+      reservedConflicts: reservedConflicts
     };
   }
 

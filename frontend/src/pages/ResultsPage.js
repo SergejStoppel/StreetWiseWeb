@@ -20,13 +20,15 @@ import {
   FaLanguage,
   FaCompass,
   FaRoute,
-  FaHandPointer
+  FaHandPointer,
+  FaKeyboard
 } from 'react-icons/fa';
 import ScoreCard from '../components/ScoreCard';
 import ViolationsList from '../components/ViolationsList';
 import RecommendationsList from '../components/RecommendationsList';
 import NavigationResults from '../components/NavigationResults';
 import TouchTargetResults from '../components/TouchTargetResults';
+import KeyboardShortcutResults from '../components/KeyboardShortcutResults';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { accessibilityAPI } from '../services/api';
 
@@ -855,6 +857,27 @@ const ResultsPage = () => {
               <SummaryLabel>Touch Target Score</SummaryLabel>
             </SummaryCard>
           )}
+
+          {/* Keyboard Shortcut Summary Cards */}
+          {results.summary.conflictingAccessKeys !== undefined && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.conflictingAccessKeys === 0 ? "#10b981" : "#ef4444"}>
+                <FaKeyboard />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.conflictingAccessKeys}</SummaryValue>
+              <SummaryLabel>Access Key Conflicts</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.keyboardShortcutScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.keyboardShortcutScore >= 80 ? "#10b981" : results.summary.keyboardShortcutScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaKeyboard />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.keyboardShortcutScore}%</SummaryValue>
+              <SummaryLabel>Keyboard Shortcut Score</SummaryLabel>
+            </SummaryCard>
+          )}
           
           {results.summary.keyboardScore !== null && (
             <SummaryCard>
@@ -1150,6 +1173,11 @@ const ResultsPage = () => {
           {/* Touch Target Analysis */}
           {results.touchTargets && (
             <TouchTargetResults touchTargetData={results.touchTargets} />
+          )}
+
+          {/* Keyboard Shortcut Analysis */}
+          {results.keyboardShortcuts && (
+            <KeyboardShortcutResults keyboardShortcutData={results.keyboardShortcuts} />
           )}
 
           {/* Color Contrast Analysis for detailed reports */}
