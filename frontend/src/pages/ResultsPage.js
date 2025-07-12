@@ -21,7 +21,8 @@ import {
   FaCompass,
   FaRoute,
   FaHandPointer,
-  FaKeyboard
+  FaKeyboard,
+  FaAlignLeft
 } from 'react-icons/fa';
 import ScoreCard from '../components/ScoreCard';
 import ViolationsList from '../components/ViolationsList';
@@ -29,6 +30,7 @@ import RecommendationsList from '../components/RecommendationsList';
 import NavigationResults from '../components/NavigationResults';
 import TouchTargetResults from '../components/TouchTargetResults';
 import KeyboardShortcutResults from '../components/KeyboardShortcutResults';
+import ContentStructureResults from '../components/ContentStructureResults';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { accessibilityAPI } from '../services/api';
 
@@ -878,6 +880,17 @@ const ResultsPage = () => {
               <SummaryLabel>Keyboard Shortcut Score</SummaryLabel>
             </SummaryCard>
           )}
+
+          {/* Content Structure Summary Cards */}
+          {results.summary.contentStructureScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.contentStructureScore >= 80 ? "#10b981" : results.summary.contentStructureScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaAlignLeft />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.contentStructureScore}%</SummaryValue>
+              <SummaryLabel>Content Structure Score</SummaryLabel>
+            </SummaryCard>
+          )}
           
           {results.summary.keyboardScore !== null && (
             <SummaryCard>
@@ -1178,6 +1191,11 @@ const ResultsPage = () => {
           {/* Keyboard Shortcut Analysis */}
           {results.keyboardShortcuts && (
             <KeyboardShortcutResults keyboardShortcutData={results.keyboardShortcuts} />
+          )}
+
+          {/* Content Structure Analysis */}
+          {results.contentStructure && (
+            <ContentStructureResults contentStructureData={results.contentStructure} />
           )}
 
           {/* Color Contrast Analysis for detailed reports */}

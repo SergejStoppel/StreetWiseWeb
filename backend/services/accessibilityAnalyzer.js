@@ -21,6 +21,7 @@ const FocusManagementAnalyzer = require('./analysis/FocusManagementAnalyzer');
 const NavigationAnalyzer = require('./analysis/NavigationAnalyzer');
 const TouchTargetAnalyzer = require('./analysis/TouchTargetAnalyzer');
 const KeyboardShortcutAnalyzer = require('./analysis/KeyboardShortcutAnalyzer');
+const ContentStructureAnalyzer = require('./analysis/ContentStructureAnalyzer');
 
 class AccessibilityAnalyzer {
   constructor() {
@@ -41,6 +42,7 @@ class AccessibilityAnalyzer {
     this.navigationAnalyzer = new NavigationAnalyzer();
     this.touchTargetAnalyzer = new TouchTargetAnalyzer();
     this.keyboardShortcutAnalyzer = new KeyboardShortcutAnalyzer();
+    this.contentStructureAnalyzer = new ContentStructureAnalyzer();
     
     // Legacy compatibility
     this.pdfCache = this.cacheManager;
@@ -101,6 +103,7 @@ class AccessibilityAnalyzer {
           navigationData,
           touchTargetData,
           keyboardShortcutData,
+          contentStructureData,
           customChecks
         ] = await Promise.all([
           this.runAxeAnalysis(page, analysisId),
@@ -115,6 +118,7 @@ class AccessibilityAnalyzer {
           this.navigationAnalyzer.analyze(page, analysisId),
           this.touchTargetAnalyzer.analyze(page, analysisId),
           this.keyboardShortcutAnalyzer.analyze(page, analysisId),
+          this.contentStructureAnalyzer.analyze(page, analysisId),
           this.runLegacyCustomChecks(page, analysisId)
         ]);
         
@@ -141,6 +145,7 @@ class AccessibilityAnalyzer {
           navigationData,
           touchTargetData,
           keyboardShortcutData,
+          contentStructureData,
           customChecks,
           colorContrastAnalysis,
           analysisId,
@@ -244,6 +249,7 @@ class AccessibilityAnalyzer {
       navigationData,
       touchTargetData,
       keyboardShortcutData,
+      contentStructureData,
       customChecks,
       colorContrastAnalysis,
       analysisId,
@@ -263,6 +269,7 @@ class AccessibilityAnalyzer {
       navigation: this.navigationAnalyzer.calculateNavigationScore(navigationData),
       touchTargets: this.touchTargetAnalyzer.calculateScore(touchTargetData),
       keyboardShortcuts: this.keyboardShortcutAnalyzer.calculateScore(keyboardShortcutData),
+      contentStructure: this.contentStructureAnalyzer.calculateScore(contentStructureData),
       colorContrast: this.calculateColorContrastScore(colorContrastAnalysis),
       axeScore: this.calculateAxeScore(axeResults)
     };
@@ -284,6 +291,7 @@ class AccessibilityAnalyzer {
       navigation: individualScores.navigation,
       touchTargets: individualScores.touchTargets,
       keyboardShortcuts: individualScores.keyboardShortcuts,
+      contentStructure: individualScores.contentStructure,
       colorContrast: individualScores.colorContrast,
       axeScore: individualScores.axeScore
     };
@@ -301,6 +309,7 @@ class AccessibilityAnalyzer {
       navigationData,
       touchTargetData,
       keyboardShortcutData,
+      contentStructureData,
       axeResults,
       language
     });
@@ -337,7 +346,8 @@ class AccessibilityAnalyzer {
         formData: formData,
         navigationData: navigationData,
         touchTargetData: touchTargetData,
-        keyboardShortcutData: keyboardShortcutData
+        keyboardShortcutData: keyboardShortcutData,
+        contentStructureData: contentStructureData
       }),
       structure: structureData,
       aria: ariaData,
@@ -350,6 +360,7 @@ class AccessibilityAnalyzer {
       navigation: navigationData,
       touchTargets: touchTargetData,
       keyboardShortcuts: keyboardShortcutData,
+      contentStructure: contentStructureData,
       customChecks: customChecks,
       colorContrast: colorContrastAnalysis,
       axeResults,
@@ -380,6 +391,7 @@ class AccessibilityAnalyzer {
       navigation: 0.05,
       touchTargets: 0.05,
       keyboardShortcuts: 0.04,
+      contentStructure: 0.04,
       colorContrast: 0.03
     };
 
@@ -467,7 +479,7 @@ class AccessibilityAnalyzer {
     const { 
       structureData, ariaData, formData, tableData, keyboardData,
       textReadabilityData, enhancedImageData, focusManagementData,
-      navigationData, touchTargetData, keyboardShortcutData, axeResults, language 
+      navigationData, touchTargetData, keyboardShortcutData, contentStructureData, axeResults, language 
     } = data;
     
     try {
@@ -549,6 +561,13 @@ class AccessibilityAnalyzer {
         allRecommendations.push(...keyboardShortcutRecs);
       } catch (error) {
         logger.warn('Keyboard shortcut recommendations failed:', error.message);
+      }
+      
+      try {
+        const contentStructureRecs = this.contentStructureAnalyzer.generateRecommendations(contentStructureData, language) || [];
+        allRecommendations.push(...contentStructureRecs);
+      } catch (error) {
+        logger.warn('Content structure recommendations failed:', error.message);
       }
 
       // Group by priority and type
@@ -649,6 +668,14 @@ class AccessibilityAnalyzer {
     const keyboardShortcutScore = keyboardShortcutData?.summary?.score || 100;
     const reservedConflicts = keyboardShortcutData?.summary?.reservedConflicts || 0;
     
+    // Content structure information
+    const contentStructureData = additionalData.contentStructureData;
+    const totalParagraphs = contentStructureData?.summary?.totalParagraphs || 0;
+    const totalHeadings = contentStructureData?.summary?.totalHeadings || 0;
+    const averageLineLength = contentStructureData?.summary?.averageLineLength || 0;
+    const contentStructureScore = contentStructureData?.summary?.overallScore || 100;
+    const whiteSpaceScore = contentStructureData?.summary?.whiteSpaceScore || 100;
+    const contentIssues = contentStructureData?.issues?.length || 0;
     
     
     return {
@@ -714,7 +741,15 @@ class AccessibilityAnalyzer {
       totalAccessKeys: totalAccessKeys,
       conflictingAccessKeys: conflictingAccessKeys,
       keyboardShortcutScore: keyboardShortcutScore,
-      reservedConflicts: reservedConflicts
+      reservedConflicts: reservedConflicts,
+      
+      // Content structure data
+      totalParagraphs: totalParagraphs,
+      totalHeadings: totalHeadings,
+      averageLineLength: averageLineLength,
+      contentStructureScore: contentStructureScore,
+      whiteSpaceScore: whiteSpaceScore,
+      contentIssues: contentIssues
     };
   }
 
