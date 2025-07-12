@@ -1,0 +1,106 @@
+{
+  "pageTitle": "Your Website Health Report",
+  "pageSubtitle": "Here's what we found and how it affects your business",
+  
+  "overview": {
+    "title": "Website Health Overview",
+    "subtitle": "Your free summary report",
+    "healthScore": {
+      "title": "Overall Website Health",
+      "excellent": "Excellent",
+      "good": "Good", 
+      "needsImprovement": "Needs Improvement",
+      "poor": "Poor"
+    },
+    "riskAssessment": {
+      "title": "Legal Risk Assessment",
+      "lowRisk": "Low Risk",
+      "mediumRisk": "Medium Risk", 
+      "highRisk": "High Risk",
+      "lowRiskDescription": "Your website meets most accessibility requirements. Low chance of legal issues.",
+      "mediumRiskDescription": "Some accessibility issues found. Consider addressing them to reduce legal risk.",
+      "highRiskDescription": "Significant accessibility issues found. We recommend immediate action to avoid potential lawsuits."
+    },
+    "customerImpact": {
+      "title": "How This Affects Your Customers",
+      "missedCustomers": "Potential Customers You're Missing",
+      "difficulties": "Difficulties Customers May Face",
+      "positiveImpact": "Your customers can easily use your website",
+      "someIssues": "Some customers may have trouble using your website",
+      "significantIssues": "Many customers may struggle to use your website"
+    }
+  },
+  
+  "priorities": {
+    "title": "Top 3 Things to Fix Right Now",
+    "subtitle": "Focus on these for the biggest impact on your business",
+    "impact": {
+      "high": "High Impact",
+      "medium": "Medium Impact", 
+      "low": "Low Impact"
+    },
+    "effort": {
+      "easy": "Easy Fix",
+      "moderate": "Moderate Effort",
+      "complex": "Complex Fix"
+    },
+    "businessBenefit": "Business Benefit",
+    "customerBenefit": "Customer Benefit",
+    "noIssues": "Great news! We didn't find any critical issues that need immediate attention."
+  },
+  
+  "upgrade": {
+    "title": "Want More Details?",
+    "subtitle": "Get actionable insights to grow your business",
+    "freeReportLimitations": "This free report shows you the big picture. For specific fixes and step-by-step guidance:",
+    "detailedReportIncludes": "Our detailed report includes:",
+    "features": [
+      "Specific instructions for each issue",
+      "Code examples your developer can use", 
+      "Before/after mockups showing improvements",
+      "Priority order for maximum business impact",
+      "ROI estimates for each fix",
+      "Legal compliance checklist"
+    ],
+    "pricing": {
+      "detailed": "Detailed Report - $49",
+      "consultation": "Report + 30min Consultation - $99"
+    },
+    "cta": {
+      "buyReport": "Get Detailed Report",
+      "scheduleCall": "Schedule Consultation",
+      "contactUs": "Contact Us"
+    }
+  },
+  
+  "detailed": {
+    "title": "Detailed Analysis",
+    "subtitle": "Complete breakdown of your website's accessibility",
+    "sections": {
+      "accessibility": "Accessibility Issues",
+      "seo": "Search Engine Optimization", 
+      "performance": "Website Performance",
+      "mobile": "Mobile Experience"
+    },
+    "issueCard": {
+      "whyItMatters": "Why This Matters for Your Business",
+      "howToFix": "How to Fix This",
+      "whatYouGain": "What You'll Gain",
+      "technicalDetails": "Technical Details",
+      "wcagReference": "Accessibility Standard"
+    }
+  },
+  
+  "actions": {
+    "downloadReport": "Download PDF Report",
+    "shareReport": "Share Report", 
+    "analyzeAnother": "Analyze Another Website",
+    "backToHome": "Back to Home"
+  },
+  
+  "metadata": {
+    "analyzedOn": "Analyzed on",
+    "reportId": "Report ID",
+    "websiteUrl": "Website"
+  }
+}

@@ -1,0 +1,106 @@
+{
+  "pageTitle": "Ihr Website-Gesundheitsbericht",
+  "pageSubtitle": "Das haben wir gefunden und wie es Ihr Geschäft beeinflusst",
+  
+  "overview": {
+    "title": "Website-Gesundheitsübersicht",
+    "subtitle": "Ihr kostenloser Zusammenfassungsbericht",
+    "healthScore": {
+      "title": "Allgemeine Website-Gesundheit",
+      "excellent": "Ausgezeichnet",
+      "good": "Gut", 
+      "needsImprovement": "Verbesserungsbedürftig",
+      "poor": "Schlecht"
+    },
+    "riskAssessment": {
+      "title": "Rechtliche Risikobewertung",
+      "lowRisk": "Geringes Risiko",
+      "mediumRisk": "Mittleres Risiko", 
+      "highRisk": "Hohes Risiko",
+      "lowRiskDescription": "Ihre Website erfüllt die meisten Barrierefreiheitsanforderungen. Geringe Wahrscheinlichkeit rechtlicher Probleme.",
+      "mediumRiskDescription": "Einige Barrierefreiheitsprobleme gefunden. Erwägen Sie, diese zu beheben, um das rechtliche Risiko zu reduzieren.",
+      "highRiskDescription": "Erhebliche Barrierefreiheitsprobleme gefunden. Wir empfehlen sofortiges Handeln, um mögliche Klagen zu vermeiden."
+    },
+    "customerImpact": {
+      "title": "Wie Dies Ihre Kunden Beeinflusst",
+      "missedCustomers": "Potenzielle Kunden, Die Sie Verpassen",
+      "difficulties": "Schwierigkeiten, Die Kunden Haben Könnten",
+      "positiveImpact": "Ihre Kunden können Ihre Website einfach nutzen",
+      "someIssues": "Einige Kunden könnten Probleme bei der Nutzung Ihrer Website haben",
+      "significantIssues": "Viele Kunden könnten Schwierigkeiten bei der Nutzung Ihrer Website haben"
+    }
+  },
+  
+  "priorities": {
+    "title": "Die 3 Wichtigsten Dinge, Die Jetzt Zu Beheben Sind",
+    "subtitle": "Konzentrieren Sie sich auf diese für den größten Einfluss auf Ihr Geschäft",
+    "impact": {
+      "high": "Hoher Einfluss",
+      "medium": "Mittlerer Einfluss", 
+      "low": "Geringer Einfluss"
+    },
+    "effort": {
+      "easy": "Einfache Korrektur",
+      "moderate": "Mittlerer Aufwand",
+      "complex": "Komplexe Korrektur"
+    },
+    "businessBenefit": "Geschäftsvorteil",
+    "customerBenefit": "Kundenvorteil",
+    "noIssues": "Großartige Neuigkeiten! Wir haben keine kritischen Probleme gefunden, die sofortige Aufmerksamkeit benötigen."
+  },
+  
+  "upgrade": {
+    "title": "Möchten Sie Mehr Details?",
+    "subtitle": "Erhalten Sie umsetzbare Erkenntnisse, um Ihr Geschäft zu erweitern",
+    "freeReportLimitations": "Dieser kostenlose Bericht zeigt Ihnen das große Bild. Für spezifische Korrekturen und schrittweise Anleitung:",
+    "detailedReportIncludes": "Unser detaillierter Bericht umfasst:",
+    "features": [
+      "Spezifische Anweisungen für jedes Problem",
+      "Code-Beispiele, die Ihr Entwickler verwenden kann", 
+      "Vorher/Nachher-Mockups, die Verbesserungen zeigen",
+      "Prioritätsreihenfolge für maximalen Geschäftseinfluss",
+      "ROI-Schätzungen für jede Korrektur",
+      "Checkliste für rechtliche Compliance"
+    ],
+    "pricing": {
+      "detailed": "Detaillierter Bericht - $49",
+      "consultation": "Bericht + 30min Beratung - $99"
+    },
+    "cta": {
+      "buyReport": "Detaillierten Bericht Erhalten",
+      "scheduleCall": "Beratung Planen",
+      "contactUs": "Kontaktieren Sie Uns"
+    }
+  },
+  
+  "detailed": {
+    "title": "Detaillierte Analyse",
+    "subtitle": "Vollständige Aufschlüsselung der Barrierefreiheit Ihrer Website",
+    "sections": {
+      "accessibility": "Barrierefreiheitsprobleme",
+      "seo": "Suchmaschinenoptimierung", 
+      "performance": "Website-Leistung",
+      "mobile": "Mobile Erfahrung"
+    },
+    "issueCard": {
+      "whyItMatters": "Warum Das Für Ihr Geschäft Wichtig Ist",
+      "howToFix": "Wie Man Das Behebt",
+      "whatYouGain": "Was Sie Gewinnen Werden",
+      "technicalDetails": "Technische Details",
+      "wcagReference": "Barrierefreiheitsstandard"
+    }
+  },
+  
+  "actions": {
+    "downloadReport": "PDF-Bericht Herunterladen",
+    "shareReport": "Bericht Teilen", 
+    "analyzeAnother": "Andere Website Analysieren",
+    "backToHome": "Zurück Zur Startseite"
+  },
+  
+  "metadata": {
+    "analyzedOn": "Analysiert am",
+    "reportId": "Bericht-ID",
+    "websiteUrl": "Website"
+  }
+}

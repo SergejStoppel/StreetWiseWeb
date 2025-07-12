@@ -1,0 +1,106 @@
+{
+  "pageTitle": "Su Informe de Salud Web",
+  "pageSubtitle": "Esto es lo que encontramos y cómo afecta su negocio",
+  
+  "overview": {
+    "title": "Resumen de Salud Web",
+    "subtitle": "Su informe de resumen gratuito",
+    "healthScore": {
+      "title": "Salud General del Sitio Web",
+      "excellent": "Excelente",
+      "good": "Bueno", 
+      "needsImprovement": "Necesita Mejoras",
+      "poor": "Deficiente"
+    },
+    "riskAssessment": {
+      "title": "Evaluación de Riesgo Legal",
+      "lowRisk": "Riesgo Bajo",
+      "mediumRisk": "Riesgo Medio", 
+      "highRisk": "Riesgo Alto",
+      "lowRiskDescription": "Su sitio web cumple con la mayoría de los requisitos de accesibilidad. Baja probabilidad de problemas legales.",
+      "mediumRiskDescription": "Se encontraron algunos problemas de accesibilidad. Considere abordarlos para reducir el riesgo legal.",
+      "highRiskDescription": "Se encontraron problemas significativos de accesibilidad. Recomendamos acción inmediata para evitar posibles demandas."
+    },
+    "customerImpact": {
+      "title": "Cómo Esto Afecta a Sus Clientes",
+      "missedCustomers": "Clientes Potenciales Que Está Perdiendo",
+      "difficulties": "Dificultades Que Los Clientes Pueden Enfrentar",
+      "positiveImpact": "Sus clientes pueden usar fácilmente su sitio web",
+      "someIssues": "Algunos clientes pueden tener problemas usando su sitio web",
+      "significantIssues": "Muchos clientes pueden tener dificultades para usar su sitio web"
+    }
+  },
+  
+  "priorities": {
+    "title": "Las 3 Cosas Principales a Arreglar Ahora Mismo",
+    "subtitle": "Enfóquese en estas para el mayor impacto en su negocio",
+    "impact": {
+      "high": "Alto Impacto",
+      "medium": "Impacto Medio", 
+      "low": "Bajo Impacto"
+    },
+    "effort": {
+      "easy": "Arreglo Fácil",
+      "moderate": "Esfuerzo Moderado",
+      "complex": "Arreglo Complejo"
+    },
+    "businessBenefit": "Beneficio del Negocio",
+    "customerBenefit": "Beneficio del Cliente",
+    "noIssues": "¡Excelentes noticias! No encontramos problemas críticos que necesiten atención inmediata."
+  },
+  
+  "upgrade": {
+    "title": "¿Quiere Más Detalles?",
+    "subtitle": "Obtenga información procesable para hacer crecer su negocio",
+    "freeReportLimitations": "Este informe gratuito le muestra el panorama general. Para correcciones específicas y orientación paso a paso:",
+    "detailedReportIncludes": "Nuestro informe detallado incluye:",
+    "features": [
+      "Instrucciones específicas para cada problema",
+      "Ejemplos de código que su desarrollador puede usar", 
+      "Maquetas de antes/después mostrando mejoras",
+      "Orden de prioridad para máximo impacto empresarial",
+      "Estimaciones de ROI para cada corrección",
+      "Lista de verificación de cumplimiento legal"
+    ],
+    "pricing": {
+      "detailed": "Informe Detallado - $49",
+      "consultation": "Informe + Consulta de 30min - $99"
+    },
+    "cta": {
+      "buyReport": "Obtener Informe Detallado",
+      "scheduleCall": "Programar Consulta",
+      "contactUs": "Contáctenos"
+    }
+  },
+  
+  "detailed": {
+    "title": "Análisis Detallado",
+    "subtitle": "Desglose completo de la accesibilidad de su sitio web",
+    "sections": {
+      "accessibility": "Problemas de Accesibilidad",
+      "seo": "Optimización para Motores de Búsqueda", 
+      "performance": "Rendimiento del Sitio Web",
+      "mobile": "Experiencia Móvil"
+    },
+    "issueCard": {
+      "whyItMatters": "Por Qué Esto Importa para Su Negocio",
+      "howToFix": "Cómo Arreglar Esto",
+      "whatYouGain": "Lo Que Ganará",
+      "technicalDetails": "Detalles Técnicos",
+      "wcagReference": "Estándar de Accesibilidad"
+    }
+  },
+  
+  "actions": {
+    "downloadReport": "Descargar Informe PDF",
+    "shareReport": "Compartir Informe", 
+    "analyzeAnother": "Analizar Otro Sitio Web",
+    "backToHome": "Volver al Inicio"
+  },
+  
+  "metadata": {
+    "analyzedOn": "Analizado el",
+    "reportId": "ID del Informe",
+    "websiteUrl": "Sitio Web"
+  }
+}
