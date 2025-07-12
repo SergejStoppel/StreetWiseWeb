@@ -24,7 +24,7 @@ i18n
     supportedLngs: Object.keys(SUPPORTED_LANGUAGES),
     
     // Namespaces
-    ns: ['common', 'navigation', 'analysis', 'forms', 'reports', 'dashboard'],
+    ns: ['common', 'navigation', 'analysis', 'forms', 'reports', 'dashboard', 'homepage'],
     defaultNS: 'common',
     
     // Backend configuration

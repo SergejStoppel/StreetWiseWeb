@@ -1,38 +1,153 @@
 {
   "hero": {
-    "title": "Professionelle Website-Barrierefreiheitsanalyse",
-    "subtitle": "Erhalten Sie sofortige Einblicke in die Barrierefreiheits-Compliance Ihrer Website mit unserer KI-gestützten Analyse. Identifizieren Sie Probleme, verbessern Sie die Benutzererfahrung und stellen Sie die rechtliche Compliance sicher.",
-    "formTitle": "Analysieren Sie Ihre Website",
-    "exampleText": "Geben Sie eine beliebige Website ein (z.B. beispiel.de) • Kostenloses Übersicht-Berichts • Detaillierte Berichte zum Kauf verfügbar"
+    "title": "Verliert Ihre Website Kunden?",
+    "subtitle": "Finden Sie es kostenlos heraus. Erhalten Sie einen einfachen, fachsprachenfreien Bericht über die Gesundheit Ihrer Website und sehen Sie, wie Sie mehr Kunden anziehen können.",
+    "formTitle": "Meinen Kostenlosen Bericht Erhalten",
+    "exampleText": "Keine technischen Kenntnisse erforderlich. Wir senden Ihnen die Ergebnisse per E-Mail.",
+    "microcopy": "ihrewebsite.de"
+  },
+  "problem": {
+    "title": "Ihre Website Sollte Ihrem Business Helfen, Nicht Schaden.",
+    "intro": "Für viele Kleinunternehmer kann sich eine Website wie ein verwirrendes, teures und zeitaufwändiges Problem anfühlen. Sie fragen sich vielleicht:",
+    "questions": [
+      {
+        "title": "Erreiche ich die richtigen Kunden?",
+        "description": "Wenn Ihre Website nicht für Suchmaschinen wie Google und KI-Assistenten wie ChatGPT optimiert ist, sind Sie wahrscheinlich unsichtbar für potenzielle Kunden, die nach Ihren Produkten oder Dienstleistungen suchen."
+      },
+      {
+        "title": "Schreckt meine Website Menschen ab?",
+        "description": "Eine langsame, verwirrende oder kaputte Website frustriert Besucher und schickt sie direkt zur Konkurrenz."
+      },
+      {
+        "title": "Könnte meine Website mich in rechtliche Schwierigkeiten bringen?",
+        "description": "Viele Geschäftsinhaber wissen nicht, dass ihre Websites gesetzlich verpflichtet sind, für Menschen mit Behinderungen zugänglich zu sein. Dies kann zu teuren Klagen führen."
+      }
+    ]
+  },
+  "agitate": {
+    "title": "Die Probleme Ihrer Website zu Ignorieren Ist Teuer.",
+    "content": "Eine ungesunde Website ist nicht nur eine verpasste Gelegenheit; sie ist eine direkte Bedrohung für Ihre Einnahmen.",
+    "points": [
+      {
+        "title": "Sie Verlieren Geld",
+        "description": "Jeder Kunde, der Sie online nicht finden kann, sich über Ihre Website ärgert oder sie aufgrund einer Behinderung nicht nutzen kann, ist ein verlorener Verkauf."
+      },
+      {
+        "title": "Sie Fallen Zurück",
+        "description": "Ihre Konkurrenten werden online intelligenter. Wenn Ihre Website nicht mithält, geben Sie ihnen Ihr Geschäft."
+      },
+      {
+        "title": "Sie Sind Gefährdet",
+        "description": "Barrierefreiheitsklagen gegen kleine Unternehmen nehmen zu, mit potenziellen Kosten von zehntausenden Euro."
+      }
+    ]
+  },
+  "solution": {
+    "title": "Wir Lassen Ihre Website Für Sie Arbeiten.",
+    "subtitle": "StreetWiseWeb ist Ihr freundlicher, erschwinglicher Partner für eine gesunde, kundengewinnende Website. Wir übersetzen technisches Fachchinesisch in einfache, umsetzbare Schritte, damit Sie sich auf das konzentrieren können, was Sie am besten können: Ihr Geschäft führen.",
+    "promise": {
+      "title": "Unser Versprechen:",
+      "points": [
+        {
+          "title": "Kein Rätselraten Mehr",
+          "description": "Wir zeigen Ihnen genau, was falsch ist und wie Sie es beheben können."
+        },
+        {
+          "title": "Mehr Kunden, Keine Kopfschmerzen",
+          "description": "Wir helfen Ihnen, bei Google, ChatGPT und anderen KI-Assistenten gefunden zu werden, während wir Ihren Besuchern eine großartige Erfahrung bieten."
+        },
+        {
+          "title": "Seelenfrieden",
+          "description": "Wir helfen Ihnen, Ihre rechtlichen Anforderungen zu verstehen und anzugehen, und schützen Sie vor Klagen."
+        }
+      ]
+    }
+  },
+  "howItWorks": {
+    "title": "Erhalten Sie Ihren Kostenlosen Website-Gesundheitsbericht in 3 Einfachen Schritten.",
+    "steps": [
+      {
+        "number": "1",
+        "title": "Geben Sie Ihre Website Ein",
+        "description": "Tippen Sie einfach Ihre Website-Adresse ein."
+      },
+      {
+        "number": "2",
+        "title": "Wir Analysieren Ihre Seite",
+        "description": "Unsere intelligente Technologie scannt Ihre Website nach kritischen Problemen."
+      },
+      {
+        "number": "3",
+        "title": "Erhalten Sie Ihren Bericht",
+        "description": "Wir senden Ihnen einen einfachen, leicht verständlichen Bericht mit Ihren Ergebnissen per E-Mail."
+      }
+    ]
+  },
+  "services": {
+    "title": "Was Wir Überprüfen",
+    "items": [
+      {
+        "title": "Barrierefreiheit",
+        "description": "Ist Ihre Website für alle offen, einschließlich Menschen mit Behinderungen?",
+        "details": "Wir stellen sicher, dass Ihre Seite rechtliche Anforderungen erfüllt und alle Kunden bedient."
+      },
+      {
+        "title": "SEO & KI-Auffindbarkeit",
+        "description": "Wie einfach ist es für Kunden, Sie bei Google und KI-Assistenten zu finden?",
+        "details": "Mit KI-Traffic, der 2024 um das 40-fache gewachsen ist, optimieren wir sowohl für traditionelle Suche als auch für KI-Entdeckung."
+      },
+      {
+        "title": "Website-Gesundheit",
+        "description": "Ist Ihre Seite schnell, sicher und auf allen Geräten einfach zu nutzen?",
+        "details": "Wir überprüfen alles von der Ladegeschwindigkeit bis zur Mobilfreundlichkeit."
+      }
+    ]
+  },
+  "aiStats": {
+    "title": "Die Zukunft der Suche Ist Da",
+    "subtitle": "KI-Assistenten wie ChatGPT und Perplexity verändern, wie Kunden Unternehmen finden. Sind Sie bereit?",
+    "stats": [
+      {
+        "number": "10%",
+        "label": "Erwarteter KI-Traffic-Anteil bis Ende 2025"
+      },
+      {
+        "number": "40x",
+        "label": "Wachstum bei KI-Verweis-Traffic während 2024"
+      },
+      {
+        "number": "37%",
+        "label": "Des KI-Traffics kommt von ChatGPT & Perplexity"
+      },
+      {
+        "number": "<90%",
+        "label": "Googles Suchanteil zum ersten Mal seit Jahren"
+      }
+    ]
+  },
+  "testimonial": {
+    "title": "Vertraut von Kleinen Unternehmen Wie Ihrem",
+    "quote": "Ich bin keine Technikerin, und ich hatte Sorge, dass meine Website ein Durcheinander war. StreetWiseWeb gab mir einen Bericht, den ich tatsächlich verstehen konnte. Sie wiesen auf einige einfache Korrekturen hin, die einen großen Unterschied machten. Wir haben mehr Online-Anfragen gesehen, seit wir mit ihnen arbeiten.",
+    "author": "Sarah M.",
+    "role": "Inhaberin, Die Buchhandlung an der Ecke"
+  },
+  "finalCta": {
+    "title": "Bereit zu Sehen, Wie Sich Ihre Website Verbessern Kann?",
+    "subtitle": "Holen Sie sich jetzt Ihren kostenlosen, unverbindlichen Website-Gesundheitsbericht.",
+    "button": "Meinen Kostenlosen Bericht Erhalten"
   },
   "features": {
     "wcagCompliance": {
-      "title": "WCAG-Konformität",
-      "description": "Umfassende Analyse mit der branchenüblichen Axe-core-Engine zur Identifizierung von Barrierefreiheitsverletzungen und Gewährleistung der WCAG 2.1 AA-Konformität."
+      "title": "Rechtlicher Schutz",
+      "description": "Schützen Sie Ihr Unternehmen vor Barrierefreiheitsklagen, während Sie alle Kunden besser bedienen."
     },
     "smartScoring": {
-      "title": "Intelligente Bewertung",
-      "description": "Erhalten Sie klare Barrierefreiheitsbewertungen mit Auswirkungsanalyse. Verstehen Sie, welche Probleme Sie priorisieren sollten, um die Benutzererfahrung maximal zu verbessern."
+      "title": "Einfache Berichte",
+      "description": "Erhalten Sie klare, fachsprachenfreie Erklärungen dessen, was repariert werden muss und warum es wichtig ist."
     },
     "professionalReports": {
-      "title": "Professionelle Berichte",
-      "description": "Erhalten Sie detaillierte PDF-Berichte mit spezifischen Empfehlungen, Code-Beispielen und Implementierungsanleitungen für Ihr Entwicklungsteam."
+      "title": "Umsetzbare Schritte",
+      "description": "Erhalten Sie spezifische, priorisierte Empfehlungen, die Sie umsetzen oder mit Ihrem Webentwickler teilen können."
     }
-  },
-  "whyAccessibility": {
-    "title": "Warum Barrierefreiheit Wichtig Ist",
-    "subtitle": "Web-Barrierefreiheit geht nicht nur um Compliance – es geht darum, inklusive Erfahrungen für alle Benutzer zu schaffen und gleichzeitig Ihr Unternehmen vor rechtlichen Risiken zu schützen.",
-    "stats": {
-      "peopleWithDisabilities": "Menschen mit Behinderungen weltweit",
-      "spendingPower": "Jährliche Kaufkraft",
-      "lawsuitIncrease": "Anstieg bei Barrierefreiheitsklagen",
-      "globalDisability": "Der Weltbevölkerung hat eine Behinderung"
-    }
-  },
-  "testimonials": {
-    "title": "Vertraut von Unternehmen",
-    "quote": "SiteCrafts Barrierefreiheitsanalyse half uns dabei, kritische Probleme zu identifizieren und zu beheben, von denen wir nicht einmal wussten, dass sie existierten. Der detaillierte Bericht sparte unserem Entwicklungsteam wochenlange Arbeit und half uns, potenzielle rechtliche Komplikationen zu vermeiden.",
-    "author": "Sarah Chen",
-    "role": "CTO, TechStart Inc."
   }
 }

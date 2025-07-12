@@ -2,7 +2,22 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import styled from 'styled-components';
-import { FaAccessibleIcon, FaChartLine, FaFileAlt, FaRocket, FaStar } from 'react-icons/fa';
+import { 
+  FaAccessibleIcon, 
+  FaChartLine, 
+  FaFileAlt, 
+  FaRocket, 
+  FaStar, 
+  FaExclamationTriangle,
+  FaDollarSign,
+  FaUsers,
+  FaShieldAlt,
+  FaSearch,
+  FaMobile,
+  FaRobot,
+  FaCheckCircle,
+  FaArrowRight
+} from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { accessibilityAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
@@ -178,52 +193,6 @@ const AnalyzeButton = styled.button`
   }
 `;
 
-const FeaturesSection = styled.section`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: var(--spacing-xl);
-  margin-top: var(--spacing-4xl);
-`;
-
-const FeatureCard = styled.div`
-  background: rgba(255, 255, 255, 0.15);
-  padding: var(--spacing-2xl);
-  border-radius: var(--border-radius-xl);
-  text-align: center;
-  backdrop-filter: blur(15px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  transition: all var(--transition-fast);
-  
-  &:hover {
-    transform: translateY(-5px);
-    background: rgba(255, 255, 255, 0.25);
-    box-shadow: var(--shadow-lg);
-  }
-`;
-
-const FeatureIcon = styled.div`
-  font-size: var(--font-size-5xl);
-  margin-bottom: var(--spacing-lg);
-  color: var(--color-warning);
-  display: flex;
-  justify-content: center;
-`;
-
-const FeatureTitle = styled.h3`
-  font-size: var(--font-size-xl);
-  font-weight: var(--font-weight-bold);
-  font-family: var(--font-family-primary);
-  margin-bottom: var(--spacing-md);
-  color: var(--color-text-inverse);
-`;
-
-const FeatureDescription = styled.p`
-  opacity: 0.95;
-  line-height: var(--line-height-relaxed);
-  color: var(--color-text-inverse);
-  font-family: var(--font-family-secondary);
-`;
-
 const ExampleText = styled.p`
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
@@ -271,6 +240,216 @@ const SectionSubtitle = styled.p`
   line-height: var(--line-height-relaxed);
 `;
 
+const ProblemSection = styled(ContentSection)`
+  background: linear-gradient(135deg, var(--color-surface-secondary) 0%, var(--color-surface-primary) 100%);
+`;
+
+const QuestionsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-3xl);
+`;
+
+const QuestionCard = styled.div`
+  background: var(--color-surface-elevated);
+  padding: var(--spacing-2xl);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-primary);
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    transition: all var(--transition-fast);
+  }
+`;
+
+const QuestionTitle = styled.h3`
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+  font-family: var(--font-family-primary);
+`;
+
+const QuestionDescription = styled.p`
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  font-family: var(--font-family-secondary);
+`;
+
+const AgitateSection = styled(ContentSection)`
+  background: var(--color-surface-primary);
+`;
+
+const PointsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-3xl);
+`;
+
+const PointCard = styled.div`
+  text-align: center;
+  padding: var(--spacing-xl);
+  border-radius: var(--border-radius-lg);
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border-primary);
+`;
+
+const PointIcon = styled.div`
+  font-size: var(--font-size-4xl);
+  color: var(--color-error);
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  justify-content: center;
+`;
+
+const PointTitle = styled.h3`
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+  font-family: var(--font-family-primary);
+`;
+
+const PointDescription = styled.p`
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  font-family: var(--font-family-secondary);
+`;
+
+const SolutionSection = styled(ContentSection)`
+  background: linear-gradient(135deg, var(--color-success-100) 0%, var(--color-surface-primary) 100%);
+`;
+
+const PromiseGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-3xl);
+`;
+
+const PromiseCard = styled.div`
+  background: var(--color-surface-elevated);
+  padding: var(--spacing-2xl);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-success-300);
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    transition: all var(--transition-fast);
+  }
+`;
+
+const HowItWorksSection = styled(ContentSection)`
+  background: var(--color-surface-secondary);
+`;
+
+const StepsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: var(--spacing-2xl);
+  margin-top: var(--spacing-3xl);
+`;
+
+const StepCard = styled.div`
+  text-align: center;
+  position: relative;
+`;
+
+const StepNumber = styled.div`
+  width: 60px;
+  height: 60px;
+  background: var(--color-interactive-primary);
+  color: var(--color-text-on-brand);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin: 0 auto var(--spacing-lg);
+  font-family: var(--font-family-primary);
+`;
+
+const StepTitle = styled.h3`
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+  font-family: var(--font-family-primary);
+`;
+
+const StepDescription = styled.p`
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  font-family: var(--font-family-secondary);
+`;
+
+const ServicesSection = styled(ContentSection)`
+  background: var(--color-surface-primary);
+`;
+
+const ServicesGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-3xl);
+`;
+
+const ServiceCard = styled.div`
+  background: var(--color-surface-elevated);
+  padding: var(--spacing-2xl);
+  border-radius: var(--border-radius-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-primary);
+  text-align: center;
+  
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    transition: all var(--transition-fast);
+  }
+`;
+
+const ServiceIcon = styled.div`
+  font-size: var(--font-size-4xl);
+  color: var(--color-interactive-primary);
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  justify-content: center;
+`;
+
+const ServiceTitle = styled.h3`
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+  font-family: var(--font-family-primary);
+`;
+
+const ServiceDescription = styled.p`
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  font-family: var(--font-family-secondary);
+  margin-bottom: var(--spacing-md);
+`;
+
+const ServiceDetails = styled.p`
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  font-style: italic;
+  font-family: var(--font-family-secondary);
+`;
+
+const AIStatsSection = styled(ContentSection)`
+  background: linear-gradient(135deg, var(--color-interactive-primary-50) 0%, var(--color-surface-primary) 100%);
+`;
+
 const StatsGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -282,8 +461,9 @@ const StatCard = styled.div`
   text-align: center;
   padding: var(--spacing-xl);
   border-radius: var(--border-radius-lg);
-  background: var(--color-surface-secondary);
-  border: 1px solid var(--color-border-primary);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-interactive-primary-200);
+  box-shadow: var(--shadow-md);
 `;
 
 const StatNumber = styled.div`
@@ -301,13 +481,8 @@ const StatLabel = styled.div`
   font-family: var(--font-family-secondary);
 `;
 
-const TestimonialSection = styled.section`
+const TestimonialSection = styled(ContentSection)`
   background: linear-gradient(135deg, var(--color-surface-secondary) 0%, var(--color-surface-primary) 100%);
-  padding: var(--spacing-5xl) var(--spacing-xl);
-  
-  @media (max-width: 768px) {
-    padding: var(--spacing-3xl) var(--spacing-md);
-  }
 `;
 
 const TestimonialCard = styled.div`
@@ -349,6 +524,45 @@ const StarRating = styled.div`
   gap: var(--spacing-xs);
   margin-bottom: var(--spacing-lg);
   color: var(--color-warning);
+`;
+
+const FinalCTASection = styled(ContentSection)`
+  background: linear-gradient(135deg, var(--color-interactive-primary) 0%, var(--color-interactive-primary-hover) 100%);
+  color: var(--color-text-inverse);
+  text-align: center;
+`;
+
+const CTATitle = styled.h2`
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-extrabold);
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-inverse);
+  font-family: var(--font-family-primary);
+`;
+
+const CTASubtitle = styled.p`
+  font-size: var(--font-size-xl);
+  margin-bottom: var(--spacing-3xl);
+  opacity: 0.95;
+  color: var(--color-text-inverse);
+  font-family: var(--font-family-secondary);
+`;
+
+const CTAForm = styled.form`
+  max-width: 500px;
+  margin: 0 auto;
+`;
+
+const CTAButton = styled(AnalyzeButton)`
+  background: var(--color-warning);
+  color: var(--color-text-primary);
+  font-size: var(--font-size-lg);
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  
+  &:hover:not(:disabled) {
+    background: var(--color-warning-hover);
+    transform: translateY(-2px);
+  }
 `;
 
 const HomePage = () => {
@@ -408,6 +622,7 @@ const HomePage = () => {
 
   return (
     <>
+      {/* 1. Hero Section */}
       <HomeContainer>
         <HeroSection>
           <HeroTitle>
@@ -422,7 +637,7 @@ const HomePage = () => {
             <InputGroup>
               <URLInput
                 type="text"
-                placeholder={t('forms:placeholder.websiteUrl')}
+                placeholder={t('homepage:hero.microcopy')}
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 disabled={isAnalyzing}
@@ -437,7 +652,7 @@ const HomePage = () => {
                 ) : (
                   <>
                     <FaRocket aria-hidden="true" />
-                    {t('forms:buttons.analyze')}
+                    {t('homepage:hero.formTitle')}
                   </>
                 )}
               </AnalyzeButton>
@@ -446,72 +661,142 @@ const HomePage = () => {
               {t('homepage:hero.exampleText')}
             </ExampleText>
           </AnalysisForm>
-
-          <FeaturesSection>
-            <FeatureCard>
-              <FeatureIcon>
-                <FaAccessibleIcon aria-hidden="true" />
-              </FeatureIcon>
-              <FeatureTitle>{t('homepage:features.wcagCompliance.title')}</FeatureTitle>
-              <FeatureDescription>
-                {t('homepage:features.wcagCompliance.description')}
-              </FeatureDescription>
-            </FeatureCard>
-            
-            <FeatureCard>
-              <FeatureIcon>
-                <FaChartLine aria-hidden="true" />
-              </FeatureIcon>
-              <FeatureTitle>{t('homepage:features.smartScoring.title')}</FeatureTitle>
-              <FeatureDescription>
-                {t('homepage:features.smartScoring.description')}
-              </FeatureDescription>
-            </FeatureCard>
-            
-            <FeatureCard>
-              <FeatureIcon>
-                <FaFileAlt aria-hidden="true" />
-              </FeatureIcon>
-              <FeatureTitle>{t('homepage:features.professionalReports.title')}</FeatureTitle>
-              <FeatureDescription>
-                {t('homepage:features.professionalReports.description')}
-              </FeatureDescription>
-            </FeatureCard>
-          </FeaturesSection>
         </HeroSection>
       </HomeContainer>
 
-      <ContentSection>
+      {/* 2. Problem Section */}
+      <ProblemSection>
         <ContentContainer>
-          <SectionTitle>{t('homepage:whyAccessibility.title')}</SectionTitle>
+          <SectionTitle>{t('homepage:problem.title')}</SectionTitle>
           <SectionSubtitle>
-            {t('homepage:whyAccessibility.subtitle')}
+            {t('homepage:problem.intro')}
+          </SectionSubtitle>
+          
+          <QuestionsGrid>
+            {t('homepage:problem.questions', { returnObjects: true }).map((question, index) => (
+              <QuestionCard key={index}>
+                <QuestionTitle>"{question.title}"</QuestionTitle>
+                <QuestionDescription>{question.description}</QuestionDescription>
+              </QuestionCard>
+            ))}
+          </QuestionsGrid>
+        </ContentContainer>
+      </ProblemSection>
+
+      {/* 3. Agitate Section */}
+      <AgitateSection>
+        <ContentContainer>
+          <SectionTitle>{t('homepage:agitate.title')}</SectionTitle>
+          <SectionSubtitle>
+            {t('homepage:agitate.content')}
+          </SectionSubtitle>
+          
+          <PointsGrid>
+            {t('homepage:agitate.points', { returnObjects: true }).map((point, index) => (
+              <PointCard key={index}>
+                <PointIcon>
+                  {index === 0 && <FaDollarSign />}
+                  {index === 1 && <FaUsers />}
+                  {index === 2 && <FaExclamationTriangle />}
+                </PointIcon>
+                <PointTitle>{point.title}</PointTitle>
+                <PointDescription>{point.description}</PointDescription>
+              </PointCard>
+            ))}
+          </PointsGrid>
+        </ContentContainer>
+      </AgitateSection>
+
+      {/* 4. Solution Section */}
+      <SolutionSection>
+        <ContentContainer>
+          <SectionTitle>{t('homepage:solution.title')}</SectionTitle>
+          <SectionSubtitle>
+            {t('homepage:solution.subtitle')}
+          </SectionSubtitle>
+          
+          <SectionTitle style={{ fontSize: 'var(--font-size-2xl)', marginTop: 'var(--spacing-3xl)' }}>
+            {t('homepage:solution.promise.title')}
+          </SectionTitle>
+          
+          <PromiseGrid>
+            {t('homepage:solution.promise.points', { returnObjects: true }).map((point, index) => (
+              <PromiseCard key={index}>
+                <ServiceIcon>
+                  {index === 0 && <FaCheckCircle />}
+                  {index === 1 && <FaRobot />}
+                  {index === 2 && <FaShieldAlt />}
+                </ServiceIcon>
+                <ServiceTitle>{point.title}</ServiceTitle>
+                <ServiceDescription>{point.description}</ServiceDescription>
+              </PromiseCard>
+            ))}
+          </PromiseGrid>
+        </ContentContainer>
+      </SolutionSection>
+
+      {/* 5. How It Works Section */}
+      <HowItWorksSection>
+        <ContentContainer>
+          <SectionTitle>{t('homepage:howItWorks.title')}</SectionTitle>
+          
+          <StepsGrid>
+            {t('homepage:howItWorks.steps', { returnObjects: true }).map((step, index) => (
+              <StepCard key={index}>
+                <StepNumber>{step.number}</StepNumber>
+                <StepTitle>{step.title}</StepTitle>
+                <StepDescription>{step.description}</StepDescription>
+              </StepCard>
+            ))}
+          </StepsGrid>
+        </ContentContainer>
+      </HowItWorksSection>
+
+      {/* 6. Services Overview Section */}
+      <ServicesSection>
+        <ContentContainer>
+          <SectionTitle>{t('homepage:services.title')}</SectionTitle>
+          
+          <ServicesGrid>
+            {t('homepage:services.items', { returnObjects: true }).map((service, index) => (
+              <ServiceCard key={index}>
+                <ServiceIcon>
+                  {index === 0 && <FaAccessibleIcon />}
+                  {index === 1 && <FaSearch />}
+                  {index === 2 && <FaMobile />}
+                </ServiceIcon>
+                <ServiceTitle>{service.title}</ServiceTitle>
+                <ServiceDescription>{service.description}</ServiceDescription>
+                <ServiceDetails>{service.details}</ServiceDetails>
+              </ServiceCard>
+            ))}
+          </ServicesGrid>
+        </ContentContainer>
+      </ServicesSection>
+
+      {/* AI Stats Section */}
+      <AIStatsSection>
+        <ContentContainer>
+          <SectionTitle>{t('homepage:aiStats.title')}</SectionTitle>
+          <SectionSubtitle>
+            {t('homepage:aiStats.subtitle')}
           </SectionSubtitle>
           
           <StatsGrid>
-            <StatCard>
-              <StatNumber>1.3B</StatNumber>
-              <StatLabel>{t('homepage:whyAccessibility.stats.peopleWithDisabilities')}</StatLabel>
-            </StatCard>
-            <StatCard>
-              <StatNumber>$75B</StatNumber>
-              <StatLabel>{t('homepage:whyAccessibility.stats.spendingPower')}</StatLabel>
-            </StatCard>
-            <StatCard>
-              <StatNumber>400%</StatNumber>
-              <StatLabel>{t('homepage:whyAccessibility.stats.lawsuitIncrease')}</StatLabel>
-            </StatCard>
-            <StatCard>
-              <StatNumber>15%</StatNumber>
-              <StatLabel>{t('homepage:whyAccessibility.stats.globalDisability')}</StatLabel>
-            </StatCard>
+            {t('homepage:aiStats.stats', { returnObjects: true }).map((stat, index) => (
+              <StatCard key={index}>
+                <StatNumber>{stat.number}</StatNumber>
+                <StatLabel>{stat.label}</StatLabel>
+              </StatCard>
+            ))}
           </StatsGrid>
         </ContentContainer>
-      </ContentSection>
+      </AIStatsSection>
 
+      {/* 7. Social Proof/Testimonial Section */}
       <TestimonialSection>
         <ContentContainer>
-          <SectionTitle>{t('homepage:testimonials.title')}</SectionTitle>
+          <SectionTitle>{t('homepage:testimonial.title')}</SectionTitle>
           <TestimonialCard>
             <StarRating>
               <FaStar />
@@ -521,13 +806,48 @@ const HomePage = () => {
               <FaStar />
             </StarRating>
             <TestimonialText>
-              "{t('homepage:testimonials.quote')}"
+              "{t('homepage:testimonial.quote')}"
             </TestimonialText>
-            <TestimonialAuthor>{t('homepage:testimonials.author')}</TestimonialAuthor>
-            <TestimonialRole>{t('homepage:testimonials.role')}</TestimonialRole>
+            <TestimonialAuthor>{t('homepage:testimonial.author')}</TestimonialAuthor>
+            <TestimonialRole>{t('homepage:testimonial.role')}</TestimonialRole>
           </TestimonialCard>
         </ContentContainer>
       </TestimonialSection>
+
+      {/* 8. Final Call-to-Action Section */}
+      <FinalCTASection>
+        <ContentContainer>
+          <CTATitle>{t('homepage:finalCta.title')}</CTATitle>
+          <CTASubtitle>{t('homepage:finalCta.subtitle')}</CTASubtitle>
+          
+          <CTAForm onSubmit={handleSubmit}>
+            <InputGroup>
+              <URLInput
+                type="text"
+                placeholder={t('homepage:hero.microcopy')}
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                disabled={isAnalyzing}
+                required
+                style={{ border: '2px solid rgba(255,255,255,0.3)', background: 'rgba(255,255,255,0.1)', color: 'white' }}
+              />
+              <CTAButton type="submit" disabled={isAnalyzing}>
+                {isAnalyzing ? (
+                  <>
+                    <LoadingSpinner size="small" />
+                    {t('forms:buttons.analyzing')}
+                  </>
+                ) : (
+                  <>
+                    <FaArrowRight aria-hidden="true" />
+                    {t('homepage:finalCta.button')}
+                  </>
+                )}
+              </CTAButton>
+            </InputGroup>
+          </CTAForm>
+        </ContentContainer>
+      </FinalCTASection>
     </>
   );
 };
