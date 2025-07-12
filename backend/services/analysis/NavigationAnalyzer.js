@@ -195,7 +195,7 @@ class NavigationAnalyzer {
           const links = Array.from(document.querySelectorAll(selector));
           links.forEach(link => {
             const href = link.getAttribute('href');
-            const target = href ? document.querySelector(href) : null;
+            const target = (href && href !== '#') ? document.querySelector(href) : null;
             
             skipLinks.push({
               text: link.textContent.trim(),

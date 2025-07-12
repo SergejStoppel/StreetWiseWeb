@@ -19,12 +19,14 @@ import {
   FaStar,
   FaLanguage,
   FaCompass,
-  FaRoute
+  FaRoute,
+  FaHandPointer
 } from 'react-icons/fa';
 import ScoreCard from '../components/ScoreCard';
 import ViolationsList from '../components/ViolationsList';
 import RecommendationsList from '../components/RecommendationsList';
 import NavigationResults from '../components/NavigationResults';
+import TouchTargetResults from '../components/TouchTargetResults';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { accessibilityAPI } from '../services/api';
 
@@ -532,7 +534,7 @@ const ResultsPage = () => {
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const navigate = useNavigate();
   const { i18n, t } = useTranslation('dashboard');
-
+  
   useEffect(() => {
     const storedResults = sessionStorage.getItem('analysisResult');
     
@@ -813,6 +815,17 @@ const ResultsPage = () => {
             <SummaryLabel>Breadcrumbs</SummaryLabel>
           </SummaryCard>
           
+          {/* Touch Target Summary */}
+          {results.summary.smallTargets !== undefined && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.smallTargets === 0 ? "#10b981" : "#ef4444"}>
+                <FaHandPointer />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.smallTargets}</SummaryValue>
+              <SummaryLabel>Small Touch Targets</SummaryLabel>
+            </SummaryCard>
+          )}
+          
           {results.summary.structureScore !== null && (
             <SummaryCard>
               <SummaryIcon color={results.summary.structureScore >= 80 ? "#10b981" : results.summary.structureScore >= 60 ? "#f59e0b" : "#ef4444"}>
@@ -830,6 +843,16 @@ const ResultsPage = () => {
               </SummaryIcon>
               <SummaryValue>{results.summary.navigationScore}%</SummaryValue>
               <SummaryLabel>Navigation Score</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.touchTargetScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.touchTargetScore >= 80 ? "#10b981" : results.summary.touchTargetScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaHandPointer />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.touchTargetScore}%</SummaryValue>
+              <SummaryLabel>Touch Target Score</SummaryLabel>
             </SummaryCard>
           )}
           
@@ -1122,6 +1145,11 @@ const ResultsPage = () => {
           {/* Navigation Analysis */}
           {results.navigation && (
             <NavigationResults navigationData={results.navigation} />
+          )}
+
+          {/* Touch Target Analysis */}
+          {results.touchTargets && (
+            <TouchTargetResults touchTargetData={results.touchTargets} />
           )}
 
           {/* Color Contrast Analysis for detailed reports */}

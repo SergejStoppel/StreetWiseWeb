@@ -488,7 +488,7 @@ class FocusManagementAnalyzer {
                               parentStyle.top === '-9999px' ||
                               parentStyle.clip === 'rect(0, 0, 0, 0)'),
             tabIndex: link.tabIndex,
-            position: this.getElementPosition(link)
+            position: getElementPosition(link)
           };
 
           // Check if this is the main content skip link

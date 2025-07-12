@@ -79,7 +79,6 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
         reportType
       });
 
-      // Debug logging to see what's being sent to frontend
       logger.info('Sending response to frontend', {
         analysisId: report.analysisId,
         imagesWithoutAlt: report.summary?.imagesWithoutAlt,
