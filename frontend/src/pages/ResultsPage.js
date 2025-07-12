@@ -230,6 +230,12 @@ const ResultsPage = () => {
     navigate('/');
   };
 
+  const handleUpgrade = (type) => {
+    // In development mode, enable premium features
+    setIsPremium(true);
+    toast.success(`${type === 'consultation' ? 'Consultation' : 'Detailed'} report access granted (Dev Mode)`);
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString();
@@ -319,7 +325,7 @@ const ResultsPage = () => {
       <PriorityFixesSection analysisData={analysisData} />
       
       {/* 3. Upgrade Section (for free users) */}
-      {!isPremium && <UpgradeSection analysisData={analysisData} />}
+      {!isPremium && <UpgradeSection analysisData={analysisData} onUpgrade={handleUpgrade} />}
       
       {/* 4. Detailed Analysis Section (for premium users) */}
       {isPremium && <DetailedAnalysisSection analysisData={analysisData} isPremium={isPremium} />}

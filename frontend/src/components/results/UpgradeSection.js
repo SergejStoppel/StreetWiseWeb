@@ -211,7 +211,7 @@ const ContactButton = styled(CTAButton)`
   margin: 0 auto;
 `;
 
-const UpgradeSection = ({ analysisData }) => {
+const UpgradeSection = ({ analysisData, onUpgrade }) => {
   const { t } = useTranslation(['results']);
 
   const features = [
@@ -242,13 +242,27 @@ const UpgradeSection = ({ analysisData }) => {
   ];
 
   const handleBuyReport = () => {
-    // TODO: Implement purchase flow
-    console.log('Buy detailed report');
+    // In development mode, directly show the detailed report
+    if (process.env.NODE_ENV === 'development') {
+      if (onUpgrade) {
+        onUpgrade('detailed');
+      }
+    } else {
+      // TODO: Implement Stripe payment flow
+      console.log('Redirect to payment for detailed report');
+    }
   };
 
   const handleScheduleCall = () => {
-    // TODO: Implement scheduling
-    console.log('Schedule consultation');
+    // In development mode, directly show the detailed report
+    if (process.env.NODE_ENV === 'development') {
+      if (onUpgrade) {
+        onUpgrade('consultation');
+      }
+    } else {
+      // TODO: Implement Stripe payment flow and scheduling
+      console.log('Redirect to payment and scheduling for consultation');
+    }
   };
 
   const handleContactUs = () => {
@@ -281,7 +295,7 @@ const UpgradeSection = ({ analysisData }) => {
       <PricingGrid>
         <PricingCard>
           <PricingTitle>Detailed Report</PricingTitle>
-          <PricingPrice>$49</PricingPrice>
+          <PricingPrice>$99</PricingPrice>
           <PricingDescription>
             Complete analysis with step-by-step instructions and priority recommendations.
           </PricingDescription>
@@ -297,7 +311,7 @@ const UpgradeSection = ({ analysisData }) => {
             Most Popular
           </PopularBadge>
           <PricingTitle>Report + Consultation</PricingTitle>
-          <PricingPrice>$99</PricingPrice>
+          <PricingPrice>$199</PricingPrice>
           <PricingDescription>
             Detailed report plus 30-minute consultation to discuss your specific needs and priorities.
           </PricingDescription>

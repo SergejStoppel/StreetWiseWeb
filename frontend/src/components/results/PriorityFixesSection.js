@@ -203,10 +203,6 @@ const NoIssuesText = styled.p`
 
 const PriorityFixesSection = ({ analysisData }) => {
   const { t } = useTranslation(['results']);
-  
-  // Debug: Log violations data
-  console.log('PriorityFixesSection - violations:', analysisData?.violations);
-  console.log('PriorityFixesSection - recommendations:', analysisData?.recommendations?.slice(0, 3));
 
   // Extract priority fixes from analysis data
   const getPriorityFixes = () => {
