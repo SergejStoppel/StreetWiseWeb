@@ -230,13 +230,19 @@ const KeyboardShortcutResults = ({ keyboardShortcutData }) => {
           marginBottom: '0.5rem'
         }}>
           {summary.conflictingAccessKeys === 0 ? 
-            `✅ ${Math.round((summary.validAccessKeys / Math.max(summary.totalAccessKeys, 1)) * 100)}% of access keys are properly implemented` :
+            (summary.totalAccessKeys === 0 ? 
+              '✅ No access keys found - no conflicts detected' :
+              `✅ ${Math.round((summary.validAccessKeys / summary.totalAccessKeys) * 100)}% of access keys are properly implemented`
+            ) :
             `⚠️ ${summary.conflictingAccessKeys} access key conflicts detected`
           }
         </div>
         <div style={{ color: '#374151', fontSize: '0.875rem' }}>
           {summary.conflictingAccessKeys === 0 ? 
-            'All access keys follow WCAG guidelines and don\'t conflict with browser shortcuts.' :
+            (summary.totalAccessKeys === 0 ?
+              'Page has no access keys defined. Consider adding them to improve keyboard navigation.' :
+              'All access keys follow WCAG guidelines and don\'t conflict with browser shortcuts.'
+            ) :
             'Some access keys conflict with browser or assistive technology shortcuts.'
           }
         </div>
