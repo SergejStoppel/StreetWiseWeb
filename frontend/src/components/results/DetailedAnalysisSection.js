@@ -308,6 +308,158 @@ const BenefitText = styled.div`
   font-family: var(--font-family-secondary);
 `;
 
+const CodeExampleSection = styled.div`
+  background: var(--color-surface-secondary);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+`;
+
+const CodeBlock = styled.div`
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-md);
+  overflow-x: auto;
+  
+  pre {
+    margin: 0;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+    color: var(--color-text-primary);
+  }
+`;
+
+const MockupSection = styled.div`
+  background: var(--color-surface-secondary);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+`;
+
+const MockupGrid = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+`;
+
+const MockupCard = styled.div`
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+`;
+
+const MockupLabel = styled.div`
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-family-primary);
+`;
+
+const MockupDescription = styled.div`
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  font-family: var(--font-family-secondary);
+  white-space: pre-line;
+`;
+
+
+const ComplianceSection = styled.div`
+  background: var(--color-info-50);
+  border: 1px solid var(--color-info-200);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+`;
+
+const ComplianceContent = styled.div`
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-relaxed);
+  font-family: var(--font-family-secondary);
+`;
+
+const InstancesSection = styled.div`
+  background: var(--color-surface-secondary);
+  padding: var(--spacing-lg);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-lg);
+`;
+
+const InstancesList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+`;
+
+const InstanceCard = styled.div`
+  background: var(--color-surface-primary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-md);
+`;
+
+const InstanceHeader = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+`;
+
+const InstanceNumber = styled.div`
+  background: var(--color-interactive-primary);
+  color: var(--color-text-on-brand);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  flex-shrink: 0;
+`;
+
+const InstanceLocation = styled.div`
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  word-break: break-all;
+`;
+
+const InstanceCode = styled.div`
+  background: var(--color-neutral-100);
+  border: 1px solid var(--color-border-tertiary);
+  border-radius: var(--border-radius-sm);
+  padding: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  overflow-x: auto;
+  
+  pre {
+    margin: 0;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+    color: var(--color-text-secondary);
+  }
+`;
+
+const InstanceMessage = styled.div`
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  font-style: italic;
+  line-height: var(--line-height-relaxed);
+`;
+
 const DetailedAnalysisSection = ({ analysisData, isPremium = false }) => {
   const { t } = useTranslation(['results']);
   const [activeCategory, setActiveCategory] = useState('structure');
@@ -1151,6 +1303,777 @@ const DetailedAnalysisSection = ({ analysisData, isPremium = false }) => {
       .slice(0, 25); // Show up to 25 issues per category
   };
 
+  const getCodeExample = (issue) => {
+    const desc = issue.description?.toLowerCase() || '';
+    const type = issue.type?.toLowerCase() || '';
+    const id = issue.id?.toLowerCase() || '';
+    
+    // Get actual code location from issue data
+    const instances = getIssueInstances(issue);
+    const firstInstance = instances[0];
+    const actualHTML = firstInstance?.html || issue.html || issue.node?.html || '';
+    const selector = firstInstance?.selector || issue.selector || issue.target || '';
+    
+    // Content Structure Issues
+    if (desc.includes('content chunks') || desc.includes('content exceed') || desc.includes('word count')) {
+      return `<!-- Problem: Content block is too long -->
+<div class="content-section">
+  <p>This is a very long paragraph with lots of text that goes on and on without any breaks and makes it hard for customers to scan and find what they're looking for quickly especially customers with reading difficulties...</p>
+</div>
+
+<!-- Fixed: Broken into digestible chunks -->
+<div class="content-section">
+  <h2>Our Services</h2>
+  <p>We provide professional consulting to help your business grow.</p>
+  
+  <h3>What We Offer</h3>
+  <ul>
+    <li>Strategic planning</li>
+    <li>Market analysis</li>
+    <li>Implementation support</li>
+  </ul>
+  
+  <p>Ready to get started? Contact us today.</p>
+</div>
+
+/* Keep each content section under 500 words with clear headings */`;
+    }
+    
+    if (desc.includes('line height') || type.includes('line-height')) {
+      return `/* Problem: Text is cramped and hard to read */
+.content {
+  line-height: 1.2;  /* Too tight */
+  font-size: 16px;
+}
+
+/* Fixed: Comfortable reading spacing */
+.content {
+  line-height: 1.5;  /* WCAG minimum */
+  font-size: 16px;
+}
+
+/* For even better readability */
+.content {
+  line-height: 1.6;
+  font-size: 18px;
+}`;
+    }
+    
+    if (desc.includes('white space') || desc.includes('whitespace')) {
+      return `<!-- Problem: Cramped layout -->
+<div class="section">
+<h2>Services</h2>
+<p>Description</p>
+<button>Contact</button>
+</div>
+
+<!-- Fixed: Proper spacing -->
+<div class="section">
+  <h2>Services</h2>
+  
+  <p>Description of our services with proper spacing around elements.</p>
+  
+  <button>Contact Us</button>
+</div>
+
+/* CSS for proper spacing */
+.section {
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+.section h2 { margin-bottom: 1rem; }
+.section p { margin-bottom: 1.5rem; }`;
+    }
+    
+    // Color Contrast Issues
+    if (desc.includes('contrast') || type.includes('contrast')) {
+      return `/* Problem: Text is hard to read */
+.text {
+  color: #999999;        /* Light gray - too low contrast */
+  background: #ffffff;
+}
+
+/* Fixed: High contrast for readability */
+.text {
+  color: #333333;        /* Dark gray - 4.5:1 ratio */
+  background: #ffffff;
+}
+
+/* Alternative dark theme */
+.text-dark {
+  color: #ffffff;        /* White text */
+  background: #333333;   /* Dark background */
+}
+
+/* Test your colors at: webaim.org/resources/contrastchecker/ */`;
+    }
+    
+    // Image Issues
+    if (desc.includes('alt') || type.includes('alt')) {
+      return `<!-- Problem: Screen readers can't understand images -->
+<img src="product-photo.jpg">
+<img src="team-photo.jpg" alt="">
+<img src="logo.png" alt="image">
+
+<!-- Fixed: Descriptive alt text -->
+<img src="product-photo.jpg" alt="Blue cotton t-shirt with company logo">
+<img src="team-photo.jpg" alt="Marketing team of 5 people in office">
+<img src="logo.png" alt="ABC Company logo">
+
+<!-- For purely decorative images -->
+<img src="decorative-border.png" alt="">
+
+Location found: ${selector || 'Various image elements'}`;
+    }
+    
+    // Form Issues  
+    if (desc.includes('label') || type.includes('label')) {
+      return `<!-- Problem: Customers don't know what to enter -->
+<input type="email" placeholder="Email">
+<input type="tel" placeholder="Phone">
+
+<!-- Fixed: Clear labels for every field -->
+<label for="customer-email">Your Email Address</label>
+<input type="email" id="customer-email" placeholder="example@email.com">
+
+<label for="customer-phone">Phone Number</label>
+<input type="tel" id="customer-phone" placeholder="(555) 123-4567">
+
+<!-- Alternative: Using aria-label -->
+<input type="email" aria-label="Your email address">
+
+Location: ${selector || 'Form fields throughout site'}`;
+    }
+    
+    // Heading Structure Issues
+    if (desc.includes('heading') || type.includes('heading')) {
+      return `<!-- Problem: Confusing structure for screen readers -->
+<h1>About Us</h1>
+<h3>Our History</h3>    <!-- Skipped H2! -->
+<h4>Founded in 2010</h4>
+
+<!-- Fixed: Logical heading order -->
+<h1>About Us</h1>
+<h2>Our History</h2>    <!-- Proper order -->
+<h3>Founded in 2010</h3>
+<h3>Our Growth</h3>
+<h2>Our Team</h2>
+<h3>Leadership</h3>
+
+/* Rule: Always go H1 → H2 → H3, never skip levels */
+Location: ${selector || 'Page headings'}`;
+    }
+    
+    // Navigation Issues
+    if (desc.includes('skip link') || id.includes('skip-link')) {
+      return `<!-- Problem: Keyboard users must tab through entire menu -->
+<header>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/services">Services</a>
+    <a href="/contact">Contact</a>
+  </nav>
+</header>
+<main>Content...</main>
+
+<!-- Fixed: Skip link for keyboard users -->
+<header>
+  <a href="#main" class="skip-link">Skip to main content</a>
+  <nav>
+    <a href="/">Home</a>
+    <a href="/about">About</a>
+    <a href="/services">Services</a>
+    <a href="/contact">Contact</a>
+  </nav>
+</header>
+<main id="main">Content...</main>
+
+/* Hide skip link until focused */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: #000;
+  color: #fff;
+  padding: 8px;
+  text-decoration: none;
+}
+.skip-link:focus { top: 6px; }`;
+    }
+    
+    // Keyboard & Focus Issues
+    if (desc.includes('keyboard') || type.includes('keyboard')) {
+      return `<!-- Problem: Can't navigate with keyboard -->
+<div onclick="doSomething()">Click me</div>
+<div class="menu-item">Menu</div>
+
+<!-- Fixed: Proper keyboard support -->
+<button onclick="doSomething()">Click me</button>
+<a href="/menu" class="menu-item">Menu</a>
+
+/* Or make div keyboard accessible */
+<div tabindex="0" onclick="doSomething()" onkeydown="if(event.key==='Enter')doSomething()">
+  Click me
+</div>
+
+/* Always test: Can you reach everything with Tab key? */
+Location: ${selector || 'Interactive elements'}`;
+    }
+    
+    if (desc.includes('focus') || type.includes('focus')) {
+      return `/* Problem: Can't see where you are when using keyboard */
+button:focus {
+  outline: none;  /* DON'T DO THIS */
+}
+
+/* Fixed: Clear focus indicators */
+button:focus {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Alternative: Custom focus styles */
+.my-button:focus {
+  box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.5);
+  border-color: #0066cc;
+}
+
+/* Test: Tab through your site - can you always see where you are? */
+Location: ${selector || 'All interactive elements'}`;
+    }
+    
+    // Touch Target Issues
+    if (desc.includes('touch target') || desc.includes('target size')) {
+      return `/* Problem: Buttons too small for mobile users */
+.small-button {
+  width: 28px;
+  height: 20px;    /* Too small! */
+  padding: 4px;
+}
+
+/* Fixed: Proper touch target size */
+.mobile-button {
+  min-width: 44px;   /* WCAG minimum */
+  min-height: 44px;
+  padding: 12px 16px;
+  margin: 8px;       /* Space between targets */
+}
+
+/* For text links */
+.mobile-link {
+  display: inline-block;
+  padding: 12px 8px;
+  min-height: 44px;
+}
+
+/* Test on your phone: Can you easily tap without mistakes? */
+Location: ${selector || 'Buttons and links'}`;
+    }
+    
+    // Mobile Issues
+    if (desc.includes('mobile') || type.includes('responsive')) {
+      return `/* Problem: Fixed sizes break on mobile */
+.container {
+  width: 1200px;        /* Fixed width */
+  font-size: 14px;      /* Too small for mobile */
+}
+
+/* Fixed: Responsive design */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  font-size: 16px;      /* Readable on mobile */
+  padding: 1rem;
+}
+
+/* Mobile-first approach */
+@media (min-width: 768px) {
+  .container {
+    font-size: 18px;
+    padding: 2rem;
+  }
+}
+
+/* Test: Does your site work well on phones? */
+Location: ${selector || 'Layout elements'}`;
+    }
+    
+    // ARIA Issues
+    if (desc.includes('aria') || type.includes('aria')) {
+      return `<!-- Problem: Screen readers don't understand purpose -->
+<div class="search-button">🔍</div>
+<span class="close-button">×</span>
+
+<!-- Fixed: Clear labels for screen readers -->
+<button class="search-button" aria-label="Search products">🔍</button>
+<button class="close-button" aria-label="Close dialog">×</button>
+
+<!-- For icons without text -->
+<button aria-label="Add to cart">
+  <svg>...</svg>
+</button>
+
+<!-- For expandable sections -->
+<button aria-expanded="false" aria-controls="menu">Menu</button>
+<div id="menu">...</div>
+
+Location: ${selector || 'Interactive elements with icons'}`;
+    }
+    
+    // Page Structure Issues
+    if (desc.includes('page title') || id.includes('page-title')) {
+      return `<!-- Problem: Unclear what page customer is on -->
+<title>Home</title>
+<title>Page 1</title>
+<title>Untitled Document</title>
+
+<!-- Fixed: Descriptive page titles -->
+<title>ABC Plumbing - Emergency Repairs | Seattle</title>
+<title>Our Services - ABC Plumbing | 24/7 Emergency</title>
+<title>Contact ABC Plumbing | Free Quotes Seattle</title>
+
+<!-- Format: Page Name - Company Name | Location/Keywords -->
+Location: ${selector || 'Page title element'}`;
+    }
+    
+    if (desc.includes('language') || desc.includes('lang')) {
+      return `<!-- Problem: Screen readers don't know how to pronounce content -->
+<html>
+<head>
+  <title>Welcome to our store</title>
+</head>
+
+<!-- Fixed: Declare page language -->
+<html lang="en">
+<head>
+  <title>Welcome to our store</title>
+</head>
+
+<!-- For multilingual content -->
+<html lang="en">
+  <p>Welcome to our store</p>
+  <p lang="es">Bienvenido a nuestra tienda</p>
+</html>
+
+Location: ${selector || 'HTML element'}`;
+    }
+    
+    // Generic fallback for any other violation type
+    return `<!-- Problem: Accessibility barrier found -->
+${actualHTML ? actualHTML.substring(0, 200) + (actualHTML.length > 200 ? '...' : '') : '<!-- Specific code location -->'}
+
+<!-- General Fix Guidelines -->
+1. For text: Improve contrast, increase size, add clear labels
+2. For images: Add descriptive alt text
+3. For forms: Label every input field clearly
+4. For buttons: Make them keyboard accessible
+5. For mobile: Ensure 44px minimum touch targets
+
+Location: ${selector || 'Multiple elements'}
+
+/* Consult the fix instructions above for specific steps */`;
+  };
+
+  const getBeforeMockup = (issue) => {
+    const desc = issue.description?.toLowerCase() || '';
+    const type = issue.type?.toLowerCase() || '';
+    
+    if (desc.includes('zoom') || desc.includes('relative units') || desc.includes('fixed pixels')) {
+      return `🔍 Customer zooms to 200%
+📱 Text stays tiny at 14px
+📐 Layout breaks, horizontal scrolling appears
+❌ Customer can't read content, leaves site`;
+    }
+    
+    if (desc.includes('contrast') || type.includes('contrast')) {
+      return `🔲 Light gray #999 text on white background
+📖 "Important information about our services..."
+👁️ Hard to read, especially in sunlight
+❌ Customers squint or skip the content`;
+    }
+    
+    if (desc.includes('alt') || type.includes('alt')) {
+      return `🖼️ <img src="product.jpg"> (no alt attribute)
+🔇 Screen reader says: "Image"
+❓ Customer doesn't know what product this is
+❌ Lost sale opportunity`;
+    }
+    
+    if (desc.includes('label') || type.includes('label')) {
+      return `📝 <input type="email" placeholder="Email">
+❓ Customer wonders: "What goes here?"
+🤔 Placeholder disappears when typing
+❌ Form abandoned in confusion`;
+    }
+    
+    if (desc.includes('touch target') || desc.includes('target size')) {
+      return `📱 Button: 28px × 20px (too small)
+👆 Customer tries to tap
+❌ Accidentally hits wrong button
+😤 Frustration leads to cart abandonment`;
+    }
+    
+    if (desc.includes('heading') || type.includes('heading')) {
+      return `📄 <h1>Title</h1><h3>Section</h3> (skipped H2)
+🔍 Customer can't scan quickly
+⏭️ Screen reader users get lost
+❌ Information is hard to find`;
+    }
+    
+    if (desc.includes('focus') || type.includes('focus')) {
+      return `⌨️ button:focus { outline: none; }
+❓ "Where am I?" - no visual indicator
+🔍 Tab navigation is invisible
+❌ Gets lost and gives up`;
+    }
+    
+    return `⚠️ Current code has accessibility barriers
+❌ Some customers can't use this feature
+📉 Potential lost business`;
+  };
+
+  const getAfterMockup = (issue) => {
+    const desc = issue.description?.toLowerCase() || '';
+    const type = issue.type?.toLowerCase() || '';
+    
+    if (desc.includes('zoom') || desc.includes('relative units') || desc.includes('fixed pixels')) {
+      return `🔍 Customer zooms to 200%
+📱 Text scales properly with 1rem units
+📐 Layout stays intact, no scrolling
+✓ Customer can read content comfortably`;
+    }
+    
+    if (desc.includes('contrast') || type.includes('contrast')) {
+      return `✅ Dark #333 text on white background
+📖 "Important information about our services..."
+👁️ Easy to read in any lighting
+✓ All customers can read your content`;
+    }
+    
+    if (desc.includes('alt') || type.includes('alt')) {
+      return `🖼️ <img src="product.jpg" alt="Blue cotton t-shirt">
+🔊 Screen reader: "Blue cotton t-shirt with logo"
+💡 Customer understands the product
+✓ Can make informed purchase decision`;
+    }
+    
+    if (desc.includes('label') || type.includes('label')) {
+      return `📝 <label for="email">Email Address</label>
+   <input type="email" id="email">
+✓ Clear what information to enter
+✓ Form completed successfully`;
+    }
+    
+    if (desc.includes('touch target') || desc.includes('target size')) {
+      return `📱 Button: 44px × 44px (proper size)
+👆 Comfortable tap target
+✓ No accidental clicks
+😊 Smooth mobile experience`;
+    }
+    
+    if (desc.includes('heading') || type.includes('heading')) {
+      return `📄 <h1>Title</h1><h2>Main</h2><h3>Sub</h3>
+🔍 Easy to scan and find info
+⏭️ Screen readers navigate smoothly
+✓ Information found quickly`;
+    }
+    
+    if (desc.includes('focus') || type.includes('focus')) {
+      return `⌨️ button:focus { outline: 2px solid #0066cc; }
+🔵 Clear blue outline shows location
+✓ Always knows where they are
+✓ Completes task successfully`;
+    }
+    
+    return `✅ Accessible code implementation
+✓ No barriers to usage
+✓ Better user experience`;
+  };
+
+
+  const getLegalCompliance = (issue) => {
+    const desc = issue.description?.toLowerCase() || '';
+    const type = issue.type?.toLowerCase() || '';
+    const id = issue.id?.toLowerCase() || '';
+    
+    // Content Structure Issues
+    if (desc.includes('content chunks') || desc.includes('content exceed') || desc.includes('word count')) {
+      return `⚖️ **WCAG 2.1 Level AA - Success Criterion 2.4.6 (Headings and Labels)**
+Content must be organized for easy scanning and comprehension.
+
+🚨 **Risk Level: MEDIUM** - Cognitive accessibility requirement
+📊 **Business impact:** Affects customers with reading difficulties, ADHD, dyslexia
+
+**For Small Businesses:** Long content blocks make it hard for customers to find key information like prices, services, or contact details. This can lead to lost sales and frustrated customers.
+
+⚖️ **Legal Reality:** While less commonly sued, increasingly recognized as accessibility barrier.`;
+    }
+    
+    if (desc.includes('line height') || type.includes('line-height')) {
+      return `⚖️ **WCAG 2.1 Level AA - Success Criterion 1.4.12 (Text Spacing)**
+Line height must be at least 1.5 times the font size.
+
+🚨 **Risk Level: MEDIUM** - Text readability requirement
+📊 **User impact:** Affects 10-15% of users with reading difficulties
+
+**For Small Businesses:** Cramped text makes it hard for older customers and those with dyslexia to read your content, potentially losing customers who can't comfortably read your services or prices.
+
+⚖️ **Legal Reality:** Text spacing violations are being cited more frequently in recent lawsuits.`;
+    }
+    
+    if (desc.includes('white space') || desc.includes('whitespace')) {
+      return `⚖️ **WCAG 2.1 Level AA - Success Criterion 1.4.8 (Visual Presentation)**
+Content must have adequate white space for readability.
+
+🚨 **Risk Level: LOW** - Visual design accessibility requirement
+📊 **User impact:** Affects users with cognitive disabilities and visual processing issues
+
+**For Small Businesses:** Cramped layouts look unprofessional and make it harder for customers to focus on your key messages, reducing trust and conversion rates.
+
+⚖️ **Legal Reality:** Rarely the primary lawsuit focus, but part of overall accessibility compliance.`;
+    }
+    
+    // Zoom/scaling issues
+    if (desc.includes('zoom') || desc.includes('relative units') || desc.includes('fixed pixels')) {
+      return `⚖️ **WCAG 2.1 Level AA - Success Criterion 1.4.4 (Resize Text)**
+Text must be resizable up to 200% without assistive technology.
+
+🚨 **Risk Level: HIGH** - Affects 15-20% of users with vision difficulties
+📊 **Lawsuit precedent:** Target Corp. paid $6M settlement partly due to text scaling issues
+
+**For Small Businesses:** Many older customers zoom their browser to read better. If your site breaks when zoomed, you lose these customers immediately.
+
+⚖️ **Legal Reality:** Essential for users with low vision who rely on browser zoom.`;
+    }
+    
+    // Color Contrast Issues
+    if (desc.includes('contrast') || type.includes('contrast')) {
+      return `⚖️ **WCAG 2.1 Level AA - Success Criterion 1.4.3 (Contrast Minimum)**
+Normal text: 4.5:1 ratio | Large text (18pt+): 3:1 ratio
+
+🚨 **Risk Level: VERY HIGH** - #2 most cited in lawsuits after alt text
+📊 **Recent cases:** Domino's, Netflix, Southwest Airlines all cited contrast
+
+**For Small Businesses:** Poor contrast means customers can't read your prices, services, or contact info. This directly costs you sales, especially from older customers.
+
+⚖️ **Legal Reality:** Easily detected by automated tools used in lawsuits - low-hanging fruit for lawyers.`;
+    }
+    
+    // Image Issues
+    if (desc.includes('alt') || type.includes('alt') || id.includes('image')) {
+      return `⚖️ **WCAG 2.1 Level A - Success Criterion 1.1.1 (Non-text Content)**
+All images conveying information must have text alternatives.
+
+🚨 **Risk Level: CRITICAL** - #1 cited issue in accessibility lawsuits  
+📊 **Legal precedent:** 76% of lawsuits cite missing alt text
+
+**For Small Businesses:** Screen reader users can't see your product photos, team pictures, or infographics. They miss key visual information that could lead to sales.
+
+⚖️ **Legal Reality:** Easiest violation to prove - automated scans find 100% of missing alt text.`;
+    }
+    
+    // Form Issues
+    if (desc.includes('label') || type.includes('label') || desc.includes('form')) {
+      return `⚖️ **WCAG 2.1 Level A - Success Criteria:**
+• 3.3.2 (Labels or Instructions) • 1.3.1 (Info and Relationships)
+
+🚨 **Risk Level: HIGH** - Forms are essential business functions
+📊 **Business impact:** Unlabeled forms directly prevent transactions
+
+**For Small Businesses:** If customers can't fill out your contact form, quote request, or order form, you lose business directly. This affects your bottom line immediately.
+
+⚖️ **Legal Reality:** Forms are "places of public accommodation" - core ADA requirement for any business.`;
+    }
+    
+    // Heading Structure Issues
+    if (desc.includes('heading') || type.includes('heading') || desc.includes('structure')) {
+      return `⚖️ **WCAG 2.1 Level A - Success Criteria:**
+• 1.3.1 (Info and Relationships) • 2.4.6 (Headings and Labels)
+
+🚨 **Risk Level: MEDIUM** - Affects navigation efficiency
+📊 **User impact:** Screen reader users navigate by headings to find information quickly
+
+**For Small Businesses:** Poor heading structure makes it hard for customers to scan your content and find what they need (services, prices, contact info).
+
+⚖️ **Legal Reality:** Required for programmatic page structure - screen readers depend on this.`;
+    }
+    
+    // Navigation Issues
+    if (desc.includes('skip link') || id.includes('skip-link')) {
+      return `⚖️ **WCAG 2.1 Level A - Success Criterion 2.4.1 (Bypass Blocks)**
+Provide mechanism to skip repetitive navigation content.
+
+🚨 **Risk Level: MEDIUM** - Keyboard navigation efficiency
+📊 **User impact:** Keyboard users must tab through entire menu to reach content
+
+**For Small Businesses:** Without skip links, keyboard users get frustrated trying to reach your main content and may leave your site.
+
+⚖️ **Legal Reality:** Standard accessibility requirement - shows you understand accessibility basics.`;
+    }
+    
+    if (desc.includes('navigation') || type.includes('nav')) {
+      return `⚖️ **WCAG 2.1 Level AA - Success Criterion 2.4.3 (Focus Order)**
+Navigation must be logical and consistent.
+
+🚨 **Risk Level: MEDIUM** - Navigation usability requirement  
+📊 **User impact:** Confusing navigation affects all users, especially those with cognitive disabilities
+
+**For Small Businesses:** If customers can't navigate your site easily, they can't find your services or contact you, leading to lost business.
+
+⚖️ **Legal Reality:** Part of overall site accessibility - contributes to ADA compliance.`;
+    }
+    
+    // Keyboard & Focus Issues
+    if (desc.includes('keyboard') || type.includes('keyboard')) {
+      return `⚖️ **WCAG 2.1 Level A - Success Criterion 2.1.1 (Keyboard)**
+All functionality must be available via keyboard.
+
+🚨 **Risk Level: CRITICAL** - Fundamental access requirement
+📊 **User impact:** 8% of users rely primarily on keyboard navigation
+
+**For Small Businesses:** If keyboard users can't navigate your site, contact you, or make purchases, you lose these customers entirely.
+
+⚖️ **Legal Reality:** Core ADA requirement - must provide keyboard access to all functionality.`;
+    }
+    
+    if (desc.includes('focus') || type.includes('focus')) {
+      return `⚖️ **WCAG 2.1 Level AA - Success Criterion 2.4.7 (Focus Visible)**
+Keyboard focus must be clearly visible at all times.
+
+🚨 **Risk Level: HIGH** - Keyboard navigation visibility
+📊 **User impact:** Keyboard users get lost without visible focus indicators
+
+**For Small Businesses:** Invisible focus means keyboard users can't see where they are on your site, leading to frustration and abandonment.
+
+⚖️ **Legal Reality:** Essential for keyboard accessibility compliance - easy to test and verify.`;
+    }
+    
+    // Touch Target Issues
+    if (desc.includes('touch target') || desc.includes('target size')) {
+      return `⚖️ **WCAG 2.1 Level AA - Success Criterion 2.5.5 (Target Size)**
+Interactive elements must be at least 44×44 CSS pixels.
+
+🚨 **Risk Level: MEDIUM** - Mobile accessibility requirement
+📊 **User impact:** 60% of traffic is mobile, affects users with motor disabilities
+
+**For Small Businesses:** Small buttons frustrate mobile customers and prevent them from contacting you or making purchases on their phones.
+
+⚖️ **Legal Reality:** Mobile accessibility increasingly scrutinized as most traffic is now mobile.`;
+    }
+    
+    // Mobile Issues
+    if (desc.includes('mobile') || type.includes('responsive')) {
+      return `⚖️ **WCAG 2.1 Level AA - Success Criterion 1.4.10 (Reflow)**
+Content must work on mobile devices without horizontal scrolling.
+
+🚨 **Risk Level: MEDIUM** - Mobile usability requirement
+📊 **User impact:** 60% of web traffic is mobile
+
+**For Small Businesses:** If your site doesn't work on phones, you lose over half your potential customers immediately.
+
+⚖️ **Legal Reality:** Mobile accessibility is increasingly important as mobile usage dominates.`;
+    }
+    
+    // ARIA Issues
+    if (desc.includes('aria') || type.includes('aria')) {
+      return `⚖️ **WCAG 2.1 Level A - Success Criterion 4.1.2 (Name, Role, Value)**
+Interactive elements must have accessible names and roles.
+
+🚨 **Risk Level: MEDIUM** - Screen reader compatibility
+📊 **User impact:** Screen reader users can't understand what buttons and controls do
+
+**For Small Businesses:** Without ARIA labels, screen reader users don't know what your buttons do (like "Add to Cart" or "Contact Us").
+
+⚖️ **Legal Reality:** Required for screen reader accessibility - part of basic compliance.`;
+    }
+    
+    // Page Structure Issues
+    if (desc.includes('page title') || id.includes('page-title')) {
+      return `⚖️ **WCAG 2.1 Level A - Success Criterion 2.4.2 (Page Titled)**
+Every page must have a descriptive title.
+
+🚨 **Risk Level: LOW** - Basic page structure requirement
+📊 **Impact:** Affects SEO and user orientation
+
+**For Small Businesses:** Poor page titles hurt your search rankings and make it hard for customers to understand what page they're on.
+
+⚖️ **Legal Reality:** Basic requirement that's easy to fix and shows attention to accessibility.`;
+    }
+    
+    if (desc.includes('language') || desc.includes('lang')) {
+      return `⚖️ **WCAG 2.1 Level A - Success Criterion 3.1.1 (Language of Page)**
+Page language must be declared for screen readers.
+
+🚨 **Risk Level: LOW** - Screen reader pronunciation requirement
+📊 **User impact:** Screen readers mispronounce content without language declaration
+
+**For Small Businesses:** Screen readers can't pronounce your content correctly, making it incomprehensible to blind customers.
+
+⚖️ **Legal Reality:** Simple technical fix that demonstrates basic accessibility awareness.`;
+    }
+    
+    // Generic fallback for any other violation type
+    return `⚖️ **WCAG 2.1 Level AA Compliance**
+This accessibility issue may violate ADA requirements.
+
+🚨 **Risk Level: MEDIUM** - General accessibility barrier
+📊 **User impact:** May prevent some customers from using your website effectively
+
+**For Small Businesses:** Accessibility barriers can cost you customers and increase legal risk. Even if not directly sued, fixing these issues improves customer experience and reduces liability.
+
+⚖️ **Legal Reality:** The ADA applies to all businesses serving the public. While lawsuits vary, maintaining accessibility shows good faith effort.`;
+  };
+
+  const extractWCAGCriteria = (issue) => {
+    // Extract WCAG criteria from issue data
+    if (issue.wcagCriteria) return issue.wcagCriteria;
+    if (issue.tags) {
+      const wcagTag = issue.tags.find(tag => tag.includes('wcag'));
+      if (wcagTag) return wcagTag;
+    }
+    return 'WCAG 2.1 Level AA';
+  };
+
+  const getIssueInstances = (issue) => {
+    const instances = [];
+    
+    // Extract instances from various data structures
+    if (issue.nodes && Array.isArray(issue.nodes)) {
+      issue.nodes.forEach((node, idx) => {
+        instances.push({
+          selector: node.target || node.selector || `element-${idx}`,
+          html: node.html || node.outerHTML,
+          message: node.failureSummary || node.message,
+          target: node.target
+        });
+      });
+    }
+    
+    if (issue.elements && Array.isArray(issue.elements)) {
+      issue.elements.forEach((element, idx) => {
+        instances.push({
+          selector: element.selector || element.target || `element-${idx}`,
+          html: element.html || element.outerHTML,
+          message: element.message,
+          target: element.target
+        });
+      });
+    }
+    
+    // If no structured instances, create one from the main issue data
+    if (instances.length === 0 && (issue.selector || issue.target || issue.html)) {
+      instances.push({
+        selector: issue.selector || issue.target || 'Unknown location',
+        html: issue.html || issue.outerHTML,
+        message: issue.failureSummary || issue.message || issue.description,
+        target: issue.target
+      });
+    }
+    
+    return instances;
+  };
+
   const issues = getIssuesForCategory(activeCategory);
 
   return (
@@ -1217,6 +2140,12 @@ const DetailedAnalysisSection = ({ analysisData, isPremium = false }) => {
                 <IssueTitleSection>
                   <IssueTitle>{getIssueTitle(issue)}</IssueTitle>
                   <IssueCount>{getInstanceCount(issue)} found</IssueCount>
+                  {issue.nodes && issue.nodes.length > 0 && (
+                    <IssueCount style={{ fontSize: 'var(--font-size-xs)', marginTop: 'var(--spacing-xs)' }}>
+                      {issue.nodes.map((node, idx) => node.target || node.selector).filter(Boolean).slice(0, 3).join(', ')}
+                      {issue.nodes.length > 3 && ` + ${issue.nodes.length - 3} more`}
+                    </IssueCount>
+                  )}
                 </IssueTitleSection>
               </IssueHeaderLeft>
               <SeverityBadge severity={getSeverity(issue)}>
@@ -1249,6 +2178,80 @@ const DetailedAnalysisSection = ({ analysisData, isPremium = false }) => {
                   }}
                 />
               </FixInstructions>
+
+              {/* Code Examples - Always show helpful examples */}
+              <CodeExampleSection>
+                <SectionHeader>
+                  <FaCode />
+                  Code Example
+                </SectionHeader>
+                <CodeBlock>
+                  <pre>{getCodeExample(issue)}</pre>
+                </CodeBlock>
+              </CodeExampleSection>
+
+              {/* Before/After Mockup */}
+              <MockupSection>
+                <SectionHeader>
+                  <FaExternalLinkAlt />
+                  Before & After
+                </SectionHeader>
+                <MockupGrid>
+                  <MockupCard>
+                    <MockupLabel>Before (Problem)</MockupLabel>
+                    <MockupDescription>{getBeforeMockup(issue)}</MockupDescription>
+                  </MockupCard>
+                  <MockupCard>
+                    <MockupLabel>After (Fixed)</MockupLabel>
+                    <MockupDescription>{getAfterMockup(issue)}</MockupDescription>
+                  </MockupCard>
+                </MockupGrid>
+              </MockupSection>
+
+
+              {/* Legal Compliance - Always show helpful legal context */}
+              <ComplianceSection>
+                <SectionHeader>
+                  <FaCheckCircle />
+                  Legal Compliance
+                </SectionHeader>
+                <ComplianceContent>{getLegalCompliance(issue)}</ComplianceContent>
+              </ComplianceSection>
+
+              {/* Individual Instances */}
+              {getIssueInstances(issue).length > 0 && (
+                <InstancesSection>
+                  <SectionHeader>
+                    <FaCode />
+                    Individual Instances Found ({getIssueInstances(issue).length})
+                  </SectionHeader>
+                  <InstancesList>
+                    {getIssueInstances(issue).slice(0, 10).map((instance, idx) => (
+                      <InstanceCard key={idx}>
+                        <InstanceHeader>
+                          <InstanceNumber>{idx + 1}</InstanceNumber>
+                          <InstanceLocation>{instance.selector || instance.target || `Element ${idx + 1}`}</InstanceLocation>
+                        </InstanceHeader>
+                        {instance.html && (
+                          <InstanceCode>
+                            <pre>{instance.html.substring(0, 200)}{instance.html.length > 200 ? '...' : ''}</pre>
+                          </InstanceCode>
+                        )}
+                        {instance.message && (
+                          <InstanceMessage>{instance.message}</InstanceMessage>
+                        )}
+                      </InstanceCard>
+                    ))}
+                    {getIssueInstances(issue).length > 10 && (
+                      <InstanceCard>
+                        <InstanceMessage>
+                          + {getIssueInstances(issue).length - 10} more instances found
+                        </InstanceMessage>
+                      </InstanceCard>
+                    )}
+                  </InstancesList>
+                </InstancesSection>
+              )}
 
               <BenefitsGrid>
                 <BenefitCard>
