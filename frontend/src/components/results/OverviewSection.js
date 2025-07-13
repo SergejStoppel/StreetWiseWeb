@@ -25,6 +25,7 @@ const SectionTitle = styled.h2`
   color: var(--color-text-primary);
   margin-bottom: var(--spacing-md);
   font-family: var(--font-family-primary);
+  text-align: center;
 `;
 
 const SectionSubtitle = styled.p`
@@ -32,6 +33,7 @@ const SectionSubtitle = styled.p`
   color: var(--color-text-secondary);
   margin-bottom: var(--spacing-2xl);
   font-family: var(--font-family-secondary);
+  text-align: center;
 `;
 
 const OverviewGrid = styled.div`

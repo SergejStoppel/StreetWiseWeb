@@ -330,6 +330,14 @@ const DetailedAnalysisSection = ({ analysisData, isPremium = false }) => {
 
   const getBusinessExplanation = (recommendation) => {
     const explanationMap = {
+      // Content Structure Specific Issues
+      'content chunks': 'Large blocks of text overwhelm customers and make it hard to find key information quickly. Customers with reading difficulties or cognitive disabilities may abandon your site if content feels too dense.',
+      'content exceed': 'Large blocks of text overwhelm customers and make it hard to find key information quickly. Customers with reading difficulties or cognitive disabilities may abandon your site if content feels too dense.',
+      'word count': 'Large blocks of text overwhelm customers and make it hard to find key information quickly. Customers with reading difficulties or cognitive disabilities may abandon your site if content feels too dense.',
+      'content length': 'Large blocks of text overwhelm customers and make it hard to find key information quickly. Customers with reading difficulties or cognitive disabilities may abandon your site if content feels too dense.',
+      'line height': 'Text that\'s cramped together makes it difficult for customers to read your content, especially those with dyslexia or visual processing issues. Poor line spacing causes customers to lose their place while reading.',
+      'white space': 'Cramped layouts without enough breathing room make your website look unprofessional and are harder for customers to scan and understand quickly.',
+      
       // Structure & Navigation
       'heading': 'Poor heading structure makes it hard for customers to scan your content and find what they\'re looking for quickly. Screen reader users rely on headings to navigate, so poor structure creates confusion and may cause customers to leave.',
       'landmark': 'Missing page landmarks make it difficult for screen reader users to quickly navigate to different sections of your website, leading to frustration and potential customer loss.',
@@ -338,12 +346,14 @@ const DetailedAnalysisSection = ({ analysisData, isPremium = false }) => {
       
       // Content & Text  
       'color-contrast': 'When text doesn\'t have enough contrast with its background, customers - especially older customers or those with vision difficulties - can\'t read your content. This means they might miss important information about your products or services, or abandon your site entirely.',
+      'contrast': 'When text doesn\'t have enough contrast with its background, customers - especially older customers or those with vision difficulties - can\'t read your content. This means they might miss important information about your products or services, or abandon your site entirely.',
       'text': 'Poor text formatting makes content hard to read for all customers, but especially impacts those with dyslexia or reading difficulties, potentially losing you customers.',
       'font': 'Decorative or hard-to-read fonts can make your content inaccessible to customers with reading difficulties, reducing engagement and conversions.',
       
       // Images & Media
       'image-alt': 'Images without descriptions are invisible to customers using screen readers (software that reads websites aloud). This means these customers can\'t understand your product photos, diagrams, or important visual information.',
       'alt': 'Missing image descriptions prevent screen reader users from understanding your visual content, potentially missing key product information or calls-to-action.',
+      'images': 'Images without proper accessibility features prevent some customers from understanding your visual content, potentially missing key product information.',
       
       // Forms & Input
       'form': 'Forms without clear labels confuse customers about what information to enter. This leads to incomplete forms, frustrated customers, and lost sales opportunities.',
@@ -355,10 +365,19 @@ const DetailedAnalysisSection = ({ analysisData, isPremium = false }) => {
       'focus': 'Invisible or unclear focus indicators make it impossible for keyboard users to know where they are on your page, leading to confusion and site abandonment.',
       'tab': 'Illogical tab order confuses keyboard users about how to navigate your site, making it difficult to complete purchases or contact you.',
       
-      // Mobile & Touch
+      // Touch Targets
+      'touch target': 'Touch targets that are too small make it difficult for customers to tap buttons or links on mobile devices, especially for users with motor difficulties or larger fingers.',
       'touch': 'Touch targets that are too small make it difficult for customers to tap buttons or links on mobile devices, especially for users with motor difficulties or larger fingers.',
+      'target size': 'Buttons and links that are too small are hard to tap on mobile devices, frustrating customers and potentially losing mobile sales.',
+      
+      // Mobile & Responsive
       'mobile': 'Mobile accessibility issues prevent smartphone users from effectively using your website, potentially losing a significant portion of your customer base.',
       'responsive': 'Non-responsive design makes your website unusable on mobile devices, losing customers who primarily browse on phones and tablets.',
+      
+      // Specific WCAG violations
+      'skip link': 'Without skip links, keyboard users (especially those using screen readers) must tab through your entire navigation menu to reach your main content, causing frustration and potential site abandonment.',
+      'page title': 'Missing or poor page titles make it hard for customers to understand what page they\'re on and hurt your search engine rankings.',
+      'language': 'Missing language declarations prevent screen readers from pronouncing your content correctly, making it incomprehensible to customers using assistive technology.',
       
       // General violations
       'violation': 'This accessibility barrier prevents some customers from fully using your website, potentially resulting in lost sales and increased legal risk.',
@@ -383,6 +402,67 @@ const DetailedAnalysisSection = ({ analysisData, isPremium = false }) => {
 
   const getFixInstructions = (recommendation) => {
     const instructionMap = {
+      // Content Structure Specific Issues
+      'content chunks': `**Step-by-step fix:**
+1. **Break up long content** - Find text sections longer than 3-4 paragraphs
+2. **Add subheadings** - Use H2, H3 headings to break content into digestible sections
+3. **Use bullet points** - Convert long sentences into bulleted lists where possible
+4. **Add white space** - Leave blank lines between sections for visual breathing room
+5. **Keep paragraphs short** - Aim for 2-3 sentences per paragraph maximum
+
+**Target:** Keep each content section under 500 words, with clear headings and plenty of white space.`,
+
+      'content exceed': `**Step-by-step fix:**
+1. **Break up long content** - Find text sections longer than 3-4 paragraphs
+2. **Add subheadings** - Use H2, H3 headings to break content into digestible sections  
+3. **Use bullet points** - Convert long sentences into bulleted lists where possible
+4. **Add white space** - Leave blank lines between sections for visual breathing room
+5. **Keep paragraphs short** - Aim for 2-3 sentences per paragraph maximum
+
+**Target:** Keep each content section under 500 words, with clear headings and plenty of white space.`,
+
+      'word count': `**Step-by-step fix:**
+1. **Break up long content** - Find text sections longer than 3-4 paragraphs
+2. **Add subheadings** - Use H2, H3 headings to break content into digestible sections
+3. **Use bullet points** - Convert long sentences into bulleted lists where possible  
+4. **Add white space** - Leave blank lines between sections for visual breathing room
+5. **Keep paragraphs short** - Aim for 2-3 sentences per paragraph maximum
+
+**Target:** Keep each content section under 500 words, with clear headings and plenty of white space.`,
+
+      'content length': `**Step-by-step fix:**
+1. **Break up long content** - Find text sections longer than 3-4 paragraphs
+2. **Add subheadings** - Use H2, H3 headings to break content into digestible sections
+3. **Use bullet points** - Convert long sentences into bulleted lists where possible
+4. **Add white space** - Leave blank lines between sections for visual breathing room  
+5. **Keep paragraphs short** - Aim for 2-3 sentences per paragraph maximum
+
+**Target:** Keep each content section under 500 words, with clear headings and plenty of white space.`,
+
+      'line height': `**Step-by-step fix:**
+1. **Access your website editor** - Go to your theme customization or CSS settings
+2. **Find text/typography settings** - Look for "Line Height," "Line Spacing," or "Typography"
+3. **Increase line height to 1.5 or higher:**
+   - **WordPress:** Customizer → Typography → Line Height = 1.5
+   - **Wix:** Design → Fonts → Advanced → Line Spacing
+   - **Squarespace:** Design → Fonts → Body Text → Line Height
+4. **Test readability** - Preview your site and check that text is easier to read
+5. **Apply to all text elements** - Make sure headings, paragraphs, and lists all have proper spacing
+
+**Target:** Line height should be at least 1.5 times the font size (150%).`,
+
+      'white space': `**Step-by-step fix:**
+1. **Add space between sections** - Leave blank lines between different content areas
+2. **Increase paragraph spacing** - Add extra space between paragraphs in your editor
+3. **Pad around content blocks** - Add margins/padding to text sections, images, and buttons
+4. **Don't crowd elements** - Ensure buttons, links, and form fields have space around them
+5. **Use your website builder's spacing tools:**
+   - **WordPress:** Add spacing blocks between content
+   - **Wix:** Use the spacing controls in the design panel
+   - **Squarespace:** Adjust spacing in section settings
+
+**Goal:** Create visual breathing room so content doesn't feel cramped or overwhelming.`,
+
       // Structure & Navigation
       'heading': `**Step-by-step fix:**
 1. **Review your page structure** - Your main page title should be H1, major sections should be H2, subsections should be H3, etc.
@@ -664,24 +744,52 @@ const DetailedAnalysisSection = ({ analysisData, isPremium = false }) => {
     if (recommendation.businessImpact) return recommendation.businessImpact;
     
     const benefitMap = {
+      // Content Structure Benefits
+      'content chunks': 'Higher engagement and lower bounce rates as customers can easily scan and find information',
+      'content exceed': 'Higher engagement and lower bounce rates as customers can easily scan and find information', 
+      'word count': 'Higher engagement and lower bounce rates as customers can easily scan and find information',
+      'content length': 'Higher engagement and lower bounce rates as customers can easily scan and find information',
+      'line height': 'Better readability leads to longer time on site and improved customer satisfaction',
+      'white space': 'More professional appearance and easier content consumption increases trust and conversions',
+      
+      // Structure & Navigation
       'heading': 'Better SEO rankings and easier content navigation',
       'landmark': 'Improved user experience and accessibility compliance',
       'navigation': 'Higher customer satisfaction and reduced bounce rate',
       'aria': 'Legal compliance and expanded customer base',
+      
+      // Content & Text
       'color-contrast': 'More readable content for all customers',
+      'contrast': 'More readable content for all customers',
       'text': 'Better engagement and readability scores',
       'font': 'Professional appearance and improved readability',
+      
+      // Images & Media
       'image-alt': 'Better search engine rankings and accessibility',
       'alt': 'Improved SEO and legal compliance',
+      'images': 'Better search engine rankings and accessibility',
+      
+      // Forms & Input  
       'form': 'Higher conversion rates and fewer abandoned forms',
       'label': 'More successful form submissions',
       'input': 'Reduced customer support requests',
+      
+      // Keyboard & Focus
       'keyboard': 'Expanded customer base and legal compliance',
       'focus': 'Better user experience for all customers',
       'tab': 'More efficient customer interactions',
-      'touch': 'Better mobile conversion rates',
+      
+      // Touch & Mobile
+      'touch target': 'Better mobile conversion rates and fewer frustrated customers',
+      'touch': 'Better mobile conversion rates and fewer frustrated customers',
+      'target size': 'Better mobile conversion rates and fewer frustrated customers',
       'mobile': 'Larger mobile customer base',
-      'responsive': 'Higher mobile sales and engagement'
+      'responsive': 'Higher mobile sales and engagement',
+      
+      // Specific Issues
+      'skip link': 'Better accessibility compliance and improved user experience for keyboard users',
+      'page title': 'Better search engine rankings and clearer site navigation',
+      'language': 'Improved accessibility for international customers and screen reader users'
     };
     
     const searchTerms = [
@@ -703,24 +811,52 @@ const DetailedAnalysisSection = ({ analysisData, isPremium = false }) => {
     if (recommendation.userImpact) return recommendation.userImpact;
     
     const benefitMap = {
+      // Content Structure Benefits
+      'content chunks': 'Easier to scan and find specific information without feeling overwhelmed',
+      'content exceed': 'Easier to scan and find specific information without feeling overwhelmed',
+      'word count': 'Easier to scan and find specific information without feeling overwhelmed', 
+      'content length': 'Easier to scan and find specific information without feeling overwhelmed',
+      'line height': 'More comfortable reading without losing your place in the text',
+      'white space': 'Less visual stress and easier focus on what matters most',
+      
+      // Structure & Navigation
       'heading': 'Easier to find and understand content organization',
       'landmark': 'Faster navigation with assistive technology',
       'navigation': 'Clear path to find desired information',
       'aria': 'Better understanding of interactive elements',
-      'color-contrast': 'Easier reading, especially in bright light',
+      
+      // Content & Text
+      'color-contrast': 'Easier reading, especially in bright light or with vision difficulties',
+      'contrast': 'Easier reading, especially in bright light or with vision difficulties',
       'text': 'More comfortable reading experience',
       'font': 'Clearer, easier-to-read content',
-      'image-alt': 'Understanding of visual content for all users',
-      'alt': 'Access to important visual information',
-      'form': 'Clear guidance on how to complete forms',
-      'label': 'Confidence about what information to provide',
+      
+      // Images & Media
+      'image-alt': 'Understanding of visual content for all users, including screen reader users',
+      'alt': 'Access to important visual information even when images can\'t be seen',
+      'images': 'Better understanding of visual content for all users',
+      
+      // Forms & Input
+      'form': 'Clear guidance on how to complete forms without confusion',
+      'label': 'Confidence about what information to provide in each field',
       'input': 'Successful form completion every time',
-      'keyboard': 'Full site access without needing a mouse',
-      'focus': 'Always knowing where you are on the page',
+      
+      // Keyboard & Focus
+      'keyboard': 'Full site access without needing a mouse or touchpad',
+      'focus': 'Always knowing where you are on the page when navigating',
       'tab': 'Logical flow through interactive elements',
-      'touch': 'Easy tapping without accidental clicks',
+      
+      // Touch & Mobile
+      'touch target': 'Easy tapping on mobile devices without accidental clicks',
+      'touch': 'Easy tapping on mobile devices without accidental clicks',
+      'target size': 'Comfortable interaction on touchscreens',
       'mobile': 'Seamless experience on any device',
-      'responsive': 'Comfortable browsing on phones and tablets'
+      'responsive': 'Comfortable browsing on phones and tablets',
+      
+      // Specific Issues
+      'skip link': 'Faster access to main content when using keyboard navigation',
+      'page title': 'Clear understanding of what page you\'re currently viewing',
+      'language': 'Proper pronunciation by screen readers for better comprehension'
     };
     
     const searchTerms = [
@@ -743,6 +879,123 @@ const DetailedAnalysisSection = ({ analysisData, isPremium = false }) => {
     if (recommendation.priority === 'high' || recommendation.impact === 'high') return 'critical';
     if (recommendation.priority === 'medium' || recommendation.impact === 'medium') return 'warning';
     return 'info';
+  };
+
+  const getIssueTitle = (issue) => {
+    // If we have a specific title, use it
+    if (issue.title) return issue.title;
+    
+    // Extract meaningful titles from descriptions
+    const desc = issue.description?.toLowerCase() || '';
+    const type = issue.type?.toLowerCase() || '';
+    const id = issue.id?.toLowerCase() || '';
+    
+    // Content structure specific titles
+    if (desc.includes('content chunks') || desc.includes('content exceed') || desc.includes('word count')) {
+      const count = desc.match(/(\d+)/)?.[1] || 'Some';
+      return `${count} content sections exceed 500 words`;
+    }
+    
+    if (desc.includes('line height') || type.includes('line-height')) {
+      return 'Text line spacing is too tight';
+    }
+    
+    if (desc.includes('white space') || desc.includes('whitespace')) {
+      return 'Insufficient white space between content';
+    }
+    
+    // Color contrast issues
+    if (desc.includes('contrast') || type.includes('contrast') || id.includes('contrast')) {
+      const ratio = desc.match(/(\d+\.?\d*):1/)?.[1];
+      return ratio ? `Text contrast ratio ${ratio}:1 is too low` : 'Text contrast is too low';
+    }
+    
+    // Image issues  
+    if (desc.includes('alt') || type.includes('alt') || id.includes('alt')) {
+      const count = desc.match(/(\d+)/)?.[1] || 'Some';
+      return `${count} images missing alt text`;
+    }
+    
+    // Form issues
+    if (desc.includes('label') || type.includes('label') || id.includes('label')) {
+      const count = desc.match(/(\d+)/)?.[1] || 'Some';
+      return `${count} form fields missing labels`;
+    }
+    
+    // Touch target issues
+    if (desc.includes('touch target') || desc.includes('target size')) {
+      const count = desc.match(/(\d+)/)?.[1] || 'Some';
+      return `${count} touch targets are too small`;
+    }
+    
+    // Heading issues
+    if (desc.includes('heading') || type.includes('heading') || id.includes('heading')) {
+      return 'Heading structure needs improvement';
+    }
+    
+    // Navigation issues
+    if (desc.includes('skip link') || id.includes('skip-link')) {
+      return 'Missing skip navigation link';
+    }
+    
+    if (desc.includes('navigation') || type.includes('nav')) {
+      return 'Navigation accessibility issues';
+    }
+    
+    // Keyboard issues
+    if (desc.includes('keyboard') || type.includes('keyboard')) {
+      return 'Keyboard navigation problems';
+    }
+    
+    if (desc.includes('focus') || type.includes('focus')) {
+      return 'Focus indicators are not visible';
+    }
+    
+    // ARIA issues
+    if (desc.includes('aria') || type.includes('aria')) {
+      return 'ARIA labels or roles missing';
+    }
+    
+    // Page structure
+    if (desc.includes('page title') || id.includes('page-title')) {
+      return 'Page title missing or inadequate';
+    }
+    
+    if (desc.includes('language') || desc.includes('lang')) {
+      return 'Page language not declared';
+    }
+    
+    // Use description or fallback
+    return issue.description || issue.message || issue.id || 'Accessibility issue needs attention';
+  };
+
+  const getInstanceCount = (issue) => {
+    // Try to extract count from description
+    const desc = issue.description?.toLowerCase() || '';
+    const countMatch = desc.match(/(\d+)/);
+    
+    if (countMatch) {
+      const count = parseInt(countMatch[1]);
+      return `${count} instance${count === 1 ? '' : 's'}`;
+    }
+    
+    // Check if we have a count property
+    if (issue.count) {
+      return `${issue.count} instance${issue.count === 1 ? '' : 's'}`;
+    }
+    
+    // Check if we have nodes array (common in axe results)
+    if (issue.nodes?.length) {
+      return `${issue.nodes.length} instance${issue.nodes.length === 1 ? '' : 's'}`;
+    }
+    
+    // Check if we have elements array
+    if (issue.elements?.length) {
+      return `${issue.elements.length} instance${issue.elements.length === 1 ? '' : 's'}`;
+    }
+    
+    // Default to 1 instance
+    return '1 instance';
   };
 
   const categories = [
@@ -962,8 +1215,8 @@ const DetailedAnalysisSection = ({ analysisData, isPremium = false }) => {
                    getSeverity(issue) === 'warning' ? <FaInfoCircle /> : <FaCheckCircle />}
                 </IssueIcon>
                 <IssueTitleSection>
-                  <IssueTitle>{issue.title || issue.description || 'Accessibility Issue'}</IssueTitle>
-                  <IssueCount>{issue.count || 1} instance(s) found</IssueCount>
+                  <IssueTitle>{getIssueTitle(issue)}</IssueTitle>
+                  <IssueCount>{getInstanceCount(issue)} found</IssueCount>
                 </IssueTitleSection>
               </IssueHeaderLeft>
               <SeverityBadge severity={getSeverity(issue)}>

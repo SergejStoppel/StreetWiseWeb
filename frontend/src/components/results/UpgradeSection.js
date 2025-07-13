@@ -36,9 +36,10 @@ const SectionTitle = styled.h2`
 const SectionSubtitle = styled.p`
   font-size: var(--font-size-lg);
   color: var(--color-text-secondary);
-  margin-bottom: var(--spacing-xl);
+  margin: 0 auto var(--spacing-xl) auto;
   font-family: var(--font-family-secondary);
   text-align: center;
+  max-width: 600px;
 `;
 
 const LimitationsBox = styled.div`
@@ -274,12 +275,6 @@ const UpgradeSection = ({ analysisData, onUpgrade }) => {
     <UpgradeContainer>
       <SectionTitle>{t('results:upgrade.title')}</SectionTitle>
       <SectionSubtitle>{t('results:upgrade.subtitle')}</SectionSubtitle>
-
-      <LimitationsBox>
-        <LimitationsText>
-          {t('results:upgrade.freeReportLimitations')}
-        </LimitationsText>
-      </LimitationsBox>
 
       <FeaturesTitle>{t('results:upgrade.detailedReportIncludes')}</FeaturesTitle>
       
