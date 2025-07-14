@@ -8,7 +8,6 @@ import {
   FaDownload, 
   FaExclamationTriangle, 
   FaCheckCircle, 
-  FaTimesCircle,
   FaInfoCircle,
   FaImage,
   FaWpforms,
@@ -18,12 +17,8 @@ import {
   FaLock,
   FaStar,
   FaLanguage,
-  FaCompass,
-  FaRoute,
-  FaHandPointer,
-  FaKeyboard,
-  FaAlignLeft,
-  FaMobile
+  FaFileAlt,
+  FaArrowRight
 } from 'react-icons/fa';
 import ScoreCard from '../components/ScoreCard';
 import ViolationsList from '../components/ViolationsList';
@@ -37,12 +32,18 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { accessibilityAPI } from '../services/api';
 
 const ResultsContainer = styled.div`
-  max-width: 1200px;
+  max-width: var(--container-max-width);
   margin: 0 auto;
-  padding: 2rem 1rem;
+  padding: var(--spacing-2xl) var(--spacing-md);
+  background: var(--color-surface-primary);
+  min-height: 100vh;
   
   @media (min-width: 768px) {
-    padding: 2rem 2rem;
+    padding: var(--spacing-2xl);
+  }
+  
+  @media (max-width: 768px) {
+    padding: var(--spacing-lg) var(--spacing-sm);
   }
 `;
 
@@ -52,10 +53,13 @@ const Header = styled.div`
   align-items: flex-start;
   margin-bottom: 2rem;
   gap: 1rem;
+  padding-bottom: var(--spacing-lg);
+  border-bottom: 1px solid var(--color-border-primary);
   
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: stretch;
+    padding-bottom: var(--spacing-md);
   }
 `;
 
@@ -73,70 +77,73 @@ const HeaderRight = styled.div`
 `;
 
 const BackButton = styled.button`
-  background: var(--color-neutral-500);
-  color: var(--color-neutral-0);
-  padding: 0.5rem 1rem;
+  background: var(--color-interactive-secondary);
+  color: var(--color-text-on-brand);
+  padding: var(--spacing-xs) var(--spacing-md);
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-primary);
   cursor: pointer;
-  transition: var(--transition-default);
+  transition: var(--transition-fast);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-xs);
   
   &:hover {
-    background: var(--color-neutral-600);
+    background: var(--color-interactive-secondary-hover);
     transform: translateY(-1px);
   }
 `;
 
 const DownloadButton = styled.button`
   background: ${props => props.premium ? 
-    'linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%)' :
-    'var(--color-primary-500)'};
-  color: var(--color-neutral-0);
-  padding: 0.5rem 1rem;
+    'linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-hover) 100%)' :
+    'var(--color-interactive-primary)'};
+  color: var(--color-text-on-brand);
+  padding: var(--spacing-xs) var(--spacing-md);
   border: none;
-  border-radius: var(--radius-md);
-  font-size: 0.875rem;
-  font-weight: 500;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-primary);
   cursor: pointer;
-  transition: var(--transition-default);
+  transition: var(--transition-fast);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-xs);
   position: relative;
   
   &:hover {
     background: ${props => props.premium ? 
-      'linear-gradient(135deg, var(--color-warning-600) 0%, var(--color-warning-700) 100%)' :
-      'var(--color-primary-600)'};
+      'linear-gradient(135deg, var(--color-warning-hover) 0%, var(--color-warning) 100%)' :
+      'var(--color-interactive-primary-hover)'};
     transform: translateY(-1px);
     box-shadow: var(--shadow-lg);
   }
   
   &:disabled {
-    background: var(--color-neutral-300);
+    background: var(--color-text-tertiary);
     cursor: not-allowed;
     transform: none;
   }
 `;
 
 const UpgradeButton = styled.button`
-  background: linear-gradient(135deg, var(--color-primary-500) 0%, var(--color-secondary-500) 100%);
-  color: var(--color-neutral-0);
-  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, var(--color-interactive-primary) 0%, var(--color-interactive-primary-hover) 100%);
+  color: var(--color-text-on-brand);
+  padding: var(--spacing-sm) var(--spacing-lg);
   border: none;
-  border-radius: var(--radius-lg);
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
   cursor: pointer;
-  transition: var(--transition-default);
+  transition: var(--transition-fast);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--spacing-sm);
   box-shadow: var(--shadow-lg);
   
   &:hover {
@@ -145,255 +152,694 @@ const UpgradeButton = styled.button`
   }
   
   &:disabled {
-    background: var(--color-neutral-300);
+    background: var(--color-text-tertiary);
     cursor: not-allowed;
     transform: none;
   }
 `;
 
 const Title = styled.h1`
-  font-size: 2rem;
-  font-weight: 700;
-  color: var(--color-neutral-800);
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-primary);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--spacing-sm);
+  text-align: left;
+  line-height: 1.2;
   
   @media (max-width: 768px) {
-    font-size: 1.5rem;
+    font-size: var(--font-size-2xl);
+    text-align: center;
   }
 `;
 
 const ReportTypeBadge = styled.span`
   background: ${props => props.type === 'detailed' ? 
-    'linear-gradient(135deg, var(--color-warning-500) 0%, var(--color-warning-600) 100%)' :
-    'var(--color-primary-100)'};
+    'linear-gradient(135deg, var(--color-warning) 0%, var(--color-warning-hover) 100%)' :
+    'var(--color-surface-secondary)'};
   color: ${props => props.type === 'detailed' ? 
-    'var(--color-neutral-0)' : 
-    'var(--color-primary-700)'};
-  padding: 0.25rem 0.75rem;
-  border-radius: var(--radius-full);
-  font-size: 0.875rem;
-  font-weight: 600;
+    'var(--color-text-on-brand)' : 
+    'var(--color-text-primary)'};
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-full);
+  border: 1px solid var(--color-border-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-xs);
 `;
 
 const Subtitle = styled.p`
-  color: var(--color-neutral-500);
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-secondary);
+  margin-bottom: var(--spacing-xs);
+  text-align: left;
+  line-height: 1.4;
+  
+  @media (max-width: 768px) {
+    text-align: center;
+    font-size: var(--font-size-sm);
+  }
 `;
 
 const AnalysisInfo = styled.div`
   display: flex;
-  gap: 1rem;
-  color: var(--color-neutral-500);
-  font-size: 0.875rem;
+  gap: var(--spacing-md);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-secondary);
+  text-align: left;
+  line-height: 1.4;
   
   @media (max-width: 768px) {
     flex-direction: column;
-    gap: 0.25rem;
+    gap: var(--spacing-xs);
+    text-align: center;
   }
 `;
 
-const UpgradePrompt = styled.div`
-  background: linear-gradient(135deg, var(--color-primary-50) 0%, var(--color-secondary-50) 100%);
-  border: 2px solid var(--color-primary-200);
-  border-radius: var(--radius-xl);
-  padding: 2rem;
-  margin: 2rem 0;
-  text-align: center;
-`;
-
-const UpgradeTitle = styled.h3`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--color-neutral-800);
-  margin-bottom: 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-`;
-
-const UpgradeDescription = styled.p`
-  color: var(--color-neutral-600);
-  font-size: 1rem;
-  margin-bottom: 1.5rem;
-  line-height: 1.6;
-`;
-
-const FeatureList = styled.ul`
-  list-style: none;
-  padding: 0;
-  margin: 1.5rem 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 0.75rem;
-`;
-
-const FeatureItem = styled.li`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--color-neutral-700);
-  font-size: 0.875rem;
-  
-  svg {
-    color: var(--color-success-500);
-    flex-shrink: 0;
-  }
-`;
 
 
 const LockedSection = styled.div`
-  background: var(--color-neutral-50);
-  border: 2px dashed var(--color-neutral-300);
-  border-radius: var(--radius-lg);
-  padding: 3rem 2rem;
+  background: var(--color-surface-secondary);
+  border: 2px dashed var(--color-border-primary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-3xl) var(--spacing-2xl);
   text-align: center;
-  margin: 2rem 0;
+  margin: var(--spacing-2xl) 0;
 `;
 
 const LockIcon = styled.div`
-  font-size: 3rem;
-  color: var(--color-neutral-400);
-  margin-bottom: 1rem;
+  font-size: var(--font-size-5xl);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--spacing-md);
 `;
 
 const LockedTitle = styled.h3`
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-neutral-700);
-  margin-bottom: 0.5rem;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
 `;
 
 const LockedDescription = styled.p`
-  color: var(--color-neutral-500);
-  margin-bottom: 1.5rem;
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-secondary);
+  margin-bottom: var(--spacing-lg);
 `;
 
 const ExcellentAccessibilitySection = styled.div`
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  border: 2px solid #10b981;
-  border-radius: 12px;
-  padding: 2rem;
+  background: var(--color-success-light);
+  border: 2px solid var(--color-success);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-2xl);
   text-align: center;
-  margin: 1rem 0;
+  margin: var(--spacing-md) 0;
 `;
 
 const ExcellentIcon = styled.div`
-  font-size: 4rem;
-  color: #10b981;
-  margin-bottom: 1rem;
+  font-size: var(--font-size-5xl);
+  color: var(--color-success);
+  margin-bottom: var(--spacing-md);
   display: flex;
   justify-content: center;
 `;
 
 const ExcellentTitle = styled.h3`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #065f46;
-  margin-bottom: 1rem;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-primary);
+  color: var(--color-success-text);
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+  line-height: 1.3;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-xl);
+  }
 `;
 
 const ExcellentDescription = styled.p`
-  color: #047857;
-  font-size: 1.1rem;
-  margin-bottom: 1rem;
+  color: var(--color-success-text);
+  font-size: var(--font-size-lg);
+  font-family: var(--font-family-secondary);
+  margin-bottom: var(--spacing-md);
   line-height: 1.6;
+  text-align: center;
   
   &:last-child {
     margin-bottom: 0;
-    font-weight: 600;
+    font-weight: var(--font-weight-semibold);
+  }
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-base);
   }
 `;
 
 const ScoresSection = styled.section`
-  margin-bottom: 3rem;
+  margin-bottom: var(--spacing-3xl);
 `;
 
 const ScoresGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-2xl);
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
 `;
 
-const SummarySection = styled.section`
-  background: white;
-  padding: 2rem;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-  margin-bottom: 3rem;
-`;
-
-const SummaryTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 1rem;
-`;
 
 const SummaryGrid = styled.div`
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
+  gap: var(--spacing-lg);
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: var(--spacing-md);
+  }
 `;
 
 const SummaryCard = styled.div`
   text-align: center;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 0.5rem;
+  padding: var(--spacing-md);
+  background: var(--color-surface-secondary);
+  border: 1px solid var(--color-border-secondary);
+  border-radius: var(--border-radius-lg);
+  transition: var(--transition-fast);
+  
+  &:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
+  }
 `;
 
 const SummaryIcon = styled.div`
-  font-size: 2rem;
-  margin-bottom: 0.5rem;
-  color: ${props => props.color || '#6b7280'};
+  font-size: var(--font-size-3xl);
+  margin-bottom: var(--spacing-xs);
+  color: ${props => props.color || 'var(--color-text-tertiary)'};
 `;
 
 const SummaryValue = styled.div`
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #1f2937;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-primary);
+  color: var(--color-text-primary);
+  text-align: center;
+  line-height: 1.2;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-xl);
+  }
 `;
 
 const SummaryLabel = styled.div`
-  font-size: 0.875rem;
-  color: #6b7280;
-  margin-top: 0.25rem;
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-secondary);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-xs);
+  text-align: center;
+  line-height: 1.3;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-xs);
+  }
 `;
 
 const Section = styled.section`
-  margin-bottom: 3rem;
+  margin-bottom: var(--spacing-3xl);
+  padding: var(--spacing-lg) 0;
+  
+  &:not(:last-child) {
+    border-bottom: 1px solid var(--color-border-secondary);
+  }
+  
+  @media (max-width: 768px) {
+    margin-bottom: var(--spacing-2xl);
+    padding: var(--spacing-md) 0;
+  }
 `;
 
 const SectionTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1f2937;
-  margin-bottom: 1rem;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+  text-align: left;
+  line-height: 1.3;
+  
+  @media (max-width: 768px) {
+    text-align: center;
+    font-size: var(--font-size-xl);
+  }
 `;
 
 const NoResultsMessage = styled.div`
   text-align: center;
-  padding: 4rem 2rem;
-  color: #6b7280;
+  padding: var(--spacing-4xl) var(--spacing-2xl);
+  color: var(--color-text-secondary);
 `;
 
 const NoResultsTitle = styled.h2`
-  font-size: 1.5rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+  line-height: 1.3;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-xl);
+  }
 `;
 
 const NoResultsText = styled.p`
-  margin-bottom: 2rem;
+  font-family: var(--font-family-secondary);
+  margin-bottom: var(--spacing-2xl);
+  text-align: center;
+  line-height: 1.5;
+  color: var(--color-text-secondary);
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-sm);
+  }
+`;
+
+// Overview Report Components
+const CriticalIssuesSection = styled.section`
+  margin-bottom: var(--spacing-3xl);
+`;
+
+const CriticalIssuesList = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+`;
+
+const CriticalIssueCard = styled.div`
+  background: var(--color-surface-elevated);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-primary);
+  transition: var(--transition-fast);
+  
+  &:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+`;
+
+const IssueHeader = styled.div`
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-md);
+`;
+
+const IssueIcon = styled.div`
+  font-size: var(--font-size-2xl);
+  color: ${props => props.color};
+  flex-shrink: 0;
+  margin-top: var(--spacing-xs);
+`;
+
+const IssueInfo = styled.div`
+  flex: 1;
+`;
+
+const IssueTitle = styled.h3`
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+  text-align: left;
+  line-height: 1.3;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-lg);
+  }
+`;
+
+const IssueCount = styled.p`
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-secondary);
+  color: var(--color-text-secondary);
+  margin: 0;
+  text-align: left;
+  line-height: 1.4;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-xs);
+  }
+`;
+
+const ImpactBadge = styled.span`
+  background: ${props => props.severity === 'critical' ? 'var(--color-error-light)' : 'var(--color-warning-light)'};
+  color: ${props => props.severity === 'critical' ? 'var(--color-error)' : 'var(--color-warning)'};
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+`;
+
+const IssueDescription = styled.p`
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-secondary);
+  line-height: 1.6;
+  margin-bottom: var(--spacing-lg);
+  text-align: left;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-sm);
+  }
+`;
+
+const FixGuidance = styled.div`
+  background: var(--color-success-light);
+  border: 1px solid var(--color-border-success);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+`;
+
+const FixTitle = styled.h4`
+  color: var(--color-success-text);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-md);
+  text-align: left;
+  line-height: 1.4;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-sm);
+  }
+`;
+
+const FixSteps = styled.ol`
+  margin: 0 0 var(--spacing-md) 0;
+  padding-left: var(--spacing-lg);
+  color: var(--color-success-text);
+  font-family: var(--font-family-secondary);
+  text-align: left;
+  line-height: 1.5;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-sm);
+  }
+`;
+
+const FixStep = styled.li`
+  margin-bottom: var(--spacing-xs);
+  line-height: 1.6;
+  text-align: left;
+`;
+
+const FixTime = styled.p`
+  color: var(--color-success-text);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-secondary);
+  margin: 0;
+  text-align: left;
+  line-height: 1.3;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-xs);
+  }
+`;
+
+const QuickWinsSection = styled.section`
+  margin-bottom: var(--spacing-3xl);
+`;
+
+const QuickWinsGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--spacing-lg);
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+  }
+`;
+
+const QuickWinCard = styled.div`
+  background: var(--color-surface-elevated);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-lg);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-primary);
+  text-align: center;
+  transition: var(--transition-fast);
+  
+  &:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+`;
+
+const QuickWinIcon = styled.div`
+  font-size: var(--font-size-3xl);
+  color: ${props => props.color};
+  margin-bottom: var(--spacing-md);
+`;
+
+const QuickWinTitle = styled.h3`
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+  text-align: center;
+  line-height: 1.3;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-base);
+  }
+`;
+
+const QuickWinDescription = styled.p`
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-secondary);
+  line-height: 1.5;
+  margin-bottom: var(--spacing-md);
+  text-align: center;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-sm);
+  }
+`;
+
+const QuickWinTime = styled.p`
+  color: var(--color-success);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-secondary);
+  margin: 0;
+  text-align: center;
+  line-height: 1.3;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-xs);
+  }
+`;
+
+// Pricing Section Components
+const PricingSection = styled.section`
+  margin: var(--spacing-3xl) 0;
+  padding: var(--spacing-2xl);
+  background: linear-gradient(135deg, var(--color-surface-secondary) 0%, var(--color-surface-tertiary) 100%);
+  border-radius: var(--border-radius-xl);
+  border: 1px solid var(--color-border-primary);
+`;
+
+const PricingTitle = styled.h2`
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-primary);
+  color: var(--color-text-primary);
+  text-align: center;
+  margin-bottom: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  line-height: 1.2;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-2xl);
+  }
+`;
+
+const PricingDescription = styled.p`
+  font-size: var(--font-size-base);
+  font-family: var(--font-family-secondary);
+  color: var(--color-text-secondary);
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-sm);
+  }
+`;
+
+const PricingGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-2xl);
+  max-width: 800px;
+  margin: 0 auto;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+`;
+
+const PricingCard = styled.div`
+  background: var(--color-surface-elevated);
+  border-radius: var(--border-radius-xl);
+  padding: var(--spacing-2xl);
+  box-shadow: var(--shadow-lg);
+  border: ${props => props.featured ? '3px solid var(--color-interactive-primary)' : '1px solid var(--color-border-primary)'};
+  position: relative;
+  transition: var(--transition-fast);
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+  }
+`;
+
+const PricingCardHeader = styled.div`
+  text-align: center;
+  margin-bottom: var(--spacing-2xl);
+  position: relative;
+`;
+
+const PricingCardTitle = styled.h3`
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+  text-align: center;
+  line-height: 1.2;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-lg);
+  }
+`;
+
+const PricingCardPrice = styled.div`
+  font-size: var(--font-size-4xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-primary);
+  color: var(--color-interactive-primary);
+  margin-bottom: var(--spacing-xs);
+  text-align: center;
+  line-height: 1.1;
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-3xl);
+  }
+`;
+
+const PricingCardBadge = styled.span`
+  background: var(--color-interactive-primary);
+  color: var(--color-text-on-brand);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+  position: absolute;
+  top: calc(-1 * var(--spacing-xs));
+  right: calc(-1 * var(--spacing-xs));
+`;
+
+const PricingCardFeatures = styled.ul`
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--spacing-2xl) 0;
+`;
+
+const PricingFeature = styled.li`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  color: var(--color-text-secondary);
+  font-family: var(--font-family-secondary);
+  text-align: left;
+  line-height: 1.4;
+  
+  svg {
+    color: var(--color-success);
+    flex-shrink: 0;
+  }
+`;
+
+const PricingCardButton = styled.button`
+  width: 100%;
+  background: ${props => props.featured ? 
+    'linear-gradient(135deg, var(--color-interactive-primary) 0%, var(--color-interactive-primary-hover) 100%)' :
+    'var(--color-interactive-primary)'};
+  color: var(--color-text-on-brand);
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  border: none;
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-xs);
+  box-shadow: var(--shadow-md);
+  min-height: 56px;
+  
+  &:hover:not(:disabled) {
+    background: ${props => props.featured ? 
+      'linear-gradient(135deg, var(--color-interactive-primary-hover) 0%, var(--color-interactive-primary-active) 100%)' :
+      'var(--color-interactive-primary-hover)'};
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+  
+  &:disabled {
+    background: var(--color-text-tertiary);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
 `;
 
 // Color Contrast Analysis Components
@@ -431,25 +877,142 @@ const ContrastDescription = styled.div`
   color: #9ca3af;
 `;
 
-const ViolationExample = styled.div`
-  background: #fef7f7;
-  border: 1px solid #fecaca;
-  border-radius: 6px;
-  padding: 1rem;
-  margin: 0.5rem 0;
-`;
 
-const ViolationMessage = styled.div`
-  font-size: 0.875rem;
-  color: #374151;
-  margin-bottom: 0.5rem;
-`;
+// Helper functions for overview report
+const getCriticalIssues = (results) => {
+  const issues = [];
+  
+  // Image accessibility issues
+  if (results.summary.imagesWithoutAlt > 0) {
+    issues.push({
+      title: "Images Missing Alt Text",
+      count: results.summary.imagesWithoutAlt,
+      severity: "critical",
+      impact: "High Impact",
+      icon: <FaImage />,
+      description: "Images without alternative text are invisible to screen readers, making your content inaccessible to users with visual impairments.",
+      fixSteps: [
+        "Add descriptive alt text to all images",
+        "Use empty alt=\"\" for decorative images",
+        "Ensure alt text describes the image's purpose, not just its appearance"
+      ],
+      estimatedTime: "30-60 minutes"
+    });
+  }
+  
+  // Form accessibility issues
+  if (results.summary.formsWithoutLabels > 0) {
+    issues.push({
+      title: "Form Fields Without Labels",
+      count: results.summary.formsWithoutLabels,
+      severity: "critical",
+      impact: "High Impact",
+      icon: <FaWpforms />,
+      description: "Form fields without proper labels make it impossible for screen reader users to understand what information is required.",
+      fixSteps: [
+        "Add <label> elements for all form inputs",
+        "Use aria-label for inputs where visual labels aren't possible",
+        "Ensure labels are properly associated with their inputs"
+      ],
+      estimatedTime: "15-30 minutes"
+    });
+  }
+  
+  // Color contrast issues
+  if (results.summary.colorContrastViolations > 0) {
+    issues.push({
+      title: "Color Contrast Issues",
+      count: results.summary.colorContrastViolations,
+      severity: "serious",
+      impact: "Medium Impact",
+      icon: <FaPalette />,
+      description: "Poor color contrast makes text difficult to read for users with visual impairments or in different lighting conditions.",
+      fixSteps: [
+        "Ensure text has a contrast ratio of at least 4.5:1 with its background",
+        "Use darker text colors or lighter backgrounds",
+        "Test colors with online contrast checkers"
+      ],
+      estimatedTime: "45-90 minutes"
+    });
+  }
+  
+  // Empty links
+  if (results.summary.emptyLinks > 0) {
+    issues.push({
+      title: "Empty or Unclear Links",
+      count: results.summary.emptyLinks,
+      severity: "serious",
+      impact: "Medium Impact",
+      icon: <FaLink />,
+      description: "Links without descriptive text confuse screen reader users and hurt SEO.",
+      fixSteps: [
+        "Add descriptive text to all links",
+        "Avoid generic phrases like 'click here' or 'read more'",
+        "Use aria-label for icon-only links"
+      ],
+      estimatedTime: "20-40 minutes"
+    });
+  }
+  
+  // Critical violations
+  if (results.summary.criticalViolations > 0) {
+    issues.push({
+      title: "Critical Accessibility Violations",
+      count: results.summary.criticalViolations,
+      severity: "critical",
+      impact: "High Impact",
+      icon: <FaExclamationTriangle />,
+      description: "Critical violations that significantly impact accessibility and may cause legal compliance issues.",
+      fixSteps: [
+        "Review detailed report for specific violations",
+        "Address heading structure issues",
+        "Fix keyboard navigation problems"
+      ],
+      estimatedTime: "2-4 hours"
+    });
+  }
+  
+  // Sort by severity (critical first) and return top 5
+  return issues
+    .sort((a, b) => a.severity === 'critical' && b.severity !== 'critical' ? -1 : 1)
+    .slice(0, 5);
+};
 
-const ViolationRatio = styled.div`
-  font-size: 0.75rem;
-  color: #dc2626;
-  font-family: 'Courier New', monospace;
-`;
+const getQuickWins = (results) => {
+  const wins = [];
+  
+  // Language declaration
+  if (results.summary.languageScore !== null && results.summary.languageScore < 100) {
+    wins.push({
+      title: "Add Language Declaration",
+      description: "Add lang attribute to your HTML tag for better screen reader support",
+      icon: <FaLanguage />,
+      time: "2 minutes"
+    });
+  }
+  
+  // Page title
+  if (results.summary.structureScore !== null && results.summary.structureScore < 90) {
+    wins.push({
+      title: "Improve Page Title",
+      description: "Ensure your page has a descriptive, unique title",
+      icon: <FaFileAlt />,
+      time: "5 minutes"
+    });
+  }
+  
+  // Skip links
+  if (results.summary.hasSkipLinks === false) {
+    wins.push({
+      title: "Add Skip Links",
+      description: "Add skip navigation links for keyboard users",
+      icon: <FaArrowRight />,
+      time: "10 minutes"
+    });
+  }
+  
+  return wins.slice(0, 3);
+};
 
 const ColorContrastSection = ({ analysis }) => {
   const { t } = useTranslation('dashboard');
@@ -725,265 +1288,63 @@ const ResultsPage = () => {
         </ScoresGrid>
       </ScoresSection>
 
-      <SummarySection>
-        <SummaryTitle>{t('results.summary.title')}</SummaryTitle>
-        <SummaryGrid>
-          <SummaryCard>
-            <SummaryIcon color="#ef4444">
-              <FaTimesCircle />
-            </SummaryIcon>
-            <SummaryValue>{results.summary.totalViolations}</SummaryValue>
-            <SummaryLabel>{t('results.summary.totalViolations')}</SummaryLabel>
-          </SummaryCard>
-          
-          <SummaryCard>
-            <SummaryIcon color="#dc2626">
-              <FaExclamationTriangle />
-            </SummaryIcon>
-            <SummaryValue>{results.summary.criticalViolations}</SummaryValue>
-            <SummaryLabel>{t('results.summary.criticalIssues')}</SummaryLabel>
-          </SummaryCard>
-          
-          <SummaryCard>
-            <SummaryIcon color="#f59e0b">
-              <FaInfoCircle />
-            </SummaryIcon>
-            <SummaryValue>{results.summary.seriousViolations}</SummaryValue>
-            <SummaryLabel>{t('results.summary.seriousIssues')}</SummaryLabel>
-          </SummaryCard>
-          
-          <SummaryCard>
-            <SummaryIcon color="#6b7280">
-              <FaImage />
-            </SummaryIcon>
-            <SummaryValue>{results.summary.imagesWithoutAlt}</SummaryValue>
-            <SummaryLabel>{t('results.summary.imagesWithoutAlt')}</SummaryLabel>
-          </SummaryCard>
-          
-          <SummaryCard>
-            <SummaryIcon color="#6b7280">
-              <FaWpforms />
-            </SummaryIcon>
-            <SummaryValue>{results.summary.formsWithoutLabels}</SummaryValue>
-            <SummaryLabel>{t('results.summary.unlabeledFormFields')}</SummaryLabel>
-          </SummaryCard>
-          
-          <SummaryCard>
-            <SummaryIcon color="#6b7280">
-              <FaLink />
-            </SummaryIcon>
-            <SummaryValue>{results.summary.emptyLinks}</SummaryValue>
-            <SummaryLabel>{t('results.summary.emptyLinks')}</SummaryLabel>
-          </SummaryCard>
-          
-          <SummaryCard>
-            <SummaryIcon color="#dc2626">
-              <FaPalette />
-            </SummaryIcon>
-            <SummaryValue>{results.summary.colorContrastViolations || 0}</SummaryValue>
-            <SummaryLabel>{t('results.summary.colorContrastIssues')}</SummaryLabel>
-          </SummaryCard>
-          
-          {results.summary.languageIssues > 0 && (
-            <SummaryCard>
-              <SummaryIcon color="#dc2626">
-                <FaLanguage />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.languageIssues}</SummaryValue>
-              <SummaryLabel>Language Issues</SummaryLabel>
-            </SummaryCard>
-          )}
-          
-          {results.summary.formErrorHandlingIssues > 0 && (
-            <SummaryCard>
-              <SummaryIcon color="#dc2626">
-                <FaExclamationTriangle />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.formErrorHandlingIssues}</SummaryValue>
-              <SummaryLabel>Form Error Issues</SummaryLabel>
-            </SummaryCard>
-          )}
-          
-          {/* Navigation Summary Cards */}
-          <SummaryCard>
-            <SummaryIcon color={results.summary.hasSkipLinks ? "#10b981" : "#ef4444"}>
-              <FaCompass />
-            </SummaryIcon>
-            <SummaryValue>{results.summary.hasSkipLinks ? "Yes" : "No"}</SummaryValue>
-            <SummaryLabel>Skip Links</SummaryLabel>
-          </SummaryCard>
-          
-          <SummaryCard>
-            <SummaryIcon color={results.summary.hasBreadcrumbs ? "#10b981" : "#f59e0b"}>
-              <FaRoute />
-            </SummaryIcon>
-            <SummaryValue>{results.summary.hasBreadcrumbs ? "Yes" : "No"}</SummaryValue>
-            <SummaryLabel>Breadcrumbs</SummaryLabel>
-          </SummaryCard>
-          
-          {/* Touch Target Summary */}
-          {results.summary.smallTargets !== undefined && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.smallTargets === 0 ? "#10b981" : "#ef4444"}>
-                <FaHandPointer />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.smallTargets}</SummaryValue>
-              <SummaryLabel>Small Touch Targets</SummaryLabel>
-            </SummaryCard>
-          )}
-          
-          {results.summary.structureScore !== null && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.structureScore >= 80 ? "#10b981" : results.summary.structureScore >= 60 ? "#f59e0b" : "#ef4444"}>
-                <FaWpforms />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.structureScore}%</SummaryValue>
-              <SummaryLabel>{t('results.summary.structureScore')}</SummaryLabel>
-            </SummaryCard>
-          )}
-          
-          {results.summary.navigationScore !== null && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.navigationScore >= 80 ? "#10b981" : results.summary.navigationScore >= 60 ? "#f59e0b" : "#ef4444"}>
-                <FaCompass />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.navigationScore}%</SummaryValue>
-              <SummaryLabel>Navigation Score</SummaryLabel>
-            </SummaryCard>
-          )}
-          
-          {results.summary.touchTargetScore !== null && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.touchTargetScore >= 80 ? "#10b981" : results.summary.touchTargetScore >= 60 ? "#f59e0b" : "#ef4444"}>
-                <FaHandPointer />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.touchTargetScore}%</SummaryValue>
-              <SummaryLabel>Touch Target Score</SummaryLabel>
-            </SummaryCard>
-          )}
+      {/* Overview Report Critical Issues Section */}
+      <CriticalIssuesSection>
+        <SectionTitle>{t('results.overview.criticalIssues')}</SectionTitle>
+        <CriticalIssuesList>
+          {getCriticalIssues(results).map((issue, index) => (
+            <CriticalIssueCard key={index}>
+              <IssueHeader>
+                <IssueIcon color={issue.severity === 'critical' ? '#ef4444' : '#f59e0b'}>
+                  {issue.icon}
+                </IssueIcon>
+                <IssueInfo>
+                  <IssueTitle>{issue.title}</IssueTitle>
+                  <IssueCount>{issue.count} instance{issue.count !== 1 ? 's' : ''} found</IssueCount>
+                </IssueInfo>
+                <ImpactBadge severity={issue.severity}>
+                  {issue.impact}
+                </ImpactBadge>
+              </IssueHeader>
+              <IssueDescription>{issue.description}</IssueDescription>
+              <FixGuidance>
+                <FixTitle>How to fix:</FixTitle>
+                <FixSteps>
+                  {issue.fixSteps.map((step, stepIndex) => (
+                    <FixStep key={stepIndex}>{step}</FixStep>
+                  ))}
+                </FixSteps>
+                <FixTime>Estimated time: {issue.estimatedTime}</FixTime>
+              </FixGuidance>
+            </CriticalIssueCard>
+          ))}
+        </CriticalIssuesList>
+      </CriticalIssuesSection>
 
-          {/* Keyboard Shortcut Summary Cards */}
-          {results.summary.conflictingAccessKeys !== undefined && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.conflictingAccessKeys === 0 ? "#10b981" : "#ef4444"}>
-                <FaKeyboard />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.conflictingAccessKeys}</SummaryValue>
-              <SummaryLabel>Access Key Conflicts</SummaryLabel>
-            </SummaryCard>
-          )}
-          
-          {results.summary.keyboardShortcutScore !== null && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.keyboardShortcutScore >= 80 ? "#10b981" : results.summary.keyboardShortcutScore >= 60 ? "#f59e0b" : "#ef4444"}>
-                <FaKeyboard />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.keyboardShortcutScore}%</SummaryValue>
-              <SummaryLabel>Keyboard Shortcut Score</SummaryLabel>
-            </SummaryCard>
-          )}
-
-          {/* Content Structure Summary Cards */}
-          {results.summary.contentStructureScore !== null && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.contentStructureScore >= 80 ? "#10b981" : results.summary.contentStructureScore >= 60 ? "#f59e0b" : "#ef4444"}>
-                <FaAlignLeft />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.contentStructureScore}%</SummaryValue>
-              <SummaryLabel>Content Structure Score</SummaryLabel>
-            </SummaryCard>
-          )}
-
-          {/* Mobile Accessibility Summary Cards */}
-          {results.summary.mobileAccessibilityScore !== null && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.mobileAccessibilityScore >= 80 ? "#10b981" : results.summary.mobileAccessibilityScore >= 60 ? "#f59e0b" : "#ef4444"}>
-                <FaMobile />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.mobileAccessibilityScore}%</SummaryValue>
-              <SummaryLabel>Mobile Accessibility Score</SummaryLabel>
-            </SummaryCard>
-          )}
-
-          {results.summary.hasViewportMeta !== undefined && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.hasViewportMeta ? "#10b981" : "#ef4444"}>
-                <FaMobile />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.hasViewportMeta ? 'Yes' : 'No'}</SummaryValue>
-              <SummaryLabel>Mobile Viewport</SummaryLabel>
-            </SummaryCard>
-          )}
-          
-          {results.summary.keyboardScore !== null && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.keyboardScore >= 80 ? "#10b981" : results.summary.keyboardScore >= 60 ? "#f59e0b" : "#ef4444"}>
-                <FaLink />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.keyboardScore}%</SummaryValue>
-              <SummaryLabel>{t('results.summary.keyboardScore')}</SummaryLabel>
-            </SummaryCard>
-          )}
-          
-          {results.summary.ariaScore !== null && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.ariaScore >= 80 ? "#10b981" : results.summary.ariaScore >= 60 ? "#f59e0b" : "#ef4444"}>
-                <FaInfoCircle />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.ariaScore}%</SummaryValue>
-              <SummaryLabel>ARIA Compliance</SummaryLabel>
-            </SummaryCard>
-          )}
-          
-          {results.summary.formScore !== null && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.formScore >= 80 ? "#10b981" : results.summary.formScore >= 60 ? "#f59e0b" : "#ef4444"}>
-                <FaWpforms />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.formScore}%</SummaryValue>
-              <SummaryLabel>Form Accessibility</SummaryLabel>
-            </SummaryCard>
-          )}
-          
-          {results.summary.formErrorHandlingScore !== null && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.formErrorHandlingScore >= 80 ? "#10b981" : results.summary.formErrorHandlingScore >= 60 ? "#f59e0b" : "#ef4444"}>
-                <FaExclamationTriangle />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.formErrorHandlingScore}%</SummaryValue>
-              <SummaryLabel>Error Handling</SummaryLabel>
-            </SummaryCard>
-          )}
-          
-          {results.summary.languageScore !== null && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.languageScore >= 80 ? "#10b981" : results.summary.languageScore >= 60 ? "#f59e0b" : "#ef4444"}>
-                <FaLanguage />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.languageScore}%</SummaryValue>
-              <SummaryLabel>Language Declaration</SummaryLabel>
-            </SummaryCard>
-          )}
-          
-          {results.summary.tableScore !== null && results.summary.totalTables > 0 && (
-            <SummaryCard>
-              <SummaryIcon color={results.summary.tableScore >= 80 ? "#10b981" : results.summary.tableScore >= 60 ? "#f59e0b" : "#ef4444"}>
-                <FaWpforms />
-              </SummaryIcon>
-              <SummaryValue>{results.summary.tableScore}%</SummaryValue>
-              <SummaryLabel>Table Accessibility</SummaryLabel>
-            </SummaryCard>
-          )}
-        </SummaryGrid>
-      </SummarySection>
-
-      <Section>
-        <SectionTitle>{t('results.sections.recommendations')}</SectionTitle>
-        <RecommendationsList recommendations={results.recommendations} />
-      </Section>
+      {/* Quick Wins Section */}
+      <QuickWinsSection>
+        <SectionTitle>{t('results.overview.quickWins')}</SectionTitle>
+        <QuickWinsGrid>
+          {getQuickWins(results).map((win, index) => (
+            <QuickWinCard key={index}>
+              <QuickWinIcon color="#10b981">
+                {win.icon}
+              </QuickWinIcon>
+              <QuickWinTitle>{win.title}</QuickWinTitle>
+              <QuickWinDescription>{win.description}</QuickWinDescription>
+              <QuickWinTime>{win.time}</QuickWinTime>
+            </QuickWinCard>
+          ))}
+        </QuickWinsGrid>
+      </QuickWinsSection>
 
       {results.reportType === 'detailed' ? (
         <>
+          <Section>
+            <SectionTitle>{t('results.sections.recommendations')}</SectionTitle>
+            <RecommendationsList recommendations={results.recommendations} />
+          </Section>
+          
           {/* Enhanced Analysis Sections for detailed reports */}
           {results.forms?.errorHandling && (
             <Section>
@@ -1298,69 +1659,111 @@ const ResultsPage = () => {
             </Section>
           ) : null}
           
-          {results.upgradeInfo && !results.summary.hasExcellentAccessibility && (
-            <UpgradePrompt>
-              <UpgradeTitle>
+          {!results.summary.hasExcellentAccessibility && (
+            <PricingSection>
+              <PricingTitle>
                 <FaCrown />
-                {t('results.upgradePrompt.title')}
-              </UpgradeTitle>
-              <UpgradeDescription>
-                {t('results.upgradePrompt.description')}
-              </UpgradeDescription>
+                Get Your Complete Accessibility Analysis
+              </PricingTitle>
+              <PricingDescription>
+                Unlock the full potential of your website with detailed insights and actionable recommendations.
+              </PricingDescription>
               
-              <FeatureList>
-                {results.upgradeInfo.features.map((feature, index) => (
-                  <FeatureItem key={index}>
-                    <FaCheckCircle />
-                    {feature}
-                  </FeatureItem>
-                ))}
-              </FeatureList>
-              
-              <UpgradeButton 
-                onClick={handleUpgradeToDetailed}
-                disabled={upgradingToDetailed}
-              >
-                {upgradingToDetailed ? (
-                  <>
-                    <LoadingSpinner size="small" />
-                    {t('results.messages.generatingDetailedReport')}
-                  </>
-                ) : (
-                  <>
-                    <FaStar />
-                    {t('results.buttons.upgradeToDetailedReport')}
-                  </>
-                )}
-              </UpgradeButton>
-            </UpgradePrompt>
+              <PricingGrid>
+                <PricingCard>
+                  <PricingCardHeader>
+                    <PricingCardTitle>Detailed Report</PricingCardTitle>
+                    <PricingCardPrice>$79</PricingCardPrice>
+                  </PricingCardHeader>
+                  <PricingCardFeatures>
+                    <PricingFeature>
+                      <FaCheckCircle />
+                      Complete analysis of all accessibility issues
+                    </PricingFeature>
+                    <PricingFeature>
+                      <FaCheckCircle />
+                      Detailed technical recommendations
+                    </PricingFeature>
+                    <PricingFeature>
+                      <FaCheckCircle />
+                      Downloadable PDF report
+                    </PricingFeature>
+                    <PricingFeature>
+                      <FaCheckCircle />
+                      Code examples and implementation guides
+                    </PricingFeature>
+                    <PricingFeature>
+                      <FaCheckCircle />
+                      Priority matrix for fixes
+                    </PricingFeature>
+                  </PricingCardFeatures>
+                  <PricingCardButton 
+                    onClick={handleUpgradeToDetailed}
+                    disabled={upgradingToDetailed}
+                  >
+                    {upgradingToDetailed ? (
+                      <>
+                        <LoadingSpinner size="small" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <FaDownload />
+                        Get Detailed Report
+                      </>
+                    )}
+                  </PricingCardButton>
+                </PricingCard>
+                
+                <PricingCard featured>
+                  <PricingCardHeader>
+                    <PricingCardTitle>Report + Consultation</PricingCardTitle>
+                    <PricingCardPrice>$199</PricingCardPrice>
+                    <PricingCardBadge>Most Popular</PricingCardBadge>
+                  </PricingCardHeader>
+                  <PricingCardFeatures>
+                    <PricingFeature>
+                      <FaCheckCircle />
+                      Everything in Detailed Report
+                    </PricingFeature>
+                    <PricingFeature>
+                      <FaCheckCircle />
+                      30-minute expert consultation
+                    </PricingFeature>
+                    <PricingFeature>
+                      <FaCheckCircle />
+                      Personalized implementation strategy
+                    </PricingFeature>
+                    <PricingFeature>
+                      <FaCheckCircle />
+                      Live Q&A with accessibility expert
+                    </PricingFeature>
+                    <PricingFeature>
+                      <FaCheckCircle />
+                      Follow-up recommendations
+                    </PricingFeature>
+                  </PricingCardFeatures>
+                  <PricingCardButton 
+                    featured
+                    onClick={handleUpgradeToDetailed}
+                    disabled={upgradingToDetailed}
+                  >
+                    {upgradingToDetailed ? (
+                      <>
+                        <LoadingSpinner size="small" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <FaStar />
+                        Get Detailed Report
+                      </>
+                    )}
+                  </PricingCardButton>
+                </PricingCard>
+              </PricingGrid>
+            </PricingSection>
           )}
-          
-          <LockedSection>
-            <LockIcon>
-              <FaLock />
-            </LockIcon>
-            <LockedTitle>{t('results.lockedSection.title')}</LockedTitle>
-            <LockedDescription>
-              {t('results.lockedSection.description')}
-            </LockedDescription>
-            <UpgradeButton 
-              onClick={handleUpgradeToDetailed}
-              disabled={upgradingToDetailed}
-            >
-              {upgradingToDetailed ? (
-                <>
-                  <LoadingSpinner size="small" />
-                  {t('results.messages.upgrading')}
-                </>
-              ) : (
-                <>
-                  <FaCrown />
-                  {t('results.buttons.getDetailedReport')}
-                </>
-              )}
-            </UpgradeButton>
-          </LockedSection>
         </>
       )}
     </ResultsContainer>
