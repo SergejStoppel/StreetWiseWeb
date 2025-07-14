@@ -509,6 +509,85 @@ const IssueCount = styled.p`
   }
 `;
 
+// Enhanced Issue Display Components
+const IssueMetadata = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-xs);
+  flex-wrap: wrap;
+`;
+
+const DisabilityImpactBadges = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
+`;
+
+const DisabilityBadge = styled.span`
+  background: var(--color-info-light);
+  color: var(--color-info-text);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  font-family: var(--font-family-primary);
+  border: 1px solid var(--color-info);
+`;
+
+const WcagBadge = styled.span`
+  background: var(--color-warning-light);
+  color: var(--color-warning-text);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+  border: 1px solid var(--color-warning);
+`;
+
+const ElementCount = styled.span`
+  background: var(--color-error-light);
+  color: var(--color-error-text);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-primary);
+  border: 1px solid var(--color-error);
+`;
+
+const FixIssuesButton = styled.button`
+  background: var(--color-success);
+  color: var(--color-text-on-brand);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border: none;
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-lg);
+  box-shadow: var(--shadow-sm);
+  
+  &:hover {
+    background: var(--color-success-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+`;
+
 const ImpactBadge = styled.span`
   background: ${props => props.severity === 'critical' ? 'var(--color-error-light)' : 'var(--color-warning-light)'};
   color: ${props => props.severity === 'critical' ? 'var(--color-error)' : 'var(--color-warning)'};
@@ -891,6 +970,8 @@ const getCriticalIssues = (results) => {
       impact: "High Impact",
       icon: <FaImage />,
       description: "Images without alternative text are invisible to screen readers, making your content inaccessible to users with visual impairments.",
+      disabilityGroups: ["Blind", "Low Vision", "+1 more"],
+      wcagCriteria: "Level A",
       fixSteps: [
         "Add descriptive alt text to all images",
         "Use empty alt=\"\" for decorative images",
@@ -909,6 +990,8 @@ const getCriticalIssues = (results) => {
       impact: "High Impact",
       icon: <FaWpforms />,
       description: "Form fields without proper labels make it impossible for screen reader users to understand what information is required.",
+      disabilityGroups: ["Blind", "Cognitive", "+2 more"],
+      wcagCriteria: "Level A",
       fixSteps: [
         "Add <label> elements for all form inputs",
         "Use aria-label for inputs where visual labels aren't possible",
@@ -927,6 +1010,8 @@ const getCriticalIssues = (results) => {
       impact: "Medium Impact",
       icon: <FaPalette />,
       description: "Poor color contrast makes text difficult to read for users with visual impairments or in different lighting conditions.",
+      disabilityGroups: ["Low Vision", "Color Blind", "+1 more"],
+      wcagCriteria: "Level AA",
       fixSteps: [
         "Ensure text has a contrast ratio of at least 4.5:1 with its background",
         "Use darker text colors or lighter backgrounds",
@@ -945,6 +1030,8 @@ const getCriticalIssues = (results) => {
       impact: "Medium Impact",
       icon: <FaLink />,
       description: "Links without descriptive text confuse screen reader users and hurt SEO.",
+      disabilityGroups: ["Blind", "Cognitive", "+1 more"],
+      wcagCriteria: "Level A",
       fixSteps: [
         "Add descriptive text to all links",
         "Avoid generic phrases like 'click here' or 'read more'",
@@ -963,6 +1050,8 @@ const getCriticalIssues = (results) => {
       impact: "High Impact",
       icon: <FaExclamationTriangle />,
       description: "Critical violations that significantly impact accessibility and may cause legal compliance issues.",
+      disabilityGroups: ["Blind", "Motor", "+3 more"],
+      wcagCriteria: "Level A",
       fixSteps: [
         "Review detailed report for specific violations",
         "Address heading structure issues",
@@ -1284,6 +1373,13 @@ const ResultsPage = () => {
             score={results.scores.overall}
             description={t('results.scores.accessibilityDescription')}
             color={results.scores.overall >= 80 ? '#10b981' : results.scores.overall >= 60 ? '#f59e0b' : '#ef4444'}
+            enhanced={true}
+            wcagBreakdown={{
+              critical: results.summary?.criticalViolations || 0,
+              passed: results.summary?.passedChecks || 0,
+              manual: results.summary?.manualChecks || 0,
+              notApplicable: results.summary?.notApplicable || 0
+            }}
           />
         </ScoresGrid>
       </ScoresSection>
@@ -1301,6 +1397,15 @@ const ResultsPage = () => {
                 <IssueInfo>
                   <IssueTitle>{issue.title}</IssueTitle>
                   <IssueCount>{issue.count} instance{issue.count !== 1 ? 's' : ''} found</IssueCount>
+                  <IssueMetadata>
+                    <ElementCount>{issue.count} elements</ElementCount>
+                    <DisabilityImpactBadges>
+                      {issue.disabilityGroups.map((group, groupIndex) => (
+                        <DisabilityBadge key={groupIndex}>{group}</DisabilityBadge>
+                      ))}
+                    </DisabilityImpactBadges>
+                    <WcagBadge>{issue.wcagCriteria}</WcagBadge>
+                  </IssueMetadata>
                 </IssueInfo>
                 <ImpactBadge severity={issue.severity}>
                   {issue.impact}
@@ -1316,6 +1421,9 @@ const ResultsPage = () => {
                 </FixSteps>
                 <FixTime>Estimated time: {issue.estimatedTime}</FixTime>
               </FixGuidance>
+              <FixIssuesButton onClick={() => console.log('Fix issues clicked for:', issue.title)}>
+                <FaCheckCircle /> Fix Issues
+              </FixIssuesButton>
             </CriticalIssueCard>
           ))}
         </CriticalIssuesList>
