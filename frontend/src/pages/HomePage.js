@@ -690,7 +690,7 @@ const HomePage = () => {
   const [url, setUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation(['homepage', 'forms']);
+  const { t, i18n, ready } = useTranslation(['homepage', 'forms']);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -740,6 +740,10 @@ const HomePage = () => {
       setIsAnalyzing(false);
     }
   };
+
+  if (!ready) {
+    return null; // Return nothing while translations are loading
+  }
 
   return (
     <>
