@@ -690,7 +690,7 @@ const HomePage = () => {
   const [url, setUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation(['homepage', 'forms']);
+  const { t, i18n, ready } = useTranslation(['homepage', 'forms']);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -701,7 +701,7 @@ const HomePage = () => {
     }
 
     // Basic URL validation - allow domains without protocol
-    const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
+    const urlPattern = /^(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(\/.*)?$/;
     if (!urlPattern.test(url.trim())) {
       toast.error(t('forms:validation.invalidUrl'));
       return;
@@ -741,6 +741,10 @@ const HomePage = () => {
     }
   };
 
+  if (!ready) {
+    return null; // Return nothing while translations are loading
+  }
+
   return (
     <>
       {/* Hero Section */}
@@ -757,7 +761,7 @@ const HomePage = () => {
             <FormTitle>{t('homepage:hero.formTitle')}</FormTitle>
             <InputGroup>
               <URLInput
-                type="url"
+                type="text"
                 placeholder={t('homepage:hero.microcopy')}
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
