@@ -409,27 +409,27 @@ const SeoContentServicePage = () => {
     <SeoContainer>
       <HeroSection>
         <HeroContent>
-          <HeroTitle>Boost Your Online Visibility & Drive More Traffic</HeroTitle>
+          <HeroTitle>Get Found by Tomorrow's Customers Today</HeroTitle>
           <HeroSubtitle>
-            Our AI-powered SEO and content strategies help small businesses rank higher in search results and attract more qualified customers.
+            How easy is it for customers to find you on Google and AI assistants like ChatGPT? With AI traffic growing 1,300%+ in 2024, we optimize for both traditional search and the next generation of discovery.
           </HeroSubtitle>
           <HeroCTA to="/free-audit">
-            Get Your Free SEO Analysis <FaArrowRight />
+            Get Your Free SEO & AI Analysis <FaArrowRight />
           </HeroCTA>
         </HeroContent>
       </HeroSection>
 
       <ProblemSection>
         <ProblemContainer>
-          <SectionTitle>Why Your Business Isn't Being Found Online</SectionTitle>
+          <SectionTitle>Are You Reaching the Right Customers?</SectionTitle>
           <ProblemGrid>
             <ProblemCard>
               <ProblemIcon>
                 <FaSearch />
               </ProblemIcon>
-              <ProblemTitle>Invisible in Search Results</ProblemTitle>
+              <ProblemTitle>Invisible to Google & AI Search</ProblemTitle>
               <ProblemDescription>
-                Your competitors are ranking on page 1 while your business is buried on page 5+, missing out on 95% of potential customers.
+                If your website isn't optimized for search engines like Google AND AI assistants like ChatGPT, you're invisible to potential customers looking for your products or services.
               </ProblemDescription>
             </ProblemCard>
             
@@ -584,13 +584,13 @@ const SeoContentServicePage = () => {
 
       <CTASection>
         <CTAContainer>
-          <CTATitle>Ready to Dominate Your Local Market?</CTATitle>
+          <CTATitle>Ready to Get Found by More Customers?</CTATitle>
           <CTAButtons>
             <CTAButton to="/free-audit" className="primary">
-              Start Your Free SEO Analysis <FaArrowRight />
+              Get Your Free SEO & AI Analysis <FaArrowRight />
             </CTAButton>
             <CTAButton to="/contact" className="secondary">
-              Discuss Your SEO Strategy <FaArrowRight />
+              Talk to Our SEO Team <FaArrowRight />
             </CTAButton>
           </CTAButtons>
         </CTAContainer>

@@ -1,4 +1,3 @@
-const puppeteer = require('puppeteer');
 const { AxePuppeteer } = require('@axe-core/puppeteer');
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
@@ -6,58 +5,49 @@ const pdfGenerator = require('./pdfGenerator');
 const i18n = require('../utils/i18n');
 const colorContrastAnalyzer = require('./analysis/colorContrastAnalyzer');
 
+// Import new modular analyzers
+const BrowserUtils = require('./utils/BrowserUtils');
+const ValidationUtils = require('./utils/ValidationUtils');
+const AnalysisUtils = require('./utils/AnalysisUtils');
+const CacheManager = require('./cache/CacheManager');
+const StructureAnalyzer = require('./analysis/StructureAnalyzer');
+const AriaAnalyzer = require('./analysis/AriaAnalyzer');
+const FormAnalyzer = require('./analysis/FormAnalyzer');
+const TableAnalyzer = require('./analysis/TableAnalyzer');
+const KeyboardAnalyzer = require('./analysis/KeyboardAnalyzer');
+const TextReadabilityAnalyzer = require('./analysis/TextReadabilityAnalyzer');
+const EnhancedImageAnalyzer = require('./analysis/EnhancedImageAnalyzer');
+const FocusManagementAnalyzer = require('./analysis/FocusManagementAnalyzer');
+const NavigationAnalyzer = require('./analysis/NavigationAnalyzer');
+const TouchTargetAnalyzer = require('./analysis/TouchTargetAnalyzer');
+const KeyboardShortcutAnalyzer = require('./analysis/KeyboardShortcutAnalyzer');
+const ContentStructureAnalyzer = require('./analysis/ContentStructureAnalyzer');
+const MobileAccessibilityAnalyzer = require('./analysis/MobileAccessibilityAnalyzer');
+
 class AccessibilityAnalyzer {
   constructor() {
-    this.browser = null;
-    // In-memory storage for full analysis data (in production, use Redis or database)
-    this.analysisCache = new Map();
-    this.pdfCache = new Map();
+    // Initialize modular components
+    this.browserUtils = new BrowserUtils();
+    this.validationUtils = new ValidationUtils();
+    this.cacheManager = new CacheManager();
     
-    // Cache TTL: 24 hours for analysis data, 1 hour for PDFs (PDFs can be regenerated)
-    this.ANALYSIS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
-    this.PDF_CACHE_TTL = 60 * 60 * 1000; // 1 hour
+    // Initialize individual analyzers
+    this.structureAnalyzer = new StructureAnalyzer();
+    this.ariaAnalyzer = new AriaAnalyzer();
+    this.formAnalyzer = new FormAnalyzer();
+    this.tableAnalyzer = new TableAnalyzer();
+    this.keyboardAnalyzer = new KeyboardAnalyzer();
+    this.textReadabilityAnalyzer = new TextReadabilityAnalyzer();
+    this.enhancedImageAnalyzer = new EnhancedImageAnalyzer();
+    this.focusManagementAnalyzer = new FocusManagementAnalyzer();
+    this.navigationAnalyzer = new NavigationAnalyzer();
+    this.touchTargetAnalyzer = new TouchTargetAnalyzer();
+    this.keyboardShortcutAnalyzer = new KeyboardShortcutAnalyzer();
+    this.contentStructureAnalyzer = new ContentStructureAnalyzer();
+    this.mobileAccessibilityAnalyzer = new MobileAccessibilityAnalyzer();
     
-    // Start cache cleanup interval
-    this.startCacheCleanup();
-  }
-
-  async initBrowser() {
-    if (!this.browser) {
-      this.browser = await puppeteer.launch({
-        headless: 'new',
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--disable-gpu',
-          '--disable-background-timer-throttling',
-          '--disable-renderer-backgrounding',
-          '--disable-features=VizDisplayCompositor',
-          '--disable-ipc-flooding-protection',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-background-media-strategy',
-          '--disable-web-security',
-          '--window-size=1920,1080'
-        ],
-        defaultViewport: {
-          width: 1920,
-          height: 1080
-        },
-        timeout: 60000,
-        ignoreHTTPSErrors: true,
-        ignoreDefaultArgs: ['--disable-extensions']
-      });
-    }
-    return this.browser;
-  }
-
-  async closeBrowser() {
-    if (this.browser) {
-      await this.browser.close();
-      this.browser = null;
-    }
+    // Legacy compatibility
+    this.pdfCache = this.cacheManager;
   }
 
   async analyzeWebsite(url, reportType = 'overview', language = 'en') {
@@ -65,41 +55,27 @@ class AccessibilityAnalyzer {
     logger.info(`Starting accessibility analysis for ${url}`, { analysisId, reportType });
 
     try {
-      // Validate URL
-      const validUrl = this.validateUrl(url);
+      // Validate inputs using new ValidationUtils
+      const validUrl = this.validationUtils.validateUrl(url);
+      const validReportType = this.validationUtils.validateReportType(reportType);
+      const validLanguage = this.validationUtils.validateLanguage(language);
       
-      const browser = await this.initBrowser();
-      const page = await browser.newPage();
+      // Create cache key based on URL (for now, simplified)
+      const cacheKey = Buffer.from(validUrl).toString('base64').substring(0, 32);
       
-      // Set viewport and user agent
-      await page.setViewport({ width: 1920, height: 1080 });
-      await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+      // Check cache first
+      const cachedResult = this.cacheManager.getAnalysis(cacheKey);
+      if (cachedResult) {
+        logger.info('Returning cached analysis result', { analysisId, cacheKey });
+        // Generate overview report if requested from cached detailed report
+        return validReportType === 'overview' ? 
+          this.generateOverviewReport(cachedResult) : 
+          cachedResult;
+      }
       
-      // Set timeouts
-      await page.setDefaultNavigationTimeout(45000);
-      await page.setDefaultTimeout(45000);
-      
-      // Configure page settings
-      await page.setRequestInterception(true);
-      page.on('request', (request) => {
-        // Block only non-essential resources to speed up loading while preserving accessibility analysis accuracy
-        const resourceType = request.resourceType();
-        if (['stylesheet', 'font', 'media'].includes(resourceType)) {
-          request.abort();
-        } else {
-          // Allow images and scripts to load for accurate accessibility analysis
-          request.continue();
-        }
-      });
-      
-      // Handle page errors
-      page.on('error', (err) => {
-        logger.error(`Page error: ${err.message}`, { analysisId });
-      });
-      
-      page.on('pageerror', (err) => {
-        logger.error(`Page script error: ${err.message}`, { analysisId });
-      });
+      // Initialize browser and create page
+      const page = await this.browserUtils.createPage();
+      await this.browserUtils.setupPageInterception(page);
       
       logger.info(`Navigating to ${validUrl}`, { analysisId });
       
@@ -109,236 +85,847 @@ class AccessibilityAnalyzer {
           timeout: 45000
         });
         
-        // Production-ready wait strategy for dynamic content
-        // 1. Wait for any lazy-loaded content
-        await page.evaluate(() => {
-          return new Promise((resolve) => {
-            // Check if page uses Intersection Observer for lazy loading
-            if ('IntersectionObserver' in window) {
-              // Give lazy-loaded content time to initialize
-              setTimeout(resolve, 1000);
-            } else {
-              resolve();
-            }
-          });
+        // Wait for page to stabilize
+        await this.waitForPageStability(page, analysisId);
+        
+        // Get page metadata
+        const metadata = await this.browserUtils.getPageMetadata(page);
+        
+        // Run all analyzers in parallel for better performance
+        const [
+          axeResults,
+          structureData,
+          ariaData,
+          formData,
+          tableData,
+          keyboardData,
+          textReadabilityData,
+          enhancedImageData,
+          focusManagementData,
+          navigationData,
+          touchTargetData,
+          keyboardShortcutData,
+          contentStructureData,
+          mobileAccessibilityData,
+          customChecks
+        ] = await Promise.all([
+          this.runAxeAnalysis(page, analysisId),
+          this.structureAnalyzer.analyze(page, analysisId),
+          this.ariaAnalyzer.analyze(page, analysisId),
+          this.formAnalyzer.analyze(page, analysisId),
+          this.tableAnalyzer.analyze(page, analysisId),
+          this.keyboardAnalyzer.analyze(page, analysisId),
+          this.textReadabilityAnalyzer.analyze(page, analysisId),
+          this.enhancedImageAnalyzer.analyze(page, analysisId),
+          this.focusManagementAnalyzer.analyze(page, analysisId),
+          this.navigationAnalyzer.analyze(page, analysisId),
+          this.touchTargetAnalyzer.analyze(page, analysisId),
+          this.keyboardShortcutAnalyzer.analyze(page, analysisId),
+          this.contentStructureAnalyzer.analyze(page, analysisId),
+          this.mobileAccessibilityAnalyzer.analyze(page, analysisId),
+          this.runLegacyCustomChecks(page, analysisId)
+        ]);
+        
+        // Run color contrast analysis
+        const colorContrastAnalysis = colorContrastAnalyzer.analyzeColorContrast(
+          axeResults, 
+          {}, // Empty colors object for now - will be enhanced in Phase 3
+          analysisId
+        );
+        
+        // Generate comprehensive report
+        const detailedReport = this.generateModularReport({
+          url: validUrl,
+          metadata,
+          axeResults,
+          structureData,
+          ariaData,
+          formData,
+          tableData,
+          keyboardData,
+          textReadabilityData,
+          enhancedImageData,
+          focusManagementData,
+          navigationData,
+          touchTargetData,
+          keyboardShortcutData,
+          contentStructureData,
+          mobileAccessibilityData,
+          customChecks,
+          colorContrastAnalysis,
+          analysisId,
+          language: validLanguage
         });
         
-        // 2. Wait for fonts to load (important for accurate text rendering)
-        await page.evaluateHandle(() => document.fonts.ready);
+        // Cache the detailed report using both URL-based key and analysisId
+        this.cacheManager.setAnalysis(cacheKey, detailedReport);
+        this.cacheManager.setAnalysis(analysisId, detailedReport);
         
-        // 3. Ensure no major layout shifts are happening
-        await page.waitForFunction(() => {
-          // Check if any animations or transitions are running
-          const animations = document.getAnimations();
-          return animations.length === 0 || animations.every(a => a.playState !== 'running');
-        }, { timeout: 5000 }).catch(() => {
-          // Don't fail analysis if animations timeout
-          logger.info('Some animations may still be running', { analysisId });
+        // Generate overview report if requested (don't cache this, generate on-the-fly)
+        const report = validReportType === 'overview' ? 
+          this.generateOverviewReport(detailedReport) : 
+          detailedReport;
+        
+        await page.close();
+        
+        logger.info('Analysis completed successfully', { 
+          analysisId, 
+          score: report.overallScore,
+          issues: report.summary?.totalIssues || 0
         });
         
-        // Wait for images to load or timeout after 10 seconds
-        try {
-          await page.waitForFunction(() => {
-            const images = document.querySelectorAll('img');
-            return Array.from(images).every(img => 
-              img.complete || 
-              img.naturalWidth > 0 ||
-              img.hasAttribute('aria-hidden') ||
-              img.getAttribute('role') === 'presentation'
-            );
-          }, { timeout: 10000 });
-        } catch (loadError) {
-          logger.warn('Some images may not have fully loaded', { analysisId });
-        }
-        
-        // Check if page loaded successfully
-        const title = await page.title();
-        if (!title) {
-          throw new Error('Page failed to load properly');
-        }
+        return report;
         
       } catch (navigationError) {
         logger.error(`Navigation failed: ${navigationError.message}`, { analysisId });
         throw new Error(`Unable to load the website: ${navigationError.message}`);
       }
       
-      // Get page metadata
-      const metadata = await this.getPageMetadata(page);
-      
-      // Run axe-core accessibility analysis
-      const axeResults = await this.runAxeAnalysis(page, analysisId);
-      
-      // Run custom accessibility checks
-      const customChecks = await this.runCustomChecks(page, analysisId);
-      
-      // Run comprehensive color contrast analysis
-      const colorContrastAnalysis = colorContrastAnalyzer.analyzeColorContrast(
-        axeResults, 
-        customChecks.colors, 
-        analysisId
-      );
-      
-      // Get performance metrics
-      const performanceMetrics = await this.getPerformanceMetrics(page, analysisId);
-      
-      // Always generate detailed report first
-      const detailedReport = this.generateReport({
-        url: validUrl,
-        analysisId,
-        metadata,
-        axeResults,
-        customChecks,
-        colorContrastAnalysis,
-        performanceMetrics,
-        timestamp: new Date().toISOString(),
-        reportType: 'detailed'
-      }, language);
-      
-      // Store full analysis data in cache with timestamp
-      this.analysisCache.set(analysisId, {
-        data: detailedReport,
-        timestamp: Date.now()
-      });
-      
-      // Generate PDF asynchronously and cache it
-      this.generateAndCachePDF(detailedReport, language).catch(error => {
-        logger.error(`PDF generation failed for ${analysisId}:`, error);
-      });
-      
-      // Return appropriate report based on requested type
-      const report = reportType === 'detailed' ? detailedReport : this.generateReport({
-        url: validUrl,
-        analysisId,
-        metadata,
-        axeResults,
-        customChecks,
-        colorContrastAnalysis,
-        performanceMetrics,
-        timestamp: new Date().toISOString(),
-        reportType: 'overview'
-      }, language);
-
-      // Final consistency check
-      logger.info(`Final report summary (axe-core standardized)`, {
-        analysisId,
-        requestedReportType: reportType,
-        actualReportType: report.reportType,
-        imagesWithoutAlt: report.summary.imagesWithoutAlt,
-        totalViolations: report.summary.totalViolations,
-        detailedReportImages: detailedReport.summary.imagesWithoutAlt,
-        dataSource: report.summary.dataSource
-      });
-      
-      logger.info(`Analysis completed for ${url}`, { analysisId, score: report.scores.overall, reportType });
-      
-      // Clean up
-      try {
-        await page.close();
-      } catch (cleanupError) {
-        logger.error(`Page cleanup error: ${cleanupError.message}`, { analysisId });
-      }
-      
-      return report;
-      
     } catch (error) {
-      logger.error(`Analysis failed for ${url}:`, { error: error.message, analysisId });
-      
-      // Ensure browser cleanup on error
-      try {
-        if (this.browser) {
-          const pages = await this.browser.pages();
-          for (const page of pages) {
-            if (!page.isClosed()) {
-              await page.close();
-            }
-          }
-        }
-      } catch (cleanupError) {
-        logger.error(`Cleanup error: ${cleanupError.message}`, { analysisId });
-      }
-      
-      throw new Error(`Failed to analyze website: ${error.message}`);
+      logger.error(`Analysis failed: ${error.message}`, { analysisId });
+      throw error;
     }
   }
 
-  validateUrl(url) {
+  async waitForPageStability(page, analysisId) {
     try {
-      const urlObj = new URL(url);
-      if (!['http:', 'https:'].includes(urlObj.protocol)) {
-        throw new Error('Invalid protocol. Only HTTP and HTTPS are supported.');
-      }
-      return urlObj.href;
-    } catch (error) {
-      throw new Error('Invalid URL format');
-    }
-  }
-
-  async getPageMetadata(page) {
-    return await page.evaluate(() => {
-      const title = document.title;
-      const description = document.querySelector('meta[name="description"]')?.content || '';
-      const lang = document.documentElement.lang || '';
-      const charset = document.querySelector('meta[charset]')?.getAttribute('charset') || '';
-      const viewport = document.querySelector('meta[name="viewport"]')?.content || '';
+      // Wait for any lazy-loaded content
+      await page.evaluate(() => {
+        return new Promise((resolve) => {
+          if ('IntersectionObserver' in window) {
+            setTimeout(resolve, 1000);
+          } else {
+            resolve();
+          }
+        });
+      });
       
-      return {
-        title,
-        description,
-        lang,
-        charset,
-        viewport,
-        url: window.location.href
-      };
-    });
+      // Wait for fonts to load
+      await page.evaluateHandle(() => document.fonts.ready);
+      
+      // Wait for animations to finish
+      await page.waitForFunction(() => {
+        const animations = document.getAnimations();
+        return animations.length === 0 || animations.every(a => a.playState !== 'running');
+      }, { timeout: 5000 }).catch(() => {
+        logger.info('Some animations may still be running', { analysisId });
+      });
+      
+    } catch (error) {
+      logger.warn('Page stability check failed:', { error: error.message, analysisId });
+    }
   }
 
   async runAxeAnalysis(page, analysisId) {
     try {
       logger.info('Running axe-core analysis', { analysisId });
       
-      // Wait for page to be ready
-      await page.waitForFunction(() => document.readyState === 'complete', { timeout: 10000 }).catch(() => {
-        logger.warn('Page ready state timeout, continuing with analysis', { analysisId });
-      });
-      
-      const results = await new AxePuppeteer(page)
+      const axe = new AxePuppeteer(page);
+      const results = await axe
         .configure({
           branding: {
-            brand: 'SiteCraft',
-            application: 'accessibility-analyzer'
+            brand: 'SiteCraft Accessibility Scanner'
           }
-        })
-        .options({
-          reporter: 'v2'
         })
         .analyze();
       
-      return {
-        violations: results.violations || [],
-        passes: results.passes || [],
-        incomplete: results.incomplete || [],
-        inapplicable: results.inapplicable || [],
-        url: results.url,
-        timestamp: results.timestamp
-      };
+      logger.info(`Axe analysis completed: ${results.violations.length} violations found`, { analysisId });
+      return results;
+      
     } catch (error) {
       logger.error('Axe analysis failed:', { error: error.message, analysisId });
+      return { violations: [], passes: [], incomplete: [], inapplicable: [] };
+    }
+  }
+
+  generateModularReport(data) {
+    const {
+      url,
+      metadata,
+      axeResults,
+      structureData,
+      ariaData,
+      formData,
+      tableData,
+      keyboardData,
+      textReadabilityData,
+      enhancedImageData,
+      focusManagementData,
+      navigationData,
+      touchTargetData,
+      keyboardShortcutData,
+      contentStructureData,
+      mobileAccessibilityData,
+      customChecks,
+      colorContrastAnalysis,
+      analysisId,
+      language
+    } = data;
+
+    // Calculate individual scores
+    const individualScores = {
+      structure: this.structureAnalyzer.calculateScore(structureData),
+      aria: this.ariaAnalyzer.calculateScore(ariaData),
+      forms: this.formAnalyzer.calculateScore(formData),
+      tables: this.tableAnalyzer.calculateScore(tableData),
+      keyboard: this.keyboardAnalyzer.calculateScore(keyboardData),
+      textReadability: this.textReadabilityAnalyzer.calculateScore(textReadabilityData),
+      enhancedImages: this.enhancedImageAnalyzer.calculateScore(enhancedImageData),
+      focusManagement: this.focusManagementAnalyzer.calculateScore(focusManagementData),
+      navigation: this.navigationAnalyzer.calculateNavigationScore(navigationData),
+      touchTargets: this.touchTargetAnalyzer.calculateScore(touchTargetData),
+      keyboardShortcuts: this.keyboardShortcutAnalyzer.calculateScore(keyboardShortcutData),
+      contentStructure: this.contentStructureAnalyzer.calculateScore(contentStructureData),
+      mobileAccessibility: this.mobileAccessibilityAnalyzer.calculateScore(mobileAccessibilityData),
+      colorContrast: this.calculateColorContrastScore(colorContrastAnalysis),
+      axeScore: this.calculateAxeScore(axeResults)
+    };
+
+    // Calculate weighted overall score based primarily on axe violations
+    const overallScore = this.calculateOverallScore(individualScores, axeResults);
+    
+    // Create scores object matching frontend expectations
+    const scores = {
+      overall: overallScore,
+      structure: individualScores.structure,
+      aria: individualScores.aria,
+      forms: individualScores.forms,
+      tables: individualScores.tables,
+      keyboard: individualScores.keyboard,
+      textReadability: individualScores.textReadability,
+      enhancedImages: individualScores.enhancedImages,
+      focusManagement: individualScores.focusManagement,
+      navigation: individualScores.navigation,
+      touchTargets: individualScores.touchTargets,
+      keyboardShortcuts: individualScores.keyboardShortcuts,
+      contentStructure: individualScores.contentStructure,
+      mobileAccessibility: individualScores.mobileAccessibility,
+      colorContrast: individualScores.colorContrast,
+      axeScore: individualScores.axeScore
+    };
+
+    // Generate consolidated recommendations
+    const recommendations = this.generateConsolidatedRecommendations({
+      structureData,
+      ariaData,
+      formData,
+      tableData,
+      keyboardData,
+      textReadabilityData,
+      enhancedImageData,
+      focusManagementData,
+      navigationData,
+      touchTargetData,
+      keyboardShortcutData,
+      contentStructureData,
+      mobileAccessibilityData,
+      axeResults,
+      language
+    });
+
+    // Flatten recommendations for frontend compatibility with safety checks
+    const flatRecommendations = [];
+    if (recommendations && recommendations.recommendations) {
+      if (recommendations.recommendations.high) {
+        flatRecommendations.push(...recommendations.recommendations.high);
+      }
+      if (recommendations.recommendations.medium) {
+        flatRecommendations.push(...recommendations.recommendations.medium);
+      }
+      if (recommendations.recommendations.low) {
+        flatRecommendations.push(...recommendations.recommendations.low);
+      }
+    }
+
+    return {
+      analysisId,
+      url,
+      timestamp: new Date().toISOString(),
+      language,
+      reportType: 'detailed', // Frontend expects this to show detailed UI
+      overallScore,
+      scores,
+      metadata,
+      summary: this.generateSummary(axeResults, recommendations, individualScores, { 
+        totalTables: tableData?.totalTables || 0,
+        customChecks: customChecks,
+        enhancedImageData: enhancedImageData,
+        overallScore: overallScore,
+        structureData: structureData,
+        formData: formData,
+        navigationData: navigationData,
+        touchTargetData: touchTargetData,
+        keyboardShortcutData: keyboardShortcutData,
+        contentStructureData: contentStructureData,
+        mobileAccessibilityData: mobileAccessibilityData
+      }),
+      structure: structureData,
+      aria: ariaData,
+      forms: formData,
+      tables: tableData,
+      keyboard: keyboardData,
+      textReadability: textReadabilityData,
+      enhancedImages: enhancedImageData,
+      focusManagement: focusManagementData,
+      navigation: navigationData,
+      touchTargets: touchTargetData,
+      keyboardShortcuts: keyboardShortcutData,
+      contentStructure: contentStructureData,
+      mobileAccessibility: mobileAccessibilityData,
+      customChecks: customChecks,
+      colorContrast: colorContrastAnalysis,
+      axeResults,
+      recommendations: flatRecommendations, // Flat array for frontend compatibility
+      recommendationsGrouped: recommendations, // Keep grouped version for internal use
+      technicalDetails: {
+        analysisVersion: '2.0.0',
+        timestamp: Date.now(),
+        userAgent: metadata.userAgent || 'Unknown'
+      }
+    };
+  }
+
+  calculateOverallScore(scores, axeResults) {
+    // Start with axe-core violations as the primary score factor
+    let score = this.calculateRealisticAxeScore(axeResults);
+    
+    // Apply modifiers based on individual analysis areas (smaller impact)
+    const modifiers = {
+      structure: 0.05,
+      aria: 0.05,
+      forms: 0.05,
+      tables: 0.02,
+      keyboard: 0.05,
+      textReadability: 0.04,
+      enhancedImages: 0.04,
+      focusManagement: 0.06,
+      navigation: 0.05,
+      touchTargets: 0.05,
+      keyboardShortcuts: 0.04,
+      contentStructure: 0.04,
+      mobileAccessibility: 0.05,
+      colorContrast: 0.03
+    };
+
+    // Individual scores can only provide small bonuses/penalties
+    Object.keys(modifiers).forEach(key => {
+      if (scores[key] !== undefined && scores[key] !== null) {
+        const modifier = (scores[key] - 80) * modifiers[key]; // Baseline 80, can add/subtract
+        score += modifier;
+      }
+    });
+
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }
+
+  calculateRealisticAxeScore(axeResults) {
+    if (!axeResults || !axeResults.violations || axeResults.violations.length === 0) {
+      return 95; // Not perfect due to potential issues our tools can't detect
+    }
+    
+    let score = 100;
+    
+    axeResults.violations.forEach(violation => {
+      const elementCount = Math.min(violation.nodes?.length || 1, 10); // Cap element count impact
+      const impact = violation.impact || 'moderate';
       
-      // Return empty results instead of failing completely
+      // More balanced penalty system
+      let basePenalty = 0;
+      let elementMultiplier = 0;
+      
+      switch (impact) {
+        case 'critical':
+          basePenalty = 20; // Critical issues are serious but not devastating
+          elementMultiplier = 2; // Each additional element adds 2 points
+          break;
+        case 'serious':
+          basePenalty = 12; // Serious issues significantly impact accessibility
+          elementMultiplier = 1.5; // Each additional element adds 1.5 points
+          break;
+        case 'moderate':
+          basePenalty = 6; // Moderate issues are important but manageable
+          elementMultiplier = 1; // Each additional element adds 1 point
+          break;
+        case 'minor':
+          basePenalty = 2; // Minor issues have small impact
+          elementMultiplier = 0.5; // Each additional element adds 0.5 points
+          break;
+        default:
+          basePenalty = 8; // Unknown severity treated between moderate and serious
+          elementMultiplier = 1.2;
+      }
+      
+      const totalPenalty = basePenalty + (elementCount * elementMultiplier);
+      score -= totalPenalty;
+    });
+    
+    return Math.max(20, score); // Never go below 20 - even sites with many issues have some working elements
+  }
+
+  calculateAxeScore(axeResults) {
+    if (!axeResults || !axeResults.violations) return 100;
+    
+    const violationCount = axeResults.violations.length;
+    const baseScore = 100;
+    const penalty = Math.min(violationCount * 5, 80); // Max 80 points penalty
+    
+    return Math.max(baseScore - penalty, 0);
+  }
+
+  calculateColorContrastScore(colorContrastAnalysis) {
+    if (!colorContrastAnalysis) return 100;
+    
+    const aaViolations = colorContrastAnalysis.aaViolations || 0;
+    const aaaViolations = colorContrastAnalysis.aaaViolations || 0;
+    
+    let score = 100;
+    
+    // Penalize AA violations more heavily than AAA
+    score -= Math.min(aaViolations * 15, 60); // Up to 60 points for AA violations
+    score -= Math.min(aaaViolations * 5, 20); // Up to 20 points for AAA violations
+    
+    return Math.max(score, 0);
+  }
+
+  generateConsolidatedRecommendations(data) {
+    const { 
+      structureData, ariaData, formData, tableData, keyboardData,
+      textReadabilityData, enhancedImageData, focusManagementData,
+      navigationData, touchTargetData, keyboardShortcutData, contentStructureData, mobileAccessibilityData, axeResults, language 
+    } = data;
+    
+    try {
+      const allRecommendations = [];
+      
+      // Safely collect recommendations from each analyzer
+      try {
+        const structureRecs = this.structureAnalyzer.generateRecommendations(structureData, language) || [];
+        allRecommendations.push(...structureRecs);
+      } catch (error) {
+        logger.warn('Structure recommendations failed:', error.message);
+      }
+      
+      try {
+        const ariaRecs = this.ariaAnalyzer.generateRecommendations(ariaData, language) || [];
+        allRecommendations.push(...ariaRecs);
+      } catch (error) {
+        logger.warn('ARIA recommendations failed:', error.message);
+      }
+      
+      try {
+        const formRecs = this.formAnalyzer.generateRecommendations(formData, language) || [];
+        allRecommendations.push(...formRecs);
+      } catch (error) {
+        logger.warn('Form recommendations failed:', error.message);
+      }
+      
+      try {
+        const tableRecs = this.tableAnalyzer.generateRecommendations(tableData, language) || [];
+        allRecommendations.push(...tableRecs);
+      } catch (error) {
+        logger.warn('Table recommendations failed:', error.message);
+      }
+      
+      try {
+        const keyboardRecs = this.keyboardAnalyzer.generateRecommendations(keyboardData, language) || [];
+        allRecommendations.push(...keyboardRecs);
+      } catch (error) {
+        logger.warn('Keyboard recommendations failed:', error.message);
+      }
+      
+      try {
+        const textReadabilityRecs = this.textReadabilityAnalyzer.generateRecommendations(textReadabilityData, language) || [];
+        allRecommendations.push(...textReadabilityRecs);
+      } catch (error) {
+        logger.warn('Text readability recommendations failed:', error.message);
+      }
+      
+      try {
+        const enhancedImageRecs = this.enhancedImageAnalyzer.generateRecommendations(enhancedImageData, language) || [];
+        allRecommendations.push(...enhancedImageRecs);
+      } catch (error) {
+        logger.warn('Enhanced image recommendations failed:', error.message);
+      }
+      
+      try {
+        const focusManagementRecs = this.focusManagementAnalyzer.generateRecommendations(focusManagementData, language) || [];
+        allRecommendations.push(...focusManagementRecs);
+      } catch (error) {
+        logger.warn('Focus management recommendations failed:', error.message);
+      }
+      
+      try {
+        const navigationRecs = this.navigationAnalyzer.generateRecommendations(navigationData, language) || [];
+        allRecommendations.push(...navigationRecs);
+      } catch (error) {
+        logger.warn('Navigation recommendations failed:', error.message);
+      }
+      
+      try {
+        const touchTargetRecs = this.touchTargetAnalyzer.generateRecommendations(touchTargetData, language) || [];
+        allRecommendations.push(...touchTargetRecs);
+      } catch (error) {
+        logger.warn('Touch target recommendations failed:', error.message);
+      }
+      
+      try {
+        const keyboardShortcutRecs = this.keyboardShortcutAnalyzer.generateRecommendations(keyboardShortcutData, language) || [];
+        allRecommendations.push(...keyboardShortcutRecs);
+      } catch (error) {
+        logger.warn('Keyboard shortcut recommendations failed:', error.message);
+      }
+      
+      try {
+        const contentStructureRecs = this.contentStructureAnalyzer.generateRecommendations(contentStructureData, language) || [];
+        allRecommendations.push(...contentStructureRecs);
+      } catch (error) {
+        logger.warn('Content structure recommendations failed:', error.message);
+      }
+      
+      try {
+        const mobileAccessibilityRecs = this.mobileAccessibilityAnalyzer.generateRecommendations(mobileAccessibilityData, language) || [];
+        allRecommendations.push(...mobileAccessibilityRecs);
+      } catch (error) {
+        logger.warn('Mobile accessibility recommendations failed:', error.message);
+      }
+
+      // Group by priority and type
+      const groupedRecommendations = {
+        high: allRecommendations.filter(r => r && r.priority === 'high'),
+        medium: allRecommendations.filter(r => r && r.priority === 'medium'),
+        low: allRecommendations.filter(r => r && r.priority === 'low')
+      };
+
       return {
-        violations: [],
-        passes: [],
-        incomplete: [],
-        inapplicable: [],
-        url: '',
-        timestamp: new Date().toISOString()
+        total: allRecommendations.length,
+        byPriority: {
+          high: groupedRecommendations.high.length,
+          medium: groupedRecommendations.medium.length,
+          low: groupedRecommendations.low.length
+        },
+        recommendations: groupedRecommendations
+      };
+    } catch (error) {
+      logger.error('Failed to generate consolidated recommendations:', error.message);
+      // Return empty structure if all fails
+      return {
+        total: 0,
+        byPriority: { high: 0, medium: 0, low: 0 },
+        recommendations: { high: [], medium: [], low: [] }
       };
     }
   }
 
-  async runCustomChecks(page, analysisId) {
+  generateSummary(axeResults, recommendations, individualScores, additionalData = {}) {
+    const totalIssues = (axeResults.violations?.length || 0) + recommendations.total;
+    
+    // Extract specific violation counts from axe results
+    const axeViolations = axeResults.violations || [];
+    
+    // Use enhanced image analyzer data if available, otherwise fall back to custom checks
+    const enhancedImageData = additionalData.enhancedImageData;
+    const customChecks = additionalData.customChecks || {};
+    const structureData = additionalData.structureData;
+    
+    let imagesWithoutAlt = 0;
+    let imagesWithMeaninglessAlt = 0;
+    
+    if (enhancedImageData && enhancedImageData.images) {
+      imagesWithoutAlt = enhancedImageData.images.missingAlt?.length || 0;
+      imagesWithMeaninglessAlt = enhancedImageData.images.meaninglessAlt?.length || 0;
+    } else if (customChecks.images) {
+      imagesWithoutAlt = customChecks.images.filter(img => !img.isDecorative && (!img.hasGoodAlt)).length;
+    } else {
+      imagesWithoutAlt = axeViolations.filter(v => v.id === 'image-alt').length;
+    }
+      
+    const formsWithoutLabels = axeViolations.filter(v => 
+      v.id === 'label' || v.id === 'form-field-multiple-labels'
+    ).length;
+    
+    // Use axe results for consistency with detailed violations display
+    const emptyLinks = axeViolations.filter(v => v.id === 'link-name').length;
+      
+    const colorContrastViolations = axeViolations.filter(v => 
+      v.id === 'color-contrast' || v.id === 'color-contrast-enhanced'
+    ).length;
+    
+    // Count violations by severity
+    const criticalViolations = axeViolations.filter(v => v.impact === 'critical').length;
+    const seriousViolations = axeViolations.filter(v => v.impact === 'serious').length;
+    
+    // Language validation information
+    const languageIssues = structureData?.languageValidation?.issues?.length || 0;
+    const hasLanguageAttribute = structureData?.languageValidation?.hasLangAttribute || false;
+    const isValidLanguageCode = structureData?.languageValidation?.isValidLangCode || false;
+    const languageScore = structureData?.languageValidation?.score || 100;
+    
+    // Form error handling information
+    const formData = additionalData.formData;
+    const formErrorHandlingIssues = formData?.errorHandling?.totalIssues || 0;
+    const formErrorHandlingScore = formData?.errorHandling?.overallScore || 100;
+    const controlsWithErrorMessages = formData?.errorHandling?.errorIdentification?.controlsWithProperErrorAssociation || 0;
+    const controlsWithInstructions = formData?.errorHandling?.labelsAndInstructions?.controlsWithInstructions || 0;
+    
+    // Navigation information
+    const navigationData = additionalData.navigationData;
+    const hasSkipLinks = navigationData?.skipNavigationAnalysis?.hasSkipLinks || false;
+    const hasBreadcrumbs = navigationData?.breadcrumbAnalysis?.hasBreadcrumbs || false;
+    const navigationScore = navigationData?.overallScore || 100;
+    
+    // Touch target information
+    const touchTargetData = additionalData.touchTargetData;
+    const smallTargets = touchTargetData?.summary?.smallTargets || 0;
+    const totalInteractiveElements = touchTargetData?.summary?.totalInteractiveElements || 0;
+    const touchTargetScore = touchTargetData?.summary?.score || 100;
+    const averageTargetSize = touchTargetData?.summary?.averageTargetSize || 0;
+    
+    // Keyboard shortcut information
+    const keyboardShortcutData = additionalData.keyboardShortcutData;
+    const totalAccessKeys = keyboardShortcutData?.summary?.totalAccessKeys || 0;
+    const conflictingAccessKeys = keyboardShortcutData?.summary?.conflictingAccessKeys || 0;
+    const keyboardShortcutScore = keyboardShortcutData?.summary?.score || 100;
+    const reservedConflicts = keyboardShortcutData?.summary?.reservedConflicts || 0;
+    
+    // Content structure information
+    const contentStructureData = additionalData.contentStructureData;
+    const totalParagraphs = contentStructureData?.summary?.totalParagraphs || 0;
+    const totalHeadings = contentStructureData?.summary?.totalHeadings || 0;
+    const averageLineLength = contentStructureData?.summary?.averageLineLength || 0;
+    const contentStructureScore = contentStructureData?.summary?.overallScore || 100;
+    const whiteSpaceScore = contentStructureData?.summary?.whiteSpaceScore || 100;
+    const contentIssues = contentStructureData?.issues?.length || 0;
+    
+    // Mobile accessibility information
+    const mobileAccessibilityData = additionalData.mobileAccessibilityData;
+    const mobileNavigationScore = mobileAccessibilityData?.summary?.mobileNavigationScore || 100;
+    const formCompatibilityScore = mobileAccessibilityData?.summary?.formCompatibilityScore || 100;
+    const mobileAccessibilityScore = mobileAccessibilityData?.summary?.overallScore || 100;
+    const hasViewportMeta = mobileAccessibilityData?.responsive?.hasViewportMeta || false;
+    const zoomSupport = mobileAccessibilityData?.touchInteractions?.zoomSupport || true;
+    const mobileIssues = mobileAccessibilityData?.issues?.length || 0;
+    
+    
+    return {
+      // Legacy fields that frontend expects
+      totalViolations: axeViolations.length,
+      totalIssues,
+      criticalIssues: recommendations.byPriority.high,
+      warningIssues: recommendations.byPriority.medium,
+      minorIssues: recommendations.byPriority.low,
+      criticalViolations,
+      seriousViolations,
+      
+      // Specific violation types
+      imagesWithoutAlt,
+      imagesWithMeaninglessAlt,
+      formsWithoutLabels,
+      emptyLinks,
+      colorContrastViolations,
+      
+      // Individual analyzer scores
+      structureScore: individualScores.structure,
+      ariaScore: individualScores.aria,
+      formScore: individualScores.forms,
+      tableScore: individualScores.tables,
+      keyboardScore: individualScores.keyboard,
+      textReadabilityScore: individualScores.textReadability,
+      enhancedImagesScore: individualScores.enhancedImages,
+      focusManagementScore: individualScores.focusManagement,
+      
+      // Additional data
+      axeViolations: axeResults.violations?.length || 0,
+      overallGrade: this.getGradeFromOverallScore(additionalData.overallScore || 0),
+      passedChecks: axeResults.passes?.length || 0,
+      hasExcellentAccessibility: (additionalData.overallScore || 0) >= 95,
+      
+      // Table-specific data (for conditional rendering)
+      totalTables: additionalData.totalTables || 0,
+      
+      // Language validation data
+      languageIssues: languageIssues,
+      hasLanguageAttribute: hasLanguageAttribute,
+      isValidLanguageCode: isValidLanguageCode,
+      languageScore: languageScore,
+      
+      // Form error handling data
+      formErrorHandlingIssues: formErrorHandlingIssues,
+      formErrorHandlingScore: formErrorHandlingScore,
+      controlsWithErrorMessages: controlsWithErrorMessages,
+      controlsWithInstructions: controlsWithInstructions,
+      
+      // Navigation data
+      hasSkipLinks: hasSkipLinks,
+      hasBreadcrumbs: hasBreadcrumbs,
+      navigationScore: navigationScore,
+      
+      // Touch target data
+      smallTargets: smallTargets,
+      totalInteractiveElements: totalInteractiveElements,
+      touchTargetScore: touchTargetScore,
+      averageTargetSize: averageTargetSize,
+      
+      // Keyboard shortcut data
+      totalAccessKeys: totalAccessKeys,
+      conflictingAccessKeys: conflictingAccessKeys,
+      keyboardShortcutScore: keyboardShortcutScore,
+      reservedConflicts: reservedConflicts,
+      
+      // Content structure data
+      totalParagraphs: totalParagraphs,
+      totalHeadings: totalHeadings,
+      averageLineLength: averageLineLength,
+      contentStructureScore: contentStructureScore,
+      whiteSpaceScore: whiteSpaceScore,
+      contentIssues: contentIssues,
+      
+      // Mobile accessibility data
+      mobileNavigationScore: mobileNavigationScore,
+      formCompatibilityScore: formCompatibilityScore,
+      mobileAccessibilityScore: mobileAccessibilityScore,
+      hasViewportMeta: hasViewportMeta,
+      zoomSupport: zoomSupport,
+      mobileIssues: mobileIssues
+    };
+  }
+
+  getGradeFromScore(individualScores, axeResults) {
+    const overall = this.calculateOverallScore(individualScores, axeResults);
+    return this.getGradeFromOverallScore(overall);
+  }
+
+  getGradeFromOverallScore(overall) {
+    if (overall >= 95) return 'A+';
+    if (overall >= 90) return 'A';
+    if (overall >= 85) return 'B+';
+    if (overall >= 80) return 'B';
+    if (overall >= 75) return 'C+';
+    if (overall >= 70) return 'C';
+    if (overall >= 65) return 'D+';
+    if (overall >= 60) return 'D';
+    return 'F';
+  }
+
+  generateOverviewReport(detailedReport) {
+    // Flatten recommendations for frontend compatibility with safety checks
+    const flatRecommendations = [];
+    if (detailedReport.recommendationsGrouped && detailedReport.recommendationsGrouped.recommendations) {
+      const recs = detailedReport.recommendationsGrouped.recommendations;
+      if (recs.high) flatRecommendations.push(...recs.high);
+      if (recs.medium) flatRecommendations.push(...recs.medium);
+      if (recs.low) flatRecommendations.push(...recs.low);
+    } else if (Array.isArray(detailedReport.recommendations)) {
+      // If recommendations is already a flat array, use it directly
+      flatRecommendations.push(...detailedReport.recommendations);
+    }
+
+    // Extract key information for overview
+    return {
+      analysisId: detailedReport.analysisId,
+      url: detailedReport.url,
+      timestamp: detailedReport.timestamp,
+      language: detailedReport.language,
+      reportType: 'overview', // Frontend expects this to show overview UI
+      overallScore: detailedReport.overallScore,
+      scores: detailedReport.scores,
+      summary: detailedReport.summary,
+      recommendations: flatRecommendations, // Flat array for frontend compatibility
+      recommendationsSummary: {
+        total: detailedReport.recommendations.total,
+        byPriority: detailedReport.recommendations.byPriority
+      },
+      upgradeInfo: {
+        available: true,
+        features: [
+          'Complete accessibility violation breakdown',
+          'Detailed structure analysis',
+          'ARIA landmarks and roles analysis', 
+          'Form accessibility analysis',
+          'Table accessibility analysis',
+          'Keyboard navigation analysis',
+          'Text readability and zoom analysis',
+          'Enhanced image accessibility analysis',
+          'Focus management and indicators analysis',
+          'PDF report generation',
+          'Advanced color contrast analysis'
+        ]
+      },
+      technicalDetails: detailedReport.technicalDetails
+    };
+  }
+
+  // Legacy method support for detailed report retrieval
+  getDetailedReport(analysisId) {
     try {
-      logger.info('Running custom accessibility checks', { analysisId });
+      logger.info('Retrieving detailed report from cache', { analysisId });
+      
+      // Get cached analysis
+      const cachedReport = this.cacheManager.getAnalysis(analysisId);
+      if (!cachedReport) {
+        logger.warn('Detailed report not found in cache', { analysisId });
+        return null;
+      }
+      
+      // If the cached report is an overview, we need to construct the detailed version
+      if (!cachedReport.structure || !cachedReport.aria) {
+        logger.warn('Cached report appears to be overview only', { analysisId });
+        return null;
+      }
+      
+      return cachedReport;
+    } catch (error) {
+      logger.error('Failed to retrieve detailed report:', { error: error.message, analysisId });
+      return null;
+    }
+  }
+
+  // Legacy method support for cached PDF retrieval
+  getCachedPDF(cacheKey) {
+    try {
+      // Handle both old-style cache keys and new format
+      if (cacheKey.includes('_')) {
+        // New format: analysisId_language
+        const [analysisId, language] = cacheKey.split('_');
+        return this.cacheManager.getPDF(analysisId, language);
+      } else {
+        // Old format: just analysisId
+        return this.cacheManager.getPDF(cacheKey, 'en');
+      }
+    } catch (error) {
+      logger.error('Failed to get cached PDF:', { error: error.message, cacheKey });
+      return null;
+    }
+  }
+
+  // Legacy method support for PDF generation
+  async generatePDF(analysisData, language = 'en') {
+    try {
+      const analysisId = analysisData.analysisId || uuidv4();
+      
+      // Check PDF cache first
+      const cachedPDF = this.cacheManager.getPDF(analysisId, language);
+      if (cachedPDF) {
+        logger.info('Returning cached PDF', { analysisId, language });
+        return cachedPDF;
+      }
+      
+      // Generate new PDF
+      const pdfBuffer = await pdfGenerator.generateAccessibilityReport(analysisData, language);
+      
+      // Cache the PDF
+      this.cacheManager.setPDF(analysisId, pdfBuffer, language);
+      
+      return pdfBuffer;
+    } catch (error) {
+      logger.error('PDF generation failed:', error);
+      throw error;
+    }
+  }
+
+  // Legacy custom checks method (temporary integration during refactoring)
+  async runLegacyCustomChecks(page, analysisId) {
+    try {
+      logger.info('Running legacy custom accessibility checks', { analysisId });
       
       const checks = await page.evaluate(() => {
         const results = {
@@ -352,568 +939,75 @@ class AccessibilityAnalyzer {
 
         // Helper function to detect meaningless alt text
         const isMeaninglessAlt = (altText) => {
-          if (!altText || altText.trim() === '') return false; // Empty alt is valid for decorative images
+          if (!altText || altText.trim() === '') return false;
           
           const meaninglessPatterns = [
-            /^\.+$/, // Just dots: ".", "..", "..."
-            /^image$/i, // Just "image"
-            /^photo$/i, // Just "photo" 
-            /^picture$/i, // Just "picture"
-            /^img$/i, // Just "img"
-            /^graphic$/i, // Just "graphic"
-            /^logo$/i, // Just "logo"
-            /^icon$/i, // Just "icon"
-            /^\d+$/, // Just numbers
-            /^untitled/i, // "untitled", "untitled-1", etc.
-            /^dsc_?\d+/i, // Camera defaults like "DSC_1234"
-            /^img_?\d+/i, // Generic like "IMG_1234"
-            /^screenshot/i, // "screenshot", "screenshot1", etc.
-            /^[a-z0-9_-]{1,3}$/i, // Very short meaningless strings
-            /^(jpeg|jpg|png|gif|svg|webp)$/i, // Just file extensions
+            /^\.+$/, /^image$/i, /^photo$/i, /^picture$/i, /^img$/i, /^graphic$/i, 
+            /^logo$/i, /^icon$/i, /^\d+$/, /^untitled/i, /^dsc_?\d+/i, /^img_?\d+/i, 
+            /^screenshot/i, /^[a-z0-9_-]{1,3}$/i, /^(jpeg|jpg|png|gif|svg|webp)$/i
           ];
           
           const trimmed = altText.trim().toLowerCase();
           
-          // Check against patterns
-          if (meaninglessPatterns.some(pattern => pattern.test(trimmed))) {
-            return true;
-          }
-          
-          // Check if it's just a filename (contains file extension)
-          if (trimmed.match(/\.(jpg|jpeg|png|gif|svg|webp|bmp)$/i)) {
-            return true;
-          }
-          
-          // Check if it's too short to be meaningful (less than 3 characters)
-          if (trimmed.length < 3) {
-            return true;
-          }
+          if (meaninglessPatterns.some(pattern => pattern.test(trimmed))) return true;
+          if (trimmed.match(/\.(jpg|jpeg|png|gif|svg|webp|bmp)$/i)) return true;
+          if (trimmed.length < 3) return true;
           
           return false;
         };
 
-        // Image analysis with improved decorative image detection
+        // Image analysis
         const images = document.querySelectorAll('img');
         images.forEach((img, index) => {
-          // More comprehensive decorative image detection
           const isDecorative = 
-            img.hasAttribute('aria-hidden') ||
-            img.getAttribute('role') === 'presentation' ||
-            img.getAttribute('role') === 'img' ||
-            img.alt === '' || // Empty alt is valid for decorative images
-            img.closest('[aria-hidden="true"]') ||
-            img.hasAttribute('data-decorative') ||
-            // Check if image is in a decorative context
+            img.hasAttribute('aria-hidden') || img.getAttribute('role') === 'presentation' ||
+            img.alt === '' || img.closest('[aria-hidden="true"]') ||
             img.closest('.icon, .logo, .decoration, .bg-image, [role="img"]') ||
-            // SVG images are often decorative
-            img.src.includes('.svg') ||
-            // Very small images are often decorative (icons, spacers)
             (img.naturalWidth > 0 && img.naturalWidth <= 16 && img.naturalHeight <= 16);
 
           const hasValidAlt = img.alt !== null && img.alt !== undefined;
           const altText = img.alt || '';
           const hasMeaninglessAlt = hasValidAlt && isMeaninglessAlt(altText);
           
-          
           results.images.push({
-            index,
-            src: img.src,
-            alt: altText,
-            hasAlt: hasValidAlt,
-            isEmpty: !altText || altText.trim() === '',
-            isDecorative,
-            hasMeaninglessAlt,
-            hasGoodAlt: hasValidAlt && !hasMeaninglessAlt && altText.trim() !== '',
-            naturalWidth: img.naturalWidth || 0,
-            naturalHeight: img.naturalHeight || 0,
-            isLoaded: img.complete && img.naturalWidth > 0,
-            // Add debugging info
-            selector: img.tagName.toLowerCase() + (img.id ? '#' + img.id : '') + (img.className ? '.' + img.className.split(' ').join('.') : ''),
-            context: img.closest('[class*="post"], [class*="content"], [class*="article"], main, section')?.tagName || 'unknown'
+            index, src: img.src, alt: altText, hasAlt: hasValidAlt,
+            isEmpty: !altText || altText.trim() === '', isDecorative, hasMeaninglessAlt,
+            hasGoodAlt: hasValidAlt && !hasMeaninglessAlt && altText.trim() !== ''
           });
         });
 
-        // Form analysis
-        const forms = document.querySelectorAll('form');
-        forms.forEach((form, index) => {
-          const inputs = form.querySelectorAll('input, textarea, select');
-          const formData = {
-            index,
-            inputCount: inputs.length,
-            inputs: []
-          };
-          
-          inputs.forEach((input, inputIndex) => {
-            const label = form.querySelector(`label[for="${input.id}"]`) || 
-                         input.closest('label') ||
-                         form.querySelector(`label[for="${input.name}"]`);
-            
-            formData.inputs.push({
-              index: inputIndex,
-              type: input.type,
-              hasLabel: !!label,
-              hasPlaceholder: !!input.placeholder,
-              hasAriaLabel: !!input.getAttribute('aria-label'),
-              required: input.required
-            });
-          });
-          
-          results.forms.push(formData);
-        });
-
-        // Heading structure analysis
-        const headings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-        headings.forEach((heading, index) => {
-          results.headings.push({
-            index,
-            level: parseInt(heading.tagName.charAt(1)),
-            text: heading.textContent.trim(),
-            isEmpty: !heading.textContent.trim()
-          });
-        });
-
-        // Link analysis
-        const links = document.querySelectorAll('a');
+        // Link analysis  
+        const links = document.querySelectorAll('a[href]');
         links.forEach((link, index) => {
+          const text = link.textContent?.trim() || '';
+          const ariaLabel = link.getAttribute('aria-label') || '';
+          const hasText = text.length > 0;
+          const hasAriaLabel = ariaLabel.length > 0;
+          
           results.links.push({
-            index,
-            href: link.href,
-            text: link.textContent.trim(),
-            isEmpty: !link.textContent.trim(),
-            hasTitle: !!link.title,
-            hasAriaLabel: !!link.getAttribute('aria-label'),
-            opensNewWindow: link.target === '_blank'
+            index, href: link.href, text, ariaLabel, hasText, hasAriaLabel,
+            isEmpty: !hasText && !hasAriaLabel,
+            isEmail: link.href.startsWith('mailto:'),
+            isPhone: link.href.startsWith('tel:')
           });
         });
-
-        // Color contrast analysis (simplified)
-        const textElements = document.querySelectorAll('p, span, div, h1, h2, h3, h4, h5, h6, a, button');
-        const colorSamples = [];
-        
-        for (let i = 0; i < Math.min(textElements.length, 50); i++) {
-          const element = textElements[i];
-          const computedStyle = window.getComputedStyle(element);
-          const color = computedStyle.color;
-          const backgroundColor = computedStyle.backgroundColor;
-          
-          if (color && backgroundColor && color !== 'rgba(0, 0, 0, 0)' && backgroundColor !== 'rgba(0, 0, 0, 0)') {
-            colorSamples.push({
-              color,
-              backgroundColor,
-              fontSize: computedStyle.fontSize,
-              fontWeight: computedStyle.fontWeight
-            });
-          }
-        }
-        
-        results.colors = colorSamples;
-
-        // Page structure analysis
-        results.structure = {
-          hasH1: !!document.querySelector('h1'),
-          h1Count: document.querySelectorAll('h1').length,
-          hasMain: !!document.querySelector('main'),
-          hasNav: !!document.querySelector('nav'),
-          hasFooter: !!document.querySelector('footer'),
-          hasSkipLink: !!document.querySelector('a[href^="#"]'),
-          totalElements: document.querySelectorAll('*').length,
-          interactiveElements: document.querySelectorAll('a, button, input, select, textarea').length
-        };
 
         return results;
       });
 
       return checks;
     } catch (error) {
-      logger.error('Custom checks failed:', { error: error.message, analysisId });
-      throw error;
+      logger.error('Legacy custom checks failed:', { error: error.message, analysisId });
+      return { images: [], forms: [], headings: [], links: [], colors: [], structure: {} };
     }
   }
 
-  async getPerformanceMetrics(page, analysisId) {
-    try {
-      logger.info('Getting performance metrics', { analysisId });
-      
-      const metrics = await page.evaluate(() => {
-        const navigation = performance.getEntriesByType('navigation')[0];
-        const paint = performance.getEntriesByType('paint');
-        
-        return {
-          loadTime: navigation ? navigation.loadEventEnd - navigation.loadEventStart : 0,
-          domContentLoaded: navigation ? navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart : 0,
-          firstPaint: paint.find(p => p.name === 'first-paint')?.startTime || 0,
-          firstContentfulPaint: paint.find(p => p.name === 'first-contentful-paint')?.startTime || 0,
-          totalElements: document.querySelectorAll('*').length,
-          imageCount: document.querySelectorAll('img').length,
-          scriptCount: document.querySelectorAll('script').length,
-          stylesheetCount: document.querySelectorAll('link[rel="stylesheet"]').length
-        };
-      });
-
-      return metrics;
-    } catch (error) {
-      logger.error('Performance metrics failed:', { error: error.message, analysisId });
-      return {};
+  // Cleanup method
+  async cleanup() {
+    if (this.browserUtils) {
+      await this.browserUtils.closeBrowser();
     }
-  }
-
-  generateReport(data, language = 'en') {
-    const { url, analysisId, metadata, axeResults, customChecks, colorContrastAnalysis, performanceMetrics, timestamp, reportType = 'overview' } = data;
-    
-    // Calculate accessibility score based on axe-core results
-    const totalViolations = axeResults.violations.length;
-    const criticalViolations = axeResults.violations.filter(v => v.impact === 'critical').length;
-    const seriousViolations = axeResults.violations.filter(v => v.impact === 'serious').length;
-    const moderateViolations = axeResults.violations.filter(v => v.impact === 'moderate').length;
-    const minorViolations = axeResults.violations.filter(v => v.impact === 'minor').length;
-    
-    // Scoring algorithm (0-100) - primarily based on axe-core
-    let accessibilityScore = 100;
-    accessibilityScore -= (criticalViolations * 20);
-    accessibilityScore -= (seriousViolations * 10);
-    accessibilityScore -= (moderateViolations * 5);
-    accessibilityScore -= (minorViolations * 2);
-    accessibilityScore = Math.max(0, accessibilityScore);
-    
-    // Extract image-related data from axe-core violations instead of custom checks
-    const imageAltViolations = axeResults.violations.filter(v => v.id === 'image-alt');
-    const imagesWithoutAlt = imageAltViolations.reduce((count, violation) => count + violation.nodes.length, 0);
-    
-    // Extract form-related data from axe-core violations
-    const labelViolations = axeResults.violations.filter(v => v.id === 'label');
-    const formsWithoutLabels = labelViolations.reduce((count, violation) => count + violation.nodes.length, 0);
-    
-    // Extract link-related data from axe-core violations  
-    const linkNameViolations = axeResults.violations.filter(v => v.id === 'link-name');
-    const emptyLinks = linkNameViolations.reduce((count, violation) => count + violation.nodes.length, 0);
-    
-    // Single unified score based on axe-core violations
-    const overallScore = Math.round(accessibilityScore);
-    
-    // Generate recommendations
-    const recommendations = this.generateRecommendations(axeResults, customChecks, reportType, language, colorContrastAnalysis);
-    
-    // Determine if site has excellent accessibility (very few/no real issues)
-    const hasExcellentAccessibility = 
-      criticalViolations === 0 && 
-      seriousViolations === 0 && 
-      moderateViolations <= 1 && 
-      imagesWithoutAlt === 0 &&
-      formsWithoutLabels === 0 &&
-      emptyLinks === 0;
-
-    // Log scoring details for debugging
-    logger.info('Accessibility scoring details (axe-core based)', {
-      analysisId,
-      url,
-      criticalViolations,
-      seriousViolations,
-      moderateViolations,
-      minorViolations,
-      imagesWithoutAlt,
-      imageAltViolationsCount: imageAltViolations.length,
-      formsWithoutLabels,
-      labelViolationsCount: labelViolations.length,
-      emptyLinks,
-      linkNameViolationsCount: linkNameViolations.length,
-      accessibilityScore: Math.round(accessibilityScore),
-      overallScore,
-      hasExcellentAccessibility
-    });
-    
-    // Log data consistency for debugging
-    logger.info(`Report generation for ${reportType} (axe-core standardized)`, {
-      analysisId,
-      url,
-      reportType,
-      imagesWithoutAlt,
-      totalViolations,
-      criticalViolations,
-      seriousViolations,
-      dataSource: 'axe-core'
-    });
-
-    const baseReport = {
-      analysisId,
-      url,
-      timestamp,
-      reportType,
-      metadata,
-      scores: {
-        overall: overallScore
-      },
-      summary: {
-        totalViolations,
-        criticalViolations,
-        seriousViolations,
-        moderateViolations,
-        minorViolations,
-        imagesWithoutAlt, // From axe-core violations
-        formsWithoutLabels, // From axe-core violations
-        emptyLinks, // From axe-core violations
-        colorContrastViolations: colorContrastAnalysis?.totalViolations || 0,
-        colorContrastAAViolations: colorContrastAnalysis?.aaViolations || 0,
-        hasExcellentAccessibility,
-        dataSource: 'axe-core' // Flag to indicate data source
-      },
-      recommendations,
-      reportGenerated: new Date().toISOString()
-    };
-
-    // Add full details for detailed reports only
-    if (reportType === 'detailed') {
-      baseReport.axeResults = axeResults;
-      baseReport.customChecks = customChecks;
-      baseReport.colorContrastAnalysis = colorContrastAnalysis;
-      baseReport.performanceMetrics = performanceMetrics;
-    } else {
-      // Overview report - show only basic issue counts, no specific violations
-      const criticalCount = axeResults.violations.filter(v => v.impact === 'critical').length;
-      const seriousCount = axeResults.violations.filter(v => v.impact === 'serious').length;
-      
-      baseReport.issuePreview = {
-        criticalIssues: criticalCount,
-        seriousIssues: seriousCount,
-        hasViolations: axeResults.violations.length > 0,
-        categories: [...new Set(axeResults.violations.map(v => v.tags[0] || 'other'))].slice(0, 3)
-      };
-      
-      baseReport.upgradeInfo = {
-        available: true,
-        features: [
-          'Complete list of all accessibility violations with specific locations',
-          'Step-by-step fixing instructions with code examples', 
-          'WCAG compliance guidelines and success criteria',
-          'Performance metrics and page load optimization',
-          'Custom accessibility checks for images, forms, and navigation',
-          'Professional PDF report with executive summary and technical details',
-          'Detailed priority matrix for development teams',
-          'Before/after examples and implementation best practices'
-        ]
-      };
-    }
-
-    return baseReport;
-  }
-
-  async generateAndCachePDF(reportData, language = 'en') {
-    try {
-      logger.info(`Starting background PDF generation for ${reportData.analysisId}`, { language });
-      const pdfBuffer = await pdfGenerator.generateAccessibilityReport(reportData, language);
-      const cacheKey = `${reportData.analysisId}_${language}`;
-      this.pdfCache.set(cacheKey, {
-        buffer: pdfBuffer,
-        timestamp: Date.now()
-      });
-      logger.info(`PDF cached successfully for ${reportData.analysisId}`, { size: pdfBuffer.length, language });
-    } catch (error) {
-      logger.error(`PDF generation failed for ${reportData.analysisId}:`, error);
-      throw error;
-    }
-  }
-
-  getDetailedReport(analysisId) {
-    const cached = this.analysisCache.get(analysisId);
-    if (!cached) return null;
-    
-    // Check if cache is still valid
-    if (Date.now() - cached.timestamp > this.ANALYSIS_CACHE_TTL) {
-      this.analysisCache.delete(analysisId);
-      return null;
-    }
-    
-    return cached.data;
-  }
-
-  getCachedPDF(analysisId) {
-    const cached = this.pdfCache.get(analysisId);
-    if (!cached) return null;
-    
-    // Check if cache is still valid
-    if (Date.now() - cached.timestamp > this.PDF_CACHE_TTL) {
-      this.pdfCache.delete(analysisId);
-      return null;
-    }
-    
-    return cached.buffer;
-  }
-
-  clearCache(analysisId) {
-    this.analysisCache.delete(analysisId);
-    this.pdfCache.delete(analysisId);
-  }
-
-  startCacheCleanup() {
-    // Clean up expired cache entries every 30 minutes
-    setInterval(() => {
-      this.cleanupExpiredCache();
-    }, 30 * 60 * 1000);
-  }
-
-  cleanupExpiredCache() {
-    const now = Date.now();
-    
-    // Clean up expired analysis cache
-    for (const [analysisId, cached] of this.analysisCache.entries()) {
-      if (now - cached.timestamp > this.ANALYSIS_CACHE_TTL) {
-        this.analysisCache.delete(analysisId);
-        logger.info(`Cleaned up expired analysis cache for ${analysisId}`);
-      }
-    }
-    
-    // Clean up expired PDF cache
-    for (const [analysisId, cached] of this.pdfCache.entries()) {
-      if (now - cached.timestamp > this.PDF_CACHE_TTL) {
-        this.pdfCache.delete(analysisId);
-        logger.info(`Cleaned up expired PDF cache for ${analysisId}`);
-      }
-    }
-    
-    logger.debug(`Cache cleanup completed. Analysis cache size: ${this.analysisCache.size}, PDF cache size: ${this.pdfCache.size}`);
-  }
-
-  generateRecommendations(axeResults, customChecks, reportType = 'overview', language = 'en', colorContrastAnalysis = null) {
-    const recommendations = [];
-    
-    if (reportType === 'detailed') {
-      // Detailed recommendations with specific counts and instructions
-      if (axeResults.violations.some(v => v.impact === 'critical')) {
-        const criticalCount = axeResults.violations.filter(v => v.impact === 'critical').length;
-        recommendations.push({
-          priority: 'high',
-          category: i18n.t('reports:recommendations.categories.criticalIssues', language),
-          title: i18n.t('reports:recommendations.titles.fixCriticalViolations', language),
-          description: i18n.t('reports:recommendations.descriptions.criticalAccessibilityIssues', language, { count: criticalCount }),
-          action: i18n.t('reports:recommendations.actions.reviewCriticalViolations', language)
-        });
-      }
-      
-      // Use axe-core image-alt violations for consistency
-      const imageAltViolations = axeResults.violations.filter(v => v.id === 'image-alt');
-      const imagesWithoutAlt = imageAltViolations.reduce((count, violation) => count + violation.nodes.length, 0);
-      
-      if (imagesWithoutAlt > 0) {
-        recommendations.push({
-          priority: 'high',
-          category: i18n.t('reports:recommendations.categories.images', language),
-          title: i18n.t('reports:recommendations.titles.improveImageAltText', language),
-          description: i18n.t('reports:recommendations.descriptions.imagesMissingAltText', language, { count: imagesWithoutAlt }),
-          action: i18n.t('reports:recommendations.actions.addDescriptiveAltText', language),
-          details: {
-            violationCount: imagesWithoutAlt,
-            axeViolations: imageAltViolations.map(v => ({
-              description: v.description,
-              help: v.help,
-              helpUrl: v.helpUrl,
-              nodeCount: v.nodes.length
-            }))
-          }
-        });
-      }
-      
-      // Use axe-core label violations for consistency
-      const labelViolations = axeResults.violations.filter(v => v.id === 'label');
-      const formsWithoutLabels = labelViolations.reduce((count, violation) => count + violation.nodes.length, 0);
-      
-      if (formsWithoutLabels > 0) {
-        recommendations.push({
-          priority: 'medium',
-          category: i18n.t('reports:recommendations.categories.forms', language),
-          title: i18n.t('reports:recommendations.titles.addLabelsToFormFields', language),
-          description: i18n.t('reports:recommendations.descriptions.formFieldsMissingLabels', language, { count: formsWithoutLabels }),
-          action: i18n.t('reports:recommendations.actions.associateLabelsWithFormFields', language),
-          details: {
-            violationCount: formsWithoutLabels,
-            axeViolations: labelViolations.map(v => ({
-              description: v.description,
-              help: v.help,
-              helpUrl: v.helpUrl,
-              nodeCount: v.nodes.length
-            }))
-          }
-        });
-      }
-      
-      // Add color contrast recommendations if analysis is available
-      if (colorContrastAnalysis && colorContrastAnalysis.aaViolations > 0) {
-        recommendations.push({
-          priority: 'high',
-          category: i18n.t('reports:recommendations.categories.colorContrast', language),
-          title: i18n.t('reports:recommendations.titles.improveColorContrast', language),
-          description: i18n.t('reports:recommendations.descriptions.colorContrastViolations', language, { count: colorContrastAnalysis.aaViolations }),
-          action: i18n.t('reports:recommendations.actions.adjustColorContrast', language),
-          details: {
-            aaViolations: colorContrastAnalysis.aaViolations,
-            aaaViolations: colorContrastAnalysis.aaaViolations || 0,
-            complianceLevel: colorContrastAnalysis.summary?.aaComplianceLevel || 0,
-            recommendations: colorContrastAnalysis.summary?.recommendations || []
-          }
-        });
-      }
-    } else {
-      // Overview - very generic recommendations only
-      if (axeResults.violations.length > 0) {
-        recommendations.push({
-          priority: 'high',
-          category: i18n.t('reports:recommendations.categories.accessibilityIssues', language),
-          title: i18n.t('reports:recommendations.titles.addressAccessibilityCompliance', language),
-          description: i18n.t('reports:recommendations.descriptions.accessibilityIssuesOverview', language),
-          action: i18n.t('reports:recommendations.actions.getDetailedReport', language)
-        });
-      }
-      
-      // Use axe-core violations for overview recommendations
-      const imageViolations = axeResults.violations.filter(v => v.id === 'image-alt');
-      const labelViolations = axeResults.violations.filter(v => v.id === 'label');
-      
-      if (imageViolations.length > 0 || labelViolations.length > 0) {
-        recommendations.push({
-          priority: 'medium',
-          category: i18n.t('reports:recommendations.categories.contentAndForms', language),
-          title: i18n.t('reports:recommendations.titles.improveContentAccessibility', language),
-          description: i18n.t('reports:recommendations.descriptions.contentFormsAccessibility', language),
-          action: i18n.t('reports:recommendations.actions.upgradeToDetailedReport', language)
-        });
-      }
-    }
-    
-    if (reportType === 'detailed') {
-      if (!customChecks.structure.hasH1) {
-        recommendations.push({
-          priority: 'medium',
-          category: i18n.t('reports:recommendations.categories.structure', language),
-          title: i18n.t('reports:recommendations.titles.addMainHeading', language),
-          description: i18n.t('reports:recommendations.descriptions.missingH1Heading', language),
-          action: i18n.t('reports:recommendations.actions.addClearH1Heading', language)
-        });
-      }
-      
-      // Low priority recommendations - only in detailed - use axe-core data
-      const linkNameViolations = axeResults.violations.filter(v => v.id === 'link-name');
-      const emptyLinks = linkNameViolations.reduce((count, violation) => count + violation.nodes.length, 0);
-      
-      if (emptyLinks > 0) {
-        recommendations.push({
-          priority: 'low',
-          category: i18n.t('reports:recommendations.categories.links', language),
-          title: i18n.t('reports:recommendations.titles.fixEmptyLinks', language),
-          description: i18n.t('reports:recommendations.descriptions.emptyLinksNoTextContent', language, { count: emptyLinks }),
-          action: i18n.t('reports:recommendations.actions.addDescriptiveTextToLinks', language),
-          details: {
-            violationCount: emptyLinks,
-            axeViolations: linkNameViolations.map(v => ({
-              description: v.description,
-              help: v.help,
-              helpUrl: v.helpUrl,
-              nodeCount: v.nodes.length
-            }))
-          }
-        });
-      }
-    }
-    
-    return recommendations;
   }
 }
 
-module.exports = new AccessibilityAnalyzer();
+module.exports = AccessibilityAnalyzer;

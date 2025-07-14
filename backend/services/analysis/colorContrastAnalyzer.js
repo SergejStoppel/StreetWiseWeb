@@ -439,7 +439,7 @@ class ColorContrastAnalyzer {
       });
     }
 
-    if (customAnalysis.statistics.belowAA > 0) {
+    if (customAnalysis && customAnalysis.statistics && customAnalysis.statistics.belowAA > 0) {
       recommendations.push({
         type: 'potential_issues',
         priority: 'medium',

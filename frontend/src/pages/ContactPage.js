@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaArrowRight, FaCheckCircle } from 'react-icons/fa';
+import { FaEnvelope, FaPhone, FaClock, FaArrowRight, FaCheckCircle, FaRocket } from 'react-icons/fa';
 
 const ContactContainer = styled.div`
   min-height: 100vh;
@@ -15,26 +16,26 @@ const HeroSection = styled.section`
 `;
 
 const HeroContent = styled.div`
-  max-width: 75%;
+  max-width: var(--container-max-width);
   margin: 0 auto;
-  padding: 0 var(--spacing-md);
+  padding: 0 var(--spacing-xl);
   
-  @media (min-width: 768px) {
-    padding: 0 var(--spacing-lg);
-  }
-  
-  @media (min-width: 1200px) {
-    padding: 0 var(--spacing-xl);
+  @media (max-width: 768px) {
+    padding: 0 var(--spacing-md);
   }
 `;
 
 const HeroTitle = styled.h1`
-  font-size: var(--font-size-5xl);
+  font-size: var(--font-size-4xl);
   font-weight: var(--font-weight-extrabold);
   font-family: var(--font-family-primary);
-  margin-bottom: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
   color: var(--color-text-inverse);
   line-height: var(--line-height-tight);
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-3xl);
+  }
 `;
 
 const HeroSubtitle = styled.p`
@@ -43,11 +44,15 @@ const HeroSubtitle = styled.p`
   font-family: var(--font-family-secondary);
   margin-bottom: var(--spacing-lg);
   color: var(--color-text-inverse);
-  opacity: 0.9;
+  opacity: 0.95;
   max-width: var(--content-max-width);
   margin-left: auto;
   margin-right: auto;
   line-height: var(--line-height-relaxed);
+  
+  @media (max-width: 768px) {
+    font-size: var(--font-size-lg);
+  }
 `;
 
 const ContactSection = styled.section`
@@ -55,26 +60,17 @@ const ContactSection = styled.section`
 `;
 
 const ContactContent = styled.div`
-  max-width: 75%;
+  max-width: var(--container-max-width);
   margin: 0 auto;
-  padding: 0 var(--spacing-md);
+  padding: 0 var(--spacing-xl);
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: var(--spacing-4xl);
-  
-  @media (min-width: 768px) {
-    padding: 0 var(--spacing-lg);
-  }
-  
-  @media (min-width: 1200px) {
-    padding: 0 var(--spacing-xl);
-    gap: var(--spacing-5xl);
-  }
   
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
-    gap: var(--spacing-2xl);
-    max-width: 90%;
+    gap: var(--spacing-3xl);
+    padding: 0 var(--spacing-md);
   }
 `;
 
@@ -87,7 +83,7 @@ const ContactForm = styled.form`
 `;
 
 const FormTitle = styled.h2`
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   font-family: var(--font-family-primary);
   margin-bottom: var(--spacing-xl);
@@ -143,7 +139,7 @@ const FormTextarea = styled.textarea`
   border-radius: var(--border-radius-lg);
   transition: all var(--transition-fast);
   resize: vertical;
-  min-height: 140px;
+  min-height: 120px;
   
   &:focus {
     outline: none;
@@ -154,25 +150,6 @@ const FormTextarea = styled.textarea`
   
   &::placeholder {
     color: var(--color-text-tertiary);
-  }
-`;
-
-const FormSelect = styled.select`
-  width: 100%;
-  padding: var(--spacing-md) var(--spacing-lg);
-  font-family: var(--font-family-secondary);
-  font-size: var(--font-size-base);
-  color: var(--color-text-primary);
-  background-color: var(--color-surface-primary);
-  border: 2px solid var(--color-border-primary);
-  border-radius: var(--border-radius-lg);
-  transition: all var(--transition-fast);
-  
-  &:focus {
-    outline: none;
-    border-color: var(--color-interactive-primary);
-    background-color: var(--color-surface-elevated);
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
   }
 `;
 
@@ -206,10 +183,18 @@ const SubmitButton = styled.button`
   }
 `;
 
+const Microcopy = styled.p`
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  margin-top: var(--spacing-sm);
+  text-align: center;
+  font-family: var(--font-family-secondary);
+`;
+
 const ContactInfo = styled.div``;
 
 const InfoTitle = styled.h2`
-  font-size: var(--font-size-3xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   font-family: var(--font-family-primary);
   margin-bottom: var(--spacing-xl);
@@ -224,7 +209,7 @@ const InfoGrid = styled.div`
 
 const InfoCard = styled.div`
   background-color: var(--color-surface-elevated);
-  border-radius: var(--border-radius-xl);
+  border-radius: var(--border-radius-lg);
   padding: var(--spacing-xl);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border-primary);
@@ -240,15 +225,15 @@ const InfoCard = styled.div`
 `;
 
 const InfoIcon = styled.div`
-  width: 3.5rem;
-  height: 3.5rem;
+  width: 3rem;
+  height: 3rem;
   background-color: var(--color-interactive-primary);
   color: var(--color-text-inverse);
   border-radius: var(--border-radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   flex-shrink: 0;
   box-shadow: var(--shadow-sm);
 `;
@@ -258,7 +243,7 @@ const InfoContent = styled.div`
 `;
 
 const InfoLabel = styled.h3`
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   font-family: var(--font-family-primary);
   margin-bottom: var(--spacing-sm);
@@ -276,13 +261,80 @@ const InfoText = styled.p`
   }
 `;
 
+const BusinessHoursSection = styled.section`
+  background-color: var(--color-surface-secondary);
+  padding: var(--spacing-4xl) 0;
+`;
+
+const BusinessHoursContent = styled.div`
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-xl);
+  
+  @media (max-width: 768px) {
+    padding: 0 var(--spacing-md);
+  }
+`;
+
+const BusinessHoursTitle = styled.h2`
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-primary);
+  text-align: center;
+  margin-bottom: var(--spacing-xl);
+  color: var(--color-text-primary);
+`;
+
+const BusinessHoursGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: var(--spacing-xl);
+  margin-bottom: var(--spacing-2xl);
+`;
+
+const BusinessHoursCard = styled.div`
+  background-color: var(--color-surface-elevated);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--color-border-primary);
+  text-align: center;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    transition: all var(--transition-fast);
+  }
+`;
+
+const BusinessHoursIcon = styled.div`
+  font-size: var(--font-size-3xl);
+  color: var(--color-interactive-primary);
+  margin-bottom: var(--spacing-lg);
+  display: flex;
+  justify-content: center;
+`;
+
+const BusinessHoursText = styled.p`
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-relaxed);
+  margin-bottom: var(--spacing-sm);
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+`;
+
 const ResponseTimeCard = styled.div`
-  background: linear-gradient(135deg, var(--color-success-light) 0%, var(--color-success-lighter) 100%);
-  border: 1px solid var(--color-success);
+  background: linear-gradient(135deg, var(--color-success-100) 0%, var(--color-surface-elevated) 100%);
+  border: 1px solid var(--color-success-300);
   border-radius: var(--border-radius-xl);
   padding: var(--spacing-xl);
   text-align: center;
   box-shadow: var(--shadow-md);
+  max-width: 600px;
+  margin: 0 auto;
 `;
 
 const ResponseTitle = styled.h3`
@@ -290,7 +342,7 @@ const ResponseTitle = styled.h3`
   font-weight: var(--font-weight-semibold);
   font-family: var(--font-family-primary);
   margin-bottom: var(--spacing-md);
-  color: var(--color-success-dark);
+  color: var(--color-text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -299,21 +351,82 @@ const ResponseTitle = styled.h3`
 
 const ResponseText = styled.p`
   font-size: var(--font-size-base);
-  color: var(--color-success-dark);
+  color: var(--color-text-secondary);
   line-height: var(--line-height-relaxed);
+`;
+
+const FreeAnalysisSection = styled.section`
+  background: linear-gradient(135deg, var(--color-interactive-primary) 0%, var(--color-interactive-primary-hover) 100%);
+  color: var(--color-text-inverse);
+  padding: var(--spacing-4xl) 0;
+  text-align: center;
+`;
+
+const FreeAnalysisContent = styled.div`
+  max-width: var(--container-max-width);
+  margin: 0 auto;
+  padding: 0 var(--spacing-xl);
+  
+  @media (max-width: 768px) {
+    padding: 0 var(--spacing-md);
+  }
+`;
+
+const FreeAnalysisTitle = styled.h2`
+  font-size: var(--font-size-3xl);
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-family-primary);
+  margin-bottom: var(--spacing-lg);
+  color: var(--color-text-inverse);
+`;
+
+const FreeAnalysisText = styled.p`
+  font-size: var(--font-size-lg);
+  margin-bottom: var(--spacing-2xl);
+  opacity: 0.95;
+  color: var(--color-text-inverse);
+  font-family: var(--font-family-secondary);
+  line-height: var(--line-height-relaxed);
+`;
+
+const FreeAnalysisButton = styled.button`
+  background: var(--color-warning);
+  color: var(--color-text-primary);
+  padding: var(--spacing-lg) var(--spacing-2xl);
+  border: none;
+  border-radius: var(--border-radius-lg);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  font-family: var(--font-family-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  box-shadow: var(--shadow-lg);
+  
+  &:hover:not(:disabled) {
+    background: var(--color-warning-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
+  }
+  
+  &:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
 `;
 
 const ContactPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
-    company: '',
-    phone: '',
-    service: '',
-    website: '',
     message: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setFormData({
@@ -329,26 +442,33 @@ const ContactPage = () => {
     // Simulate form submission
     setTimeout(() => {
       setIsSubmitting(false);
-      alert('Thank you for your message! We\'ll get back to you within 24 hours.');
+      alert('Thank you for your message! We\'ll get back to you within 24 business hours.');
       setFormData({
         name: '',
         email: '',
-        company: '',
-        phone: '',
-        service: '',
-        website: '',
         message: ''
       });
     }, 2000);
+  };
+
+  const handleFreeAnalysis = () => {
+    navigate('/');
+    // Scroll to the top form after navigation
+    setTimeout(() => {
+      const form = document.querySelector('form');
+      if (form) {
+        form.scrollIntoView({ behavior: 'smooth' });
+      }
+    }, 100);
   };
 
   return (
     <ContactContainer>
       <HeroSection>
         <HeroContent>
-          <HeroTitle>Get In Touch</HeroTitle>
+          <HeroTitle>Have Questions? We're Here to Help!</HeroTitle>
           <HeroSubtitle>
-            Ready to transform your website? Let's discuss how we can help your business grow online.
+            We know running a small business keeps you busy. If you have questions about your website, our services, or just want to chat about how to get more customers online, we're here to listen. No question is too small, and no tech jargon required!
           </HeroSubtitle>
         </HeroContent>
       </HeroSection>
@@ -356,7 +476,7 @@ const ContactPage = () => {
       <ContactSection>
         <ContactContent>
           <ContactForm onSubmit={handleSubmit}>
-            <FormTitle>Send Us a Message</FormTitle>
+            <FormTitle>Send Us a Quick Message</FormTitle>
             
             <FormGroup>
               <FormLabel htmlFor="name">Full Name *</FormLabel>
@@ -385,77 +505,28 @@ const ContactPage = () => {
             </FormGroup>
 
             <FormGroup>
-              <FormLabel htmlFor="company">Company Name</FormLabel>
-              <FormInput
-                type="text"
-                id="company"
-                name="company"
-                value={formData.company}
-                onChange={handleChange}
-                placeholder="Your business name"
-              />
-            </FormGroup>
-
-            <FormGroup>
-              <FormLabel htmlFor="phone">Phone Number</FormLabel>
-              <FormInput
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleChange}
-                placeholder="(555) 123-4567"
-              />
-            </FormGroup>
-
-            <FormGroup>
-              <FormLabel htmlFor="service">Service of Interest</FormLabel>
-              <FormSelect
-                id="service"
-                name="service"
-                value={formData.service}
-                onChange={handleChange}
-              >
-                <option value="">Select a service</option>
-                <option value="accessibility">Website Accessibility</option>
-                <option value="seo">SEO & Content Marketing</option>
-                <option value="overhaul">Website Overhaul</option>
-                <option value="multiple">Multiple Services</option>
-                <option value="consultation">General Consultation</option>
-              </FormSelect>
-            </FormGroup>
-
-            <FormGroup>
-              <FormLabel htmlFor="website">Current Website URL</FormLabel>
-              <FormInput
-                type="url"
-                id="website"
-                name="website"
-                value={formData.website}
-                onChange={handleChange}
-                placeholder="https://www.yourbusiness.com"
-              />
-            </FormGroup>
-
-            <FormGroup>
               <FormLabel htmlFor="message">Message *</FormLabel>
               <FormTextarea
                 id="message"
                 name="message"
                 value={formData.message}
                 onChange={handleChange}
-                placeholder="Tell us about your project, goals, and any specific challenges you're facing..."
+                placeholder="Tell us what's on your mind..."
                 required
               />
             </FormGroup>
 
             <SubmitButton type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Sending...' : 'Send Message'} <FaArrowRight />
+              {isSubmitting ? 'Sending...' : 'Send My Message'} <FaArrowRight />
             </SubmitButton>
+            
+            <Microcopy>
+              We'll get back to you within 24 business hours.
+            </Microcopy>
           </ContactForm>
 
           <ContactInfo>
-            <InfoTitle>Contact Information</InfoTitle>
+            <InfoTitle>Or Reach Out Directly</InfoTitle>
             
             <InfoGrid>
               <InfoCard>
@@ -464,8 +535,8 @@ const ContactPage = () => {
                 </InfoIcon>
                 <InfoContent>
                   <InfoLabel>Email Us</InfoLabel>
-                  <InfoText>hello@sitecraft.ai</InfoText>
-                  <InfoText>For general inquiries and support</InfoText>
+                  <InfoText>hello@streetwiseweb.com</InfoText>
+                  <InfoText>For general inquiries, support, or to discuss your free report.</InfoText>
                 </InfoContent>
               </InfoCard>
 
@@ -475,46 +546,53 @@ const ContactPage = () => {
                 </InfoIcon>
                 <InfoContent>
                   <InfoLabel>Call Us</InfoLabel>
-                  <InfoText>(555) 123-SITE</InfoText>
-                  <InfoText>Mon-Fri, 9 AM - 6 PM EST</InfoText>
-                </InfoContent>
-              </InfoCard>
-
-              <InfoCard>
-                <InfoIcon>
-                  <FaMapMarkerAlt />
-                </InfoIcon>
-                <InfoContent>
-                  <InfoLabel>Location</InfoLabel>
-                  <InfoText>Serving small businesses nationwide</InfoText>
-                  <InfoText>Remote consultations available</InfoText>
-                </InfoContent>
-              </InfoCard>
-
-              <InfoCard>
-                <InfoIcon>
-                  <FaClock />
-                </InfoIcon>
-                <InfoContent>
-                  <InfoLabel>Business Hours</InfoLabel>
-                  <InfoText>Monday - Friday: 9:00 AM - 6:00 PM EST</InfoText>
-                  <InfoText>Saturday: 10:00 AM - 2:00 PM EST</InfoText>
+                  <InfoText>(XXX) XXX-XXXX</InfoText>
+                  <InfoText>Speak directly with a friendly expert.</InfoText>
                 </InfoContent>
               </InfoCard>
             </InfoGrid>
-
-            <ResponseTimeCard>
-              <ResponseTitle>
-                <FaCheckCircle /> Quick Response Guarantee
-              </ResponseTitle>
-              <ResponseText>
-                We respond to all inquiries within 24 hours during business days. 
-                For urgent accessibility or technical issues, we offer same-day response for existing clients.
-              </ResponseText>
-            </ResponseTimeCard>
           </ContactInfo>
         </ContactContent>
       </ContactSection>
+
+      <BusinessHoursSection>
+        <BusinessHoursContent>
+          <BusinessHoursTitle>When We're Available</BusinessHoursTitle>
+          
+          <BusinessHoursGrid>
+            <BusinessHoursCard>
+              <BusinessHoursIcon>
+                <FaClock />
+              </BusinessHoursIcon>
+              <InfoLabel>Business Hours</InfoLabel>
+              <BusinessHoursText>Monday - Friday: 9:00 AM - 6:00 PM EST</BusinessHoursText>
+              <BusinessHoursText>Saturday: 10:00 AM - 2:00 PM EST</BusinessHoursText>
+            </BusinessHoursCard>
+          </BusinessHoursGrid>
+
+          <ResponseTimeCard>
+            <ResponseTitle>
+              <FaCheckCircle /> Quick Response Promise
+            </ResponseTitle>
+            <ResponseText>
+              We aim to respond to all messages within 24 business hours. Your online success is important to us!
+            </ResponseText>
+          </ResponseTimeCard>
+        </BusinessHoursContent>
+      </BusinessHoursSection>
+
+      <FreeAnalysisSection>
+        <FreeAnalysisContent>
+          <FreeAnalysisTitle>Haven't Gotten Your Free Report Yet?</FreeAnalysisTitle>
+          <FreeAnalysisText>
+            If you're curious about your website's current health, start with our free, no-obligation analysis. It's the easiest way to see where you stand!
+          </FreeAnalysisText>
+          
+          <FreeAnalysisButton onClick={handleFreeAnalysis}>
+            <FaRocket /> Get My Free Website Report
+          </FreeAnalysisButton>
+        </FreeAnalysisContent>
+      </FreeAnalysisSection>
     </ContactContainer>
   );
 };

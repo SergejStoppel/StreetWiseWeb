@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaAccessibleIcon, FaSearch, FaPaintBrush, FaRocket, FaArrowRight } from 'react-icons/fa';
+import { FaAccessibleIcon, FaSearch, FaPaintBrush, FaRocket, FaArrowRight, FaMobile } from 'react-icons/fa';
 
 const ServicesContainer = styled.div`
   min-height: 100vh;
@@ -271,9 +271,9 @@ const ServicesPage = () => {
     <ServicesContainer>
       <HeroSection>
         <HeroContent>
-          <HeroTitle>Comprehensive Online Solutions for Every Small Business Need</HeroTitle>
+          <HeroTitle>Professional Website Services That Actually Help Your Business</HeroTitle>
           <HeroSubtitle>
-            From initial assessments to full-scale implementation, our tiered services provide flexible and powerful ways to enhance your digital presence.
+            We make your website work for you with simple, effective solutions that attract more customers, protect you from legal risks, and keep you competitive in today's AI-driven world.
           </HeroSubtitle>
         </HeroContent>
       </HeroSection>
@@ -281,9 +281,9 @@ const ServicesPage = () => {
       <TierSection>
         <TierContainer>
           <TierHeader>
-            <TierTitle>Tier 1: Immediate Insights & Content Generation</TierTitle>
+            <TierTitle>Our Core Services</TierTitle>
             <TierDescription>
-              Quick value, low commitment, ideal for initial assessment and content support. These services provide actionable insights without needing access to your website backend.
+              Everything your small business needs to succeed online. We handle the technical complexity so you can focus on what you do best - running your business.
             </TierDescription>
           </TierHeader>
           
@@ -292,15 +292,15 @@ const ServicesPage = () => {
               <ServiceIcon>
                 <FaAccessibleIcon />
               </ServiceIcon>
-              <ServiceTitle>AI-Powered Accessibility & Compliance Assessment</ServiceTitle>
+              <ServiceTitle>Website Accessibility & Legal Protection</ServiceTitle>
               <ServiceDescription>
-                Identify critical accessibility issues and get actionable recommendations to mitigate legal risks and ensure ADA/WCAG compliance.
+                Is your website open for business to everyone, including people with disabilities? We ensure your site meets legal requirements and serves all customers.
               </ServiceDescription>
               <ServiceFeatures>
-                <ServiceFeature>Automated WCAG compliance scanning</ServiceFeature>
-                <ServiceFeature>AI-generated fix suggestions</ServiceFeature>
-                <ServiceFeature>Legal risk assessment</ServiceFeature>
-                <ServiceFeature>Detailed compliance reports</ServiceFeature>
+                <ServiceFeature>WCAG 2.1 compliance analysis</ServiceFeature>
+                <ServiceFeature>ADA lawsuit protection</ServiceFeature>
+                <ServiceFeature>Simple, actionable fix recommendations</ServiceFeature>
+                <ServiceFeature>Professional compliance reports</ServiceFeature>
               </ServiceFeatures>
               <ServiceLink to="/services/accessibility">
                 Learn More <FaArrowRight />
@@ -311,15 +311,15 @@ const ServicesPage = () => {
               <ServiceIcon>
                 <FaSearch />
               </ServiceIcon>
-              <ServiceTitle>AI-Driven SEO & Content Idea Generation</ServiceTitle>
+              <ServiceTitle>SEO & AI Discoverability</ServiceTitle>
               <ServiceDescription>
-                Boost your online visibility with tailored content ideas that attract local customers and improve search rankings.
+                How easy is it for customers to find you on Google and AI assistants? With AI traffic growing 1,300%+ in 2024, we optimize for both traditional search and AI discovery.
               </ServiceDescription>
               <ServiceFeatures>
-                <ServiceFeature>Keyword research & trend analysis</ServiceFeature>
-                <ServiceFeature>Competitor content gap analysis</ServiceFeature>
-                <ServiceFeature>AI-powered content briefs</ServiceFeature>
-                <ServiceFeature>Local SEO optimization</ServiceFeature>
+                <ServiceFeature>Google search optimization</ServiceFeature>
+                <ServiceFeature>ChatGPT & Perplexity optimization</ServiceFeature>
+                <ServiceFeature>Local SEO enhancement</ServiceFeature>
+                <ServiceFeature>AI-friendly content strategy</ServiceFeature>
               </ServiceFeatures>
               <ServiceLink to="/services/seo-content">
                 Learn More <FaArrowRight />
@@ -328,70 +328,19 @@ const ServicesPage = () => {
 
             <ServiceCard>
               <ServiceIcon>
-                <FaPaintBrush />
+                <FaMobile />
               </ServiceIcon>
-              <ServiceTitle>Automated Website Mockups & Design Suggestions</ServiceTitle>
+              <ServiceTitle>Website Health & Performance</ServiceTitle>
               <ServiceDescription>
-                Visualize your website's potential with stunning, AI-generated redesign mockups that showcase modern design principles.
+                Is your site fast, secure, and easy to use on all devices? We check everything from loading speed to mobile-friendliness to ensure your website delivers a great user experience.
               </ServiceDescription>
               <ServiceFeatures>
-                <ServiceFeature>AI-powered design analysis</ServiceFeature>
-                <ServiceFeature>Modern template application</ServiceFeature>
-                <ServiceFeature>Content optimization for mockups</ServiceFeature>
-                <ServiceFeature>Before/after comparisons</ServiceFeature>
+                <ServiceFeature>Page speed optimization</ServiceFeature>
+                <ServiceFeature>Mobile responsiveness check</ServiceFeature>
+                <ServiceFeature>Security vulnerability scan</ServiceFeature>
+                <ServiceFeature>User experience analysis</ServiceFeature>
               </ServiceFeatures>
               <ServiceLink to="/services/website-overhaul">
-                Learn More <FaArrowRight />
-              </ServiceLink>
-            </ServiceCard>
-          </ServicesGrid>
-        </TierContainer>
-      </TierSection>
-
-      <TierSection style={{ backgroundColor: 'var(--color-surface-secondary)' }}>
-        <TierContainer>
-          <TierHeader>
-            <TierTitle>Tier 2: Full Implementation & Ongoing Management</TierTitle>
-            <TierDescription>
-              Comprehensive solutions, hands-off management, and deep optimization. These services provide direct implementation and continuous improvement for maximum impact.
-            </TierDescription>
-          </TierHeader>
-          
-          <ServicesGrid>
-            <ServiceCard>
-              <ServiceIcon>
-                <FaRocket />
-              </ServiceIcon>
-              <ServiceTitle>Full Website Overhaul & Technical SEO Implementation</ServiceTitle>
-              <ServiceDescription>
-                Transform your website into a high-performing, secure, and search-engine-friendly asset with ongoing maintenance and optimization.
-              </ServiceDescription>
-              <ServiceFeatures>
-                <ServiceFeature>Complete website redesign</ServiceFeature>
-                <ServiceFeature>Technical SEO implementation</ServiceFeature>
-                <ServiceFeature>Performance optimization</ServiceFeature>
-                <ServiceFeature>Security & hosting management</ServiceFeature>
-              </ServiceFeatures>
-              <ServiceLink to="/services/website-overhaul">
-                Learn More <FaArrowRight />
-              </ServiceLink>
-            </ServiceCard>
-
-            <ServiceCard>
-              <ServiceIcon>
-                <FaSearch />
-              </ServiceIcon>
-              <ServiceTitle>Advanced On-Page SEO & Content Optimization</ServiceTitle>
-              <ServiceDescription>
-                Achieve top search rankings and engage your audience with expertly optimized content directly implemented on your site.
-              </ServiceDescription>
-              <ServiceFeatures>
-                <ServiceFeature>Direct content optimization</ServiceFeature>
-                <ServiceFeature>Strategic keyword integration</ServiceFeature>
-                <ServiceFeature>Schema markup implementation</ServiceFeature>
-                <ServiceFeature>E-E-A-T signal enhancement</ServiceFeature>
-              </ServiceFeatures>
-              <ServiceLink to="/services/seo-content">
                 Learn More <FaArrowRight />
               </ServiceLink>
             </ServiceCard>
@@ -401,13 +350,13 @@ const ServicesPage = () => {
 
       <CTASection>
         <CTAContainer>
-          <CTATitle>Ready to Elevate Your Online Presence?</CTATitle>
+          <CTATitle>Ready to See How Your Website Can Work Better?</CTATitle>
           <CTAButtons>
-            <CTAButton to="/pricing" className="primary">
-              View Our Pricing Plans <FaArrowRight />
+            <CTAButton to="/free-audit" className="primary">
+              Get Your Free Website Analysis <FaArrowRight />
             </CTAButton>
             <CTAButton to="/contact" className="secondary">
-              Contact Us for a Custom Solution <FaArrowRight />
+              Talk to Our Team <FaArrowRight />
             </CTAButton>
           </CTAButtons>
         </CTAContainer>

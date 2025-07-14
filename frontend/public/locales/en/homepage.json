@@ -1,38 +1,159 @@
 {
   "hero": {
-    "title": "Professional Website Accessibility Analysis",
-    "subtitle": "Get instant insights into your website's accessibility compliance with our AI-powered analysis. Identify issues, improve user experience, and ensure legal compliance.",
-    "formTitle": "Analyze Your Website",
-    "exampleText": "Enter any website (e.g., example.com) • Free overview report • Detailed reports available for purchase"
+    "title": "Is Your Website Losing You Customers?",
+    "subtitle": "Find out for free. Get a simple, no-jargon report on your website's health, and see how you can attract more customers.",
+    "formTitle": "Get My Free Report",
+    "exampleText": "No technical skills needed. We email you the results.",
+    "microcopy": "yourwebsite.com"
+  },
+  "problem": {
+    "title": "Your Website Should Help Your Business, Not Hurt It.",
+    "intro": "For many small business owners, a website can feel like a confusing, expensive, and time-consuming problem. You might be wondering:",
+    "questions": [
+      {
+        "title": "Am I reaching the right customers?",
+        "description": "If your website isn't optimized for search engines like Google and AI assistants like ChatGPT, you're likely invisible to potential customers looking for your products or services."
+      },
+      {
+        "title": "Is my website turning people away?",
+        "description": "A slow, confusing, or broken website frustrates visitors and sends them straight to your competitors."
+      },
+      {
+        "title": "Could my website get me in legal trouble?",
+        "description": "Many business owners are unaware that their websites are legally required to be accessible to people with disabilities. This can lead to expensive lawsuits."
+      }
+    ]
+  },
+  "agitate": {
+    "title": "Ignoring Your Website's Problems is Costly.",
+    "content": "An unhealthy website isn't just a missed opportunity; it's a direct threat to your bottom line.",
+    "points": [
+      {
+        "title": "You're Losing Money",
+        "description": "Every customer who can't find you online, gets frustrated with your site, or can't use it due to a disability is a sale you've lost."
+      },
+      {
+        "title": "You're Falling Behind",
+        "description": "Your competitors are getting smarter online. If your website isn't keeping up, you're giving them your business."
+      },
+      {
+        "title": "You're at Risk",
+        "description": "Accessibility lawsuits against small businesses are on the rise, with potential costs reaching tens of thousands of dollars."
+      }
+    ]
+  },
+  "solution": {
+    "title": "We Make Your Website Work for You.",
+    "subtitle": "StreetWiseWeb is your friendly, affordable partner for a healthy, customer-attracting website. We translate the technical jargon into simple, actionable steps so you can focus on what you do best: running your business.",
+    "promise": {
+      "title": "Our Promise:",
+      "points": [
+        {
+          "title": "No More Guesswork",
+          "description": "We show you exactly what's wrong and how to fix it."
+        },
+        {
+          "title": "More Customers, Not More Headaches",
+          "description": "We help you get found on Google, ChatGPT, and other AI assistants, while providing a great experience for your visitors."
+        },
+        {
+          "title": "Peace of Mind",
+          "description": "We help you understand and address your legal requirements, protecting you from lawsuits."
+        }
+      ]
+    }
+  },
+  "howItWorks": {
+    "title": "Get Your Free Website Health Report in 3 Simple Steps.",
+    "steps": [
+      {
+        "number": "1",
+        "title": "Enter Your Website",
+        "description": "Just type in your website address."
+      },
+      {
+        "number": "2",
+        "title": "We Analyze Your Site",
+        "description": "Our smart technology scans your website for critical issues."
+      },
+      {
+        "number": "3",
+        "title": "Get Your Report",
+        "description": "We email you a simple, easy-to-understand report with your results."
+      }
+    ]
+  },
+  "services": {
+    "title": "What We Check For",
+    "items": [
+      {
+        "title": "Accessibility",
+        "description": "Is your website open for business to everyone, including people with disabilities?",
+        "details": "We ensure your site meets legal requirements and serves all customers."
+      },
+      {
+        "title": "SEO & AI Discoverability",
+        "description": "How easy is it for customers to find you on Google and AI assistants?",
+        "details": "With AI traffic growing 40x in 2024, we optimize for both traditional search and AI discovery."
+      },
+      {
+        "title": "Website Health",
+        "description": "Is your site fast, secure, and easy to use on all devices?",
+        "details": "We check everything from loading speed to mobile-friendliness."
+      }
+    ]
+  },
+  "aiStats": {
+    "title": "The Future of Search is Here",
+    "subtitle": "AI assistants like ChatGPT and Perplexity are changing how customers find businesses. Are you ready?",
+    "description": "AI referrals have exploded—up 2,200% last year. Yet most websites aren't even tracking them. We help businesses adapt to the next generation of search—not just Google, but ChatGPT, Perplexity, and beyond.",
+    "stats": [
+      {
+        "number": "5–7%",
+        "label": "of all web traffic could come from AI tools like ChatGPT by end of 2025",
+        "detail": "AI-driven referrals surged over 1000% last year—and that trend is only accelerating."
+      },
+      {
+        "number": "1,300%+",
+        "label": "Growth in AI referral traffic in 2024",
+        "detail": "Retail and publishing sites saw over 10× increases from ChatGPT and Perplexity users."
+      },
+      {
+        "number": "90%+",
+        "label": "of AI referrals come from ChatGPT & Perplexity",
+        "detail": "ChatGPT alone accounts for ~80%, making it the #1 AI search engine today."
+      },
+      {
+        "number": "Breaking",
+        "label": "Google's monopoly is cracking: AI search is stealing attention",
+        "detail": "For the first time, Google's dominance is actively being challenged by LLM-driven results."
+      }
+    ],
+    "insight": "Visitors from AI tools like ChatGPT view 12% more pages and bounce 23% less than those from Google. Better leads. Better SEO."
+  },
+  "testimonial": {
+    "title": "Trusted by Small Businesses Like Yours",
+    "quote": "I'm not a tech person, and I was worried my website was a mess. StreetWiseWeb gave me a report I could actually understand. They pointed out some simple fixes that made a huge difference. We've seen more online inquiries since we started working with them.",
+    "author": "Sarah L.",
+    "role": "Owner, The Corner Bookstore"
+  },
+  "finalCta": {
+    "title": "Ready to See How Your Website Can Improve?",
+    "subtitle": "Get your free, no-obligation website health report now.",
+    "button": "Get My Free Report"
   },
   "features": {
     "wcagCompliance": {
-      "title": "WCAG Compliance",
-      "description": "Comprehensive analysis using industry-standard Axe-core engine to identify accessibility violations and ensure WCAG 2.1 AA compliance."
+      "title": "Legal Protection",
+      "description": "Protect your business from accessibility lawsuits while serving all customers better."
     },
     "smartScoring": {
-      "title": "Smart Scoring",
-      "description": "Get clear accessibility scores with impact assessment. Understand which issues to prioritize for maximum improvement in user experience."
+      "title": "Simple Reports",
+      "description": "Get clear, jargon-free explanations of what needs fixing and why it matters."
     },
     "professionalReports": {
-      "title": "Professional Reports",
-      "description": "Receive detailed PDF reports with specific recommendations, code examples, and implementation guidance for your development team."
+      "title": "Actionable Steps",
+      "description": "Receive specific, prioritized recommendations you can implement or share with your web developer."
     }
-  },
-  "whyAccessibility": {
-    "title": "Why Accessibility Matters",
-    "subtitle": "Web accessibility isn't just about compliance—it's about creating inclusive experiences for all users while protecting your business from legal risks.",
-    "stats": {
-      "peopleWithDisabilities": "People with disabilities worldwide",
-      "spendingPower": "Annual spending power",
-      "lawsuitIncrease": "Increase in accessibility lawsuits",
-      "globalDisability": "Of global population has a disability"
-    }
-  },
-  "testimonials": {
-    "title": "Trusted by Businesses",
-    "quote": "SiteCraft's accessibility analysis helped us identify and fix critical issues we didn't even know existed. The detailed report saved our development team weeks of work and helped us avoid potential legal complications.",
-    "author": "Sarah Chen",
-    "role": "CTO, TechStart Inc."
   }
 }

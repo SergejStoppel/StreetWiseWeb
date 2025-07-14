@@ -1,38 +1,159 @@
 {
   "hero": {
-    "title": "Análisis Profesional de Accesibilidad Web",
-    "subtitle": "Obtenga información instantánea sobre el cumplimiento de accesibilidad de su sitio web con nuestro análisis impulsado por IA. Identifique problemas, mejore la experiencia del usuario y asegure el cumplimiento legal.",
-    "formTitle": "Analice Su Sitio Web",
-    "exampleText": "Ingrese cualquier sitio web (ej., ejemplo.com) • Informe general gratuito • Informes detallados disponibles para compra"
+    "title": "¿Su Sitio Web Está Perdiendo Clientes?",
+    "subtitle": "Descúbralo gratis. Obtenga un informe simple y sin jerga técnica sobre la salud de su sitio web, y vea cómo puede atraer más clientes.",
+    "formTitle": "Obtener Mi Informe Gratis",
+    "exampleText": "No se necesitan habilidades técnicas. Le enviamos los resultados por correo.",
+    "microcopy": "susitioweb.com"
+  },
+  "problem": {
+    "title": "Su Sitio Web Debería Ayudar a Su Negocio, No Perjudicarlo.",
+    "intro": "Para muchos propietarios de pequeños negocios, un sitio web puede sentirse como un problema confuso, costoso y que consume tiempo. Podría estar preguntándose:",
+    "questions": [
+      {
+        "title": "¿Estoy llegando a los clientes correctos?",
+        "description": "Si su sitio web no está optimizado para motores de búsqueda como Google y asistentes de IA como ChatGPT, probablemente sea invisible para clientes potenciales que buscan sus productos o servicios."
+      },
+      {
+        "title": "¿Mi sitio web está alejando a la gente?",
+        "description": "Un sitio web lento, confuso o roto frustra a los visitantes y los envía directamente a sus competidores."
+      },
+      {
+        "title": "¿Podría mi sitio web meterme en problemas legales?",
+        "description": "Muchos propietarios de negocios no saben que sus sitios web están legalmente obligados a ser accesibles para personas con discapacidades. Esto puede llevar a demandas costosas."
+      }
+    ]
+  },
+  "agitate": {
+    "title": "Ignorar los Problemas de Su Sitio Web Es Costoso.",
+    "content": "Un sitio web poco saludable no es solo una oportunidad perdida; es una amenaza directa a sus ingresos.",
+    "points": [
+      {
+        "title": "Está Perdiendo Dinero",
+        "description": "Cada cliente que no puede encontrarlo en línea, se frustra con su sitio, o no puede usarlo debido a una discapacidad es una venta que ha perdido."
+      },
+      {
+        "title": "Se Está Quedando Atrás",
+        "description": "Sus competidores se están volviendo más inteligentes en línea. Si su sitio web no se mantiene al día, les está dando su negocio."
+      },
+      {
+        "title": "Está en Riesgo",
+        "description": "Las demandas por accesibilidad contra pequeños negocios están aumentando, con costos potenciales que alcanzan decenas de miles de euros."
+      }
+    ]
+  },
+  "solution": {
+    "title": "Hacemos Que Su Sitio Web Trabaje Para Usted.",
+    "subtitle": "StreetWiseWeb es su socio amigable y asequible para un sitio web saludable que atraiga clientes. Traducimos la jerga técnica en pasos simples y accionables para que pueda enfocarse en lo que hace mejor: dirigir su negocio.",
+    "promise": {
+      "title": "Nuestra Promesa:",
+      "points": [
+        {
+          "title": "No Más Adivinanzas",
+          "description": "Le mostramos exactamente qué está mal y cómo solucionarlo."
+        },
+        {
+          "title": "Más Clientes, No Más Dolores de Cabeza",
+          "description": "Le ayudamos a ser encontrado en Google, ChatGPT y otros asistentes de IA, mientras proporciona una gran experiencia para sus visitantes."
+        },
+        {
+          "title": "Tranquilidad",
+          "description": "Le ayudamos a entender y abordar sus requisitos legales, protegiéndolo de demandas."
+        }
+      ]
+    }
+  },
+  "howItWorks": {
+    "title": "Obtenga Su Informe Gratuito de Salud Web en 3 Pasos Simples.",
+    "steps": [
+      {
+        "number": "1",
+        "title": "Ingrese Su Sitio Web",
+        "description": "Solo escriba la dirección de su sitio web."
+      },
+      {
+        "number": "2",
+        "title": "Analizamos Su Sitio",
+        "description": "Nuestra tecnología inteligente escanea su sitio web en busca de problemas críticos."
+      },
+      {
+        "number": "3",
+        "title": "Obtenga Su Informe",
+        "description": "Le enviamos por correo un informe simple y fácil de entender con sus resultados."
+      }
+    ]
+  },
+  "services": {
+    "title": "Qué Revisamos",
+    "items": [
+      {
+        "title": "Accesibilidad",
+        "description": "¿Su sitio web está abierto para el negocio a todos, incluidas las personas con discapacidades?",
+        "details": "Nos aseguramos de que su sitio cumpla con los requisitos legales y sirva a todos los clientes."
+      },
+      {
+        "title": "SEO y Detectabilidad por IA",
+        "description": "¿Qué tan fácil es para los clientes encontrarlo en Google y asistentes de IA?",
+        "details": "Con el tráfico de IA creciendo 40 veces en 2024, optimizamos tanto para búsqueda tradicional como para descubrimiento por IA."
+      },
+      {
+        "title": "Salud del Sitio Web",
+        "description": "¿Su sitio es rápido, seguro y fácil de usar en todos los dispositivos?",
+        "details": "Revisamos todo, desde la velocidad de carga hasta la compatibilidad móvil."
+      }
+    ]
+  },
+  "aiStats": {
+    "title": "El Futuro de la Búsqueda Está Aquí",
+    "subtitle": "Los asistentes de IA como ChatGPT y Perplexity están cambiando cómo los clientes encuentran negocios. ¿Está listo?",
+    "description": "Las referencias de IA han explotado—subieron 2,200% el año pasado. Sin embargo, la mayoría de sitios web ni siquiera las rastrean. Ayudamos a las empresas a adaptarse a la próxima generación de búsqueda—no solo Google, sino ChatGPT, Perplexity y más allá.",
+    "stats": [
+      {
+        "number": "5–7%",
+        "label": "de todo el tráfico web podría provenir de herramientas de IA como ChatGPT para finales de 2025",
+        "detail": "Las referencias impulsadas por IA aumentaron más del 1000% el año pasado—y esa tendencia solo se está acelerando."
+      },
+      {
+        "number": "1,300%+",
+        "label": "Crecimiento en tráfico de referencia de IA en 2024",
+        "detail": "Los sitios de retail y editorial vieron aumentos de más de 10× de usuarios de ChatGPT y Perplexity."
+      },
+      {
+        "number": "90%+",
+        "label": "de las referencias de IA provienen de ChatGPT y Perplexity",
+        "detail": "ChatGPT por sí solo representa ~80%, convirtiéndolo en el motor de búsqueda de IA #1 hoy."
+      },
+      {
+        "number": "Breaking",
+        "label": "El monopolio de Google se está agrietando: la búsqueda de IA está robando atención",
+        "detail": "Por primera vez, el dominio de Google está siendo desafiado activamente por resultados impulsados por LLM."
+      }
+    ],
+    "insight": "Los visitantes de herramientas de IA como ChatGPT ven 12% más páginas y rebotan 23% menos que los de Google. Mejores leads. Mejor SEO."
+  },
+  "testimonial": {
+    "title": "Confiado por Pequeños Negocios Como el Suyo",
+    "quote": "No soy una persona técnica, y estaba preocupada de que mi sitio web fuera un desastre. StreetWiseWeb me dio un informe que realmente podía entender. Señalaron algunas correcciones simples que hicieron una gran diferencia. Hemos visto más consultas en línea desde que comenzamos a trabajar con ellos.",
+    "author": "María L.",
+    "role": "Propietaria, La Librería de la Esquina"
+  },
+  "finalCta": {
+    "title": "¿Listo para Ver Cómo Su Sitio Web Puede Mejorar?",
+    "subtitle": "Obtenga su informe gratuito y sin compromiso de salud web ahora.",
+    "button": "Obtener Mi Informe Gratis"
   },
   "features": {
     "wcagCompliance": {
-      "title": "Cumplimiento WCAG",
-      "description": "Análisis integral utilizando el motor estándar de la industria Axe-core para identificar violaciones de accesibilidad y asegurar el cumplimiento WCAG 2.1 AA."
+      "title": "Protección Legal",
+      "description": "Proteja su negocio de demandas por accesibilidad mientras sirve mejor a todos los clientes."
     },
     "smartScoring": {
-      "title": "Puntuación Inteligente",
-      "description": "Obtenga puntuaciones claras de accesibilidad con evaluación de impacto. Comprenda qué problemas priorizar para la máxima mejora en la experiencia del usuario."
+      "title": "Informes Simples",
+      "description": "Obtenga explicaciones claras y sin jerga técnica de lo que necesita arreglarse y por qué importa."
     },
     "professionalReports": {
-      "title": "Informes Profesionales",
-      "description": "Reciba informes PDF detallados con recomendaciones específicas, ejemplos de código y orientación de implementación para su equipo de desarrollo."
+      "title": "Pasos Accionables",
+      "description": "Reciba recomendaciones específicas y priorizadas que puede implementar o compartir con su desarrollador web."
     }
-  },
-  "whyAccessibility": {
-    "title": "Por Qué Importa la Accesibilidad",
-    "subtitle": "La accesibilidad web no se trata solo de cumplimiento: se trata de crear experiencias inclusivas para todos los usuarios mientras protege su negocio de riesgos legales.",
-    "stats": {
-      "peopleWithDisabilities": "Personas con discapacidades en todo el mundo",
-      "spendingPower": "Poder adquisitivo anual",
-      "lawsuitIncrease": "Aumento en demandas de accesibilidad",
-      "globalDisability": "De la población mundial tiene una discapacidad"
-    }
-  },
-  "testimonials": {
-    "title": "Confiado por Empresas",
-    "quote": "El análisis de accesibilidad de SiteCraft nos ayudó a identificar y corregir problemas críticos que ni siquiera sabíamos que existían. El informe detallado ahorró a nuestro equipo de desarrollo semanas de trabajo y nos ayudó a evitar posibles complicaciones legales.",
-    "author": "Sarah Chen",
-    "role": "CTO, TechStart Inc."
   }
 }

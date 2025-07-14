@@ -16,11 +16,23 @@ import {
   FaPalette,
   FaCrown,
   FaLock,
-  FaStar
+  FaStar,
+  FaLanguage,
+  FaCompass,
+  FaRoute,
+  FaHandPointer,
+  FaKeyboard,
+  FaAlignLeft,
+  FaMobile
 } from 'react-icons/fa';
 import ScoreCard from '../components/ScoreCard';
 import ViolationsList from '../components/ViolationsList';
 import RecommendationsList from '../components/RecommendationsList';
+import NavigationResults from '../components/NavigationResults';
+import TouchTargetResults from '../components/TouchTargetResults';
+import KeyboardShortcutResults from '../components/KeyboardShortcutResults';
+import ContentStructureResults from '../components/ContentStructureResults';
+import MobileAccessibilityResults from '../components/MobileAccessibilityResults';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { accessibilityAPI } from '../services/api';
 
@@ -528,7 +540,7 @@ const ResultsPage = () => {
   const [downloadingPDF, setDownloadingPDF] = useState(false);
   const navigate = useNavigate();
   const { i18n, t } = useTranslation('dashboard');
-
+  
   useEffect(() => {
     const storedResults = sessionStorage.getItem('analysisResult');
     
@@ -771,6 +783,197 @@ const ResultsPage = () => {
             <SummaryValue>{results.summary.colorContrastViolations || 0}</SummaryValue>
             <SummaryLabel>{t('results.summary.colorContrastIssues')}</SummaryLabel>
           </SummaryCard>
+          
+          {results.summary.languageIssues > 0 && (
+            <SummaryCard>
+              <SummaryIcon color="#dc2626">
+                <FaLanguage />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.languageIssues}</SummaryValue>
+              <SummaryLabel>Language Issues</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.formErrorHandlingIssues > 0 && (
+            <SummaryCard>
+              <SummaryIcon color="#dc2626">
+                <FaExclamationTriangle />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.formErrorHandlingIssues}</SummaryValue>
+              <SummaryLabel>Form Error Issues</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {/* Navigation Summary Cards */}
+          <SummaryCard>
+            <SummaryIcon color={results.summary.hasSkipLinks ? "#10b981" : "#ef4444"}>
+              <FaCompass />
+            </SummaryIcon>
+            <SummaryValue>{results.summary.hasSkipLinks ? "Yes" : "No"}</SummaryValue>
+            <SummaryLabel>Skip Links</SummaryLabel>
+          </SummaryCard>
+          
+          <SummaryCard>
+            <SummaryIcon color={results.summary.hasBreadcrumbs ? "#10b981" : "#f59e0b"}>
+              <FaRoute />
+            </SummaryIcon>
+            <SummaryValue>{results.summary.hasBreadcrumbs ? "Yes" : "No"}</SummaryValue>
+            <SummaryLabel>Breadcrumbs</SummaryLabel>
+          </SummaryCard>
+          
+          {/* Touch Target Summary */}
+          {results.summary.smallTargets !== undefined && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.smallTargets === 0 ? "#10b981" : "#ef4444"}>
+                <FaHandPointer />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.smallTargets}</SummaryValue>
+              <SummaryLabel>Small Touch Targets</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.structureScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.structureScore >= 80 ? "#10b981" : results.summary.structureScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaWpforms />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.structureScore}%</SummaryValue>
+              <SummaryLabel>{t('results.summary.structureScore')}</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.navigationScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.navigationScore >= 80 ? "#10b981" : results.summary.navigationScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaCompass />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.navigationScore}%</SummaryValue>
+              <SummaryLabel>Navigation Score</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.touchTargetScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.touchTargetScore >= 80 ? "#10b981" : results.summary.touchTargetScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaHandPointer />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.touchTargetScore}%</SummaryValue>
+              <SummaryLabel>Touch Target Score</SummaryLabel>
+            </SummaryCard>
+          )}
+
+          {/* Keyboard Shortcut Summary Cards */}
+          {results.summary.conflictingAccessKeys !== undefined && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.conflictingAccessKeys === 0 ? "#10b981" : "#ef4444"}>
+                <FaKeyboard />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.conflictingAccessKeys}</SummaryValue>
+              <SummaryLabel>Access Key Conflicts</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.keyboardShortcutScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.keyboardShortcutScore >= 80 ? "#10b981" : results.summary.keyboardShortcutScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaKeyboard />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.keyboardShortcutScore}%</SummaryValue>
+              <SummaryLabel>Keyboard Shortcut Score</SummaryLabel>
+            </SummaryCard>
+          )}
+
+          {/* Content Structure Summary Cards */}
+          {results.summary.contentStructureScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.contentStructureScore >= 80 ? "#10b981" : results.summary.contentStructureScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaAlignLeft />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.contentStructureScore}%</SummaryValue>
+              <SummaryLabel>Content Structure Score</SummaryLabel>
+            </SummaryCard>
+          )}
+
+          {/* Mobile Accessibility Summary Cards */}
+          {results.summary.mobileAccessibilityScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.mobileAccessibilityScore >= 80 ? "#10b981" : results.summary.mobileAccessibilityScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaMobile />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.mobileAccessibilityScore}%</SummaryValue>
+              <SummaryLabel>Mobile Accessibility Score</SummaryLabel>
+            </SummaryCard>
+          )}
+
+          {results.summary.hasViewportMeta !== undefined && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.hasViewportMeta ? "#10b981" : "#ef4444"}>
+                <FaMobile />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.hasViewportMeta ? 'Yes' : 'No'}</SummaryValue>
+              <SummaryLabel>Mobile Viewport</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.keyboardScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.keyboardScore >= 80 ? "#10b981" : results.summary.keyboardScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaLink />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.keyboardScore}%</SummaryValue>
+              <SummaryLabel>{t('results.summary.keyboardScore')}</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.ariaScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.ariaScore >= 80 ? "#10b981" : results.summary.ariaScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaInfoCircle />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.ariaScore}%</SummaryValue>
+              <SummaryLabel>ARIA Compliance</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.formScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.formScore >= 80 ? "#10b981" : results.summary.formScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaWpforms />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.formScore}%</SummaryValue>
+              <SummaryLabel>Form Accessibility</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.formErrorHandlingScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.formErrorHandlingScore >= 80 ? "#10b981" : results.summary.formErrorHandlingScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaExclamationTriangle />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.formErrorHandlingScore}%</SummaryValue>
+              <SummaryLabel>Error Handling</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.languageScore !== null && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.languageScore >= 80 ? "#10b981" : results.summary.languageScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaLanguage />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.languageScore}%</SummaryValue>
+              <SummaryLabel>Language Declaration</SummaryLabel>
+            </SummaryCard>
+          )}
+          
+          {results.summary.tableScore !== null && results.summary.totalTables > 0 && (
+            <SummaryCard>
+              <SummaryIcon color={results.summary.tableScore >= 80 ? "#10b981" : results.summary.tableScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                <FaWpforms />
+              </SummaryIcon>
+              <SummaryValue>{results.summary.tableScore}%</SummaryValue>
+              <SummaryLabel>Table Accessibility</SummaryLabel>
+            </SummaryCard>
+          )}
         </SummaryGrid>
       </SummarySection>
 
@@ -781,6 +984,248 @@ const ResultsPage = () => {
 
       {results.reportType === 'detailed' ? (
         <>
+          {/* Enhanced Analysis Sections for detailed reports */}
+          {results.forms?.errorHandling && (
+            <Section>
+              <SectionTitle>Form Error Handling Analysis</SectionTitle>
+              <SummaryGrid>
+                <SummaryCard>
+                  <SummaryIcon color="#6b7280">
+                    <FaExclamationTriangle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.forms.errorHandling.errorElementsFound || 0}</SummaryValue>
+                  <SummaryLabel>Error Elements Found</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.forms.errorHandling.errorIdentification?.controlsWithProperErrorAssociation > 0 ? "#10b981" : "#ef4444"}>
+                    <FaCheckCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.forms.errorHandling.errorIdentification?.controlsWithProperErrorAssociation || 0}</SummaryValue>
+                  <SummaryLabel>Proper Error Association</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color="#6b7280">
+                    <FaInfoCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.forms.errorHandling.labelsAndInstructions?.controlsWithInstructions || 0}</SummaryValue>
+                  <SummaryLabel>Controls With Instructions</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.forms.errorHandling.overallScore >= 80 ? "#10b981" : results.forms.errorHandling.overallScore >= 60 ? "#f59e0b" : "#ef4444"}>
+                    <FaStar />
+                  </SummaryIcon>
+                  <SummaryValue>{results.forms.errorHandling.overallScore || 0}%</SummaryValue>
+                  <SummaryLabel>Error Handling Score</SummaryLabel>
+                </SummaryCard>
+              </SummaryGrid>
+            </Section>
+          )}
+
+          {results.customChecks?.formAnalysis && results.customChecks.formAnalysis.totalForms > 0 && (
+            <Section>
+              <SectionTitle>Form Accessibility Analysis</SectionTitle>
+              <SummaryGrid>
+                <SummaryCard>
+                  <SummaryIcon color="#6b7280">
+                    <FaWpforms />
+                  </SummaryIcon>
+                  <SummaryValue>{results.customChecks.formAnalysis.totalForms}</SummaryValue>
+                  <SummaryLabel>Total Forms</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.customChecks.formAnalysis.inputAnalysis?.withoutLabels > 0 ? "#ef4444" : "#10b981"}>
+                    <FaExclamationTriangle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.customChecks.formAnalysis.inputAnalysis?.withoutLabels || 0}</SummaryValue>
+                  <SummaryLabel>Unlabeled Inputs</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.customChecks.formAnalysis.buttonAnalysis?.withoutText > 0 ? "#ef4444" : "#10b981"}>
+                    <FaExclamationTriangle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.customChecks.formAnalysis.buttonAnalysis?.withoutText || 0}</SummaryValue>
+                  <SummaryLabel>Unlabeled Buttons</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color="#6b7280">
+                    <FaInfoCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.customChecks.formAnalysis.inputAnalysis?.required || 0}</SummaryValue>
+                  <SummaryLabel>Required Fields</SummaryLabel>
+                </SummaryCard>
+              </SummaryGrid>
+            </Section>
+          )}
+
+          {results.structure?.languageValidation && (
+            <Section>
+              <SectionTitle>Language Declaration Analysis</SectionTitle>
+              <SummaryGrid>
+                <SummaryCard>
+                  <SummaryIcon color={results.structure.languageValidation.hasLangAttribute ? "#10b981" : "#ef4444"}>
+                    <FaLanguage />
+                  </SummaryIcon>
+                  <SummaryValue>{results.structure.languageValidation.hasLangAttribute ? "✓" : "✗"}</SummaryValue>
+                  <SummaryLabel>Lang Attribute Present</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.structure.languageValidation.isValidLangCode ? "#10b981" : "#ef4444"}>
+                    <FaCheckCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.structure.languageValidation.isValidLangCode ? "Valid" : "Invalid"}</SummaryValue>
+                  <SummaryLabel>Language Code</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color="#6b7280">
+                    <FaInfoCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.structure.languageValidation.langValue || "None"}</SummaryValue>
+                  <SummaryLabel>Current Value</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.structure.languageValidation.issues?.length > 0 ? "#ef4444" : "#10b981"}>
+                    <FaExclamationTriangle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.structure.languageValidation.issues?.length || 0}</SummaryValue>
+                  <SummaryLabel>Language Issues</SummaryLabel>
+                </SummaryCard>
+              </SummaryGrid>
+            </Section>
+          )}
+
+          {results.customChecks?.ariaAnalysis && (
+            <Section>
+              <SectionTitle>ARIA Implementation Analysis</SectionTitle>
+              <SummaryGrid>
+                <SummaryCard>
+                  <SummaryIcon color="#6b7280">
+                    <FaInfoCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.customChecks.ariaAnalysis.elementsWithAriaLabel || 0}</SummaryValue>
+                  <SummaryLabel>ARIA Labeled Elements</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.customChecks.ariaAnalysis.landmarkIssues?.length > 0 ? "#ef4444" : "#10b981"}>
+                    <FaExclamationTriangle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.customChecks.ariaAnalysis.landmarkIssues?.length || 0}</SummaryValue>
+                  <SummaryLabel>Landmark Issues</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color="#6b7280">
+                    <FaInfoCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.customChecks.ariaAnalysis.liveRegions || 0}</SummaryValue>
+                  <SummaryLabel>Live Regions</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.customChecks.ariaAnalysis.invalidFields > 0 ? "#ef4444" : "#10b981"}>
+                    <FaExclamationTriangle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.customChecks.ariaAnalysis.invalidFields || 0}</SummaryValue>
+                  <SummaryLabel>Invalid Fields</SummaryLabel>
+                </SummaryCard>
+              </SummaryGrid>
+            </Section>
+          )}
+
+          {results.customChecks?.tableAnalysis && results.customChecks.tableAnalysis.total > 0 && (
+            <Section>
+              <SectionTitle>Table Accessibility Analysis</SectionTitle>
+              <SummaryGrid>
+                <SummaryCard>
+                  <SummaryIcon color="#6b7280">
+                    <FaWpforms />
+                  </SummaryIcon>
+                  <SummaryValue>{results.customChecks.tableAnalysis.total}</SummaryValue>
+                  <SummaryLabel>Total Tables</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.customChecks.tableAnalysis.withCaptions === results.customChecks.tableAnalysis.total ? "#10b981" : "#ef4444"}>
+                    <FaCheckCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.customChecks.tableAnalysis.withCaptions}</SummaryValue>
+                  <SummaryLabel>With Captions</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.customChecks.tableAnalysis.withHeaders === results.customChecks.tableAnalysis.total ? "#10b981" : "#ef4444"}>
+                    <FaCheckCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.customChecks.tableAnalysis.withHeaders}</SummaryValue>
+                  <SummaryLabel>With Headers</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.customChecks.tableAnalysis.issues?.length > 0 ? "#ef4444" : "#10b981"}>
+                    <FaExclamationTriangle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.customChecks.tableAnalysis.issues?.length || 0}</SummaryValue>
+                  <SummaryLabel>Table Issues</SummaryLabel>
+                </SummaryCard>
+              </SummaryGrid>
+            </Section>
+          )}
+
+          {results.keyboardAnalysis && (
+            <Section>
+              <SectionTitle>Keyboard Accessibility Analysis</SectionTitle>
+              <SummaryGrid>
+                <SummaryCard>
+                  <SummaryIcon color="#6b7280">
+                    <FaLink />
+                  </SummaryIcon>
+                  <SummaryValue>{results.keyboardAnalysis.focusableElements?.length || 0}</SummaryValue>
+                  <SummaryLabel>Focusable Elements</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.keyboardAnalysis.skipLinks?.length > 0 ? "#10b981" : "#ef4444"}>
+                    <FaCheckCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.keyboardAnalysis.skipLinks?.length || 0}</SummaryValue>
+                  <SummaryLabel>Skip Links</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.keyboardAnalysis.focusTraps?.length > 0 ? "#ef4444" : "#10b981"}>
+                    <FaExclamationTriangle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.keyboardAnalysis.focusTraps?.length || 0}</SummaryValue>
+                  <SummaryLabel>Focus Traps</SummaryLabel>
+                </SummaryCard>
+                <SummaryCard>
+                  <SummaryIcon color={results.keyboardAnalysis.focusManagement?.hasLogicalTabOrder ? "#10b981" : "#ef4444"}>
+                    <FaCheckCircle />
+                  </SummaryIcon>
+                  <SummaryValue>{results.keyboardAnalysis.focusManagement?.hasLogicalTabOrder ? 'Yes' : 'No'}</SummaryValue>
+                  <SummaryLabel>Logical Tab Order</SummaryLabel>
+                </SummaryCard>
+              </SummaryGrid>
+            </Section>
+          )}
+
+          {/* Navigation Analysis */}
+          {results.navigation && (
+            <NavigationResults navigationData={results.navigation} />
+          )}
+
+          {/* Touch Target Analysis */}
+          {results.touchTargets && (
+            <TouchTargetResults touchTargetData={results.touchTargets} />
+          )}
+
+          {/* Keyboard Shortcut Analysis */}
+          {results.keyboardShortcuts && (
+            <KeyboardShortcutResults keyboardShortcutData={results.keyboardShortcuts} />
+          )}
+
+          {/* Content Structure Analysis */}
+          {results.contentStructure && (
+            <ContentStructureResults contentStructureData={results.contentStructure} />
+          )}
+
+          {/* Mobile Accessibility Analysis */}
+          {results.mobileAccessibility && (
+            <MobileAccessibilityResults mobileAccessibilityData={results.mobileAccessibility} />
+          )}
+
           {/* Color Contrast Analysis for detailed reports */}
           {results.colorContrastAnalysis && results.colorContrastAnalysis.totalViolations > 0 && (
             <Section>

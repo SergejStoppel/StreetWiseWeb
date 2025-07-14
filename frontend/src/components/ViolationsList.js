@@ -129,7 +129,7 @@ const ExpandIcon = styled.div`
   font-size: var(--font-size-base);
   color: var(--color-text-secondary);
   transition: transform var(--transition-fast);
-  transform: ${props => props.expanded ? 'rotate(180deg)' : 'rotate(0deg)'};
+  transform: ${props => props.$expanded ? 'rotate(180deg)' : 'rotate(0deg)'};
 `;
 
 const ViolationDetails = styled.div`
@@ -282,7 +282,7 @@ const ViolationsList = ({ violations }) => {
                   </ViolationMeta>
                 </div>
               </ViolationHeaderLeft>
-              <ExpandIcon expanded={isExpanded}>
+              <ExpandIcon $expanded={isExpanded}>
                 <FaChevronDown />
               </ExpandIcon>
             </ViolationHeader>
