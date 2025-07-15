@@ -30,6 +30,8 @@ import ContentStructureResults from '../components/ContentStructureResults';
 import MobileAccessibilityResults from '../components/MobileAccessibilityResults';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { accessibilityAPI } from '../services/api';
+import IssueTable from '../components/reports/DetailedReport/IssueTable/IssueTable';
+import { AccessibilityIssue } from '../models/AccessibilityIssue';
 
 const ResultsContainer = styled.div`
   max-width: var(--container-max-width);
@@ -1190,6 +1192,7 @@ const ResultsPage = () => {
   const [loading, setLoading] = useState(true);
   const [upgradingToDetailed, setUpgradingToDetailed] = useState(false);
   const [downloadingPDF, setDownloadingPDF] = useState(false);
+  const [expandedIssues, setExpandedIssues] = useState([]);
   const navigate = useNavigate();
   const { i18n, t } = useTranslation('dashboard');
   
@@ -1297,6 +1300,63 @@ const ResultsPage = () => {
       </ResultsContainer>
     );
   }
+
+  // Helper functions for converting violations to AccessibilityIssue format
+  const convertViolationsToIssues = (violations) => {
+    if (!violations || !Array.isArray(violations)) return [];
+    
+    return violations.map((violation, index) => {
+      return new AccessibilityIssue({
+        id: `violation-${index}`,
+        title: violation.help || violation.description || 'Unknown Issue',
+        description: violation.description || '',
+        severity: mapSeverityToIssueLevel(violation.impact),
+        category: getIssueCategory(violation.id),
+        wcagCriteria: violation.tags
+          ?.filter(tag => tag.startsWith('wcag'))
+          ?.map(tag => tag.replace('wcag', '').replace(/(\d)(\d)/g, '$1.$2'))
+          ?.slice(0, 3) || [],
+        elements: violation.nodes?.map(node => ({
+          selector: node.target?.join(', ') || '',
+          html: node.html || '',
+          failureSummary: node.failureSummary || ''
+        })) || [],
+        remediation: {
+          summary: violation.help || 'Fix this accessibility issue',
+          steps: violation.nodes?.[0]?.all?.map(check => check.message) || [],
+          resources: [violation.helpUrl].filter(Boolean)
+        }
+      });
+    });
+  };
+
+  const mapSeverityToIssueLevel = (impact) => {
+    switch (impact) {
+      case 'critical': return 'critical';
+      case 'serious': return 'serious';
+      case 'moderate': return 'moderate';
+      case 'minor': return 'minor';
+      default: return 'moderate';
+    }
+  };
+
+  const getIssueCategory = (violationId) => {
+    if (violationId.includes('color') || violationId.includes('contrast')) return 'color-contrast';
+    if (violationId.includes('image') || violationId.includes('alt')) return 'images';
+    if (violationId.includes('form') || violationId.includes('label')) return 'forms';
+    if (violationId.includes('keyboard') || violationId.includes('focus')) return 'keyboard';
+    if (violationId.includes('heading') || violationId.includes('structure')) return 'structure';
+    if (violationId.includes('aria')) return 'aria';
+    return 'other';
+  };
+
+  const handleIssueToggle = (issueId) => {
+    setExpandedIssues(prev => 
+      prev.includes(issueId) 
+        ? prev.filter(id => id !== issueId)
+        : [...prev, issueId]
+    );
+  };
 
   return (
     <ResultsContainer>
@@ -1704,10 +1764,14 @@ const ResultsPage = () => {
           )}
           
           {/* Full violations list */}
-          {results.axeResults && (
+          {results.axeResults && results.axeResults.violations && results.axeResults.violations.length > 0 && (
             <Section>
               <SectionTitle>{t('results.sections.accessibilityViolations')}</SectionTitle>
-              <ViolationsList violations={results.axeResults.violations} />
+              <IssueTable
+                issues={convertViolationsToIssues(results.axeResults.violations)}
+                onIssueToggle={handleIssueToggle}
+                expandedIssues={expandedIssues}
+              />
             </Section>
           )}
         </>

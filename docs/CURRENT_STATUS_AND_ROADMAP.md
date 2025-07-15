@@ -1,181 +1,210 @@
 # SiteCraft Accessibility Analyzer - Current Status & Roadmap
 
-## 🎯 **Current Status: 75/80 checks completed (93.75%)**
+## 🎯 **Current Status: Sprint 2 Completed + Major Pivot to AI-Enhanced Reports**
 
 ### **Recently Completed Features:**
-1. **Language Attribute Validation** ✅
-   - WCAG 3.1.1 compliance
-   - ISO 639-1 language code validation
-   - Error detection and remediation guidance
+1. **Sprint 2: Enhanced Report Structure** ✅
+   - Modular tabular issue display system
+   - Sortable/filterable issue table with pagination
+   - Expandable row details with progressive disclosure
+   - Comprehensive WCAG 2.1 criteria mapping
+   - AccessibilityIssue and WcagCriteria data models
 
-2. **Form Error Handling** ✅
-   - WCAG 3.3.1 (Error Identification)
-   - WCAG 3.3.2 (Labels & Instructions)
-   - WCAG 3.3.3 (Error Suggestion)
-   - WCAG 3.3.4 (Error Prevention)
+2. **Frontend Architecture Improvements** ✅
+   - IssueTable component with advanced sorting/filtering
+   - IssueRow component with expandable details
+   - IssueFilters component for multi-faceted filtering
+   - TablePagination component for large datasets
+   - Integration with ResultsPage for detailed reports
 
-3. **Navigation Consistency** ✅
-   - WCAG 2.4.1 (Skip Navigation)
-   - WCAG 2.4.3 (Focus Order)
-   - WCAG 2.4.6 (Navigation Labels)
-   - WCAG 2.4.8 (Location Context)
-   - WCAG 3.2.3 (Consistent Navigation)
+3. **Data Model Enhancements** ✅
+   - AccessibilityIssue class with computed properties
+   - WcagCriteria database with full WCAG 2.1 mapping
+   - Helper functions for violation-to-issue conversion
+   - Enhanced issue categorization and severity mapping
 
-4. **Touch Target Validation** ✅
-   - WCAG 2.5.5 (Target Size)
-   - 44x44px minimum target size validation
-   - Overlapping target detection
-   - Target spacing analysis
-   - Mobile accessibility compliance
+### **Business Model Pivot:**
+- **Free Overview Report**: Basic axe-core analysis with limited insights
+- **Paid Detailed Report**: AI-enhanced analysis with personalized recommendations
+- **User Authentication**: Login-based report access (no PDF downloads)
+- **Cost Optimization**: Pay-per-use model for AI insights only
 
-### **Core Analyzer Status:**
-- ✅ **StructureAnalyzer** - Complete with language validation
-- ✅ **AriaAnalyzer** - Complete
-- ✅ **FormAnalyzer** - Complete with error handling
-- ✅ **TableAnalyzer** - Complete
-- ✅ **KeyboardAnalyzer** - Complete
-- ✅ **TextReadabilityAnalyzer** - Complete
-- ✅ **EnhancedImageAnalyzer** - Complete
-- ✅ **FocusManagementAnalyzer** - Complete
-- ✅ **NavigationAnalyzer** - Complete with navigation consistency checks
-- ✅ **TouchTargetAnalyzer** - Complete with touch target size validation
-- ✅ **colorContrastAnalyzer** - Complete
+## 🚀 **New Strategic Direction: AI-Enhanced Accessibility Reports**
 
-## 📋 **Remaining Missing Features (5 items)**
+### **Phase 1: Report Structure Overhaul (Current Priority)**
+**Goal:** Transform detailed reports into professional, organized, actionable insights
+**Timeline:** 4 weeks
 
-### **High Priority for MVP:**
-1. **Keyboard Shortcuts** (1 item)
-   - Shortcut key conflict detection
+**Features in Development:**
+1. **Tabbed Interface Design**
+   - Critical Issues tab (high-impact accessibility barriers)
+   - Passed Audits tab (successful compliance areas)
+   - SEO Concerns tab (search engine optimization issues)
+   - Performance tab (site speed and Core Web Vitals)
 
-### **Medium Priority:**
-2. **Content Structure** (2 items)
-   - Adequate white space analysis
-   - Content chunk size validation
+2. **Enhanced Visual Design**
+   - Website screenshots (desktop & mobile views)
+   - Professional report header with compliance scoring
+   - Issue categorization with collapsible cards
+   - Exact location mapping for each issue
 
-3. **Mobile Accessibility** (2 items)
-   - Mobile-friendly navigation patterns
-   - Touch device form compatibility
+3. **AI-Powered Customization**
+   - Website type detection (e-commerce, blog, SaaS, etc.)
+   - Industry-specific recommendations
+   - Personalized fix instructions with code examples
+   - Business impact analysis for each issue
 
-### **Excluded from MVP (Not Critical):**
-- **Multimedia** (8 items) - Video/audio accessibility
-- **Animation** (4 items) - Motion controls
-- **Performance** (4 items) - Load time/Core Web Vitals
-- **Document** (4 items) - PDF accessibility
-- **Error Prevention** (4 items) - Undo/timeout features
+4. **SEO Integration**
+   - Meta tag analysis and optimization
+   - Content structure recommendations
+   - Technical SEO issue detection
+   - Open Graph and social media optimization
 
-## 🚀 **Next Development Phase Options**
+### **Core Technical Components:**
+- ✅ **AccessibilityIssue Model** - Complete data structure
+- ✅ **WcagCriteria Database** - Complete WCAG 2.1 mapping
+- ✅ **IssueTable System** - Advanced sorting/filtering
+- 🔄 **Screenshot Service** - In planning
+- 🔄 **SEO Analyzer** - In planning
+- 🔄 **AI Analysis Service** - In planning
 
-### **Option A: Complete Core Accessibility (Recommended)**
-**Goal:** Reach 100% core accessibility compliance
-**Time:** 2-3 days
-**Features:**
-1. Navigation consistency checks
-2. Touch target validation
-3. Keyboard shortcut detection
-4. Content structure analysis
-5. Mobile accessibility basics
+## 📋 **Implementation Roadmap**
 
-**Impact:** 
-- 100% core WCAG 2.1 AA compliance
-- Complete feature set vs. competitors
-- Professional-grade accessibility scanner
+### **Phase 1: Infrastructure & Models (Week 1)**
+**Status:** 🔄 In Progress
+- [ ] Enhanced data models (AnalysisReport, SeoAnalysis, PerformanceAnalysis)
+- [ ] Screenshot service implementation
+- [ ] SEO analyzer foundation
+- [ ] AI analysis service setup
 
-### **Option B: Multi-Page Analysis (Game Changer)**
-**Goal:** Analyze entire websites, not just single pages
-**Time:** 1-2 weeks
-**Features:**
-1. Site crawler (up to 50 pages)
-2. Cross-page consistency analysis
-3. Site-wide accessibility metrics
-4. Navigation pattern analysis
-5. Comprehensive site reports
+### **Phase 2: Frontend Report Components (Week 2)**
+**Status:** ⏳ Pending
+- [ ] Tabbed report layout structure
+- [ ] Report header with screenshot display
+- [ ] Issue category cards with grouping
+- [ ] Translation support for all new components
 
-**Impact:**
-- Major competitive differentiator
-- 10x more valuable than single-page tools
-- Premium pricing justification
+### **Phase 3: Backend Integration (Week 3)**
+**Status:** ⏳ Pending
+- [ ] SEO analyzer completion
+- [ ] AI insights generation
+- [ ] API endpoints update
+- [ ] Report storage system (no PDF)
 
-### **Option C: Enterprise Features**
-**Goal:** B2B market readiness
-**Time:** 2-3 weeks
-**Features:**
-1. VPAT/ACR report generation
-2. API access for CI/CD integration
-3. White-label reports
-4. Team collaboration features
-5. Monitoring & alerts
+### **Phase 4: Testing & Optimization (Week 4)**
+**Status:** ⏳ Pending
+- [ ] Multi-language testing
+- [ ] Performance optimization
+- [ ] User acceptance testing
+- [ ] Production deployment
 
-**Impact:**
-- $500-2000/month pricing tier
-- Enterprise customer acquisition
-- Recurring revenue model
+### **Future Phases (Post-MVP):**
+**Phase 5: Multi-Page Analysis**
+- Site crawler for comprehensive analysis
+- Cross-page consistency checking
+- Site-wide accessibility metrics
 
-## 💡 **Recommended Path Forward**
-
-### **Phase 1: Complete Core Features (Week 1-2)**
-- Implement remaining 8 core accessibility checks
-- Achieve 100% WCAG 2.1 AA compliance
-- Polish existing features and UI
-
-### **Phase 2: Multi-Page Analysis (Week 3-4)**
-- Implement site crawler
-- Cross-page consistency analysis
-- Enhanced reporting for multiple pages
-
-### **Phase 3: Enterprise Features (Month 2)**
-- VPAT generation
-- API development
-- Monitoring capabilities
+**Phase 6: Enterprise Features**
+- VPAT/ACR report generation
+- API access for CI/CD integration
+- Team collaboration tools
 
 ## 🎪 **Current Competitive Advantage**
 
 **vs. Free Tools (WAVE, axe DevTools):**
-- ✅ Comprehensive analysis (9 specialized analyzers)
-- ✅ Detailed remediation guidance
-- ✅ Professional PDF reports
+- ✅ Professional tabulated report structure
+- ✅ Comprehensive WCAG 2.1 criteria mapping
+- ✅ Advanced sorting/filtering capabilities
 - ✅ Multi-language support
-- ✅ Business-focused recommendations
+- 🔄 AI-powered personalized recommendations (in development)
+- 🔄 SEO integration (in development)
+- 🔄 Website screenshots (in development)
 
 **vs. Paid Tools (Deque, Level Access):**
-- ✅ AI-powered analysis
-- ✅ Real-time results
-- ✅ Cost-effective pricing
+- ✅ Cost-effective pricing model
+- ✅ Real-time web-based results
+- ✅ Modern React-based interface
+- 🔄 AI-powered custom insights (in development)
+- 🔄 Industry-specific recommendations (in development)
 - ❌ Missing: Multi-page analysis
 - ❌ Missing: Enterprise features
 
+## 🔄 **Key Differentiators in Development**
+
+1. **AI-Powered Customization**
+   - Website type detection and tailored recommendations
+   - Industry-specific compliance guidance
+   - Personalized code examples and fix instructions
+
+2. **Comprehensive SEO Integration**
+   - Combined accessibility and SEO analysis
+   - Meta tag optimization recommendations
+   - Content structure analysis
+
+3. **Professional Report Design**
+   - Desktop and mobile website screenshots
+   - Organized tabbed interface
+   - Collapsible issue categories with exact locations
+
+4. **Cost-Effective Business Model**
+   - Free overview reports for lead generation
+   - Paid detailed reports with AI insights
+   - No subscription required, pay-per-report model
+
 ## 📊 **Technical Debt & Optimizations**
 
-### **Clean Up Needed:**
-1. **Unit Test Coverage** - Add tests for all new features
-2. **Error Handling** - Improve graceful degradation
-3. **Performance** - Optimize analysis speed
-4. **Documentation** - Update API docs
+### **Current Sprint Priorities:**
+1. **Data Model Consistency** - Ensure all models follow new structure
+2. **Translation Coverage** - Complete i18n for all new components
+3. **Performance** - Optimize large report rendering
+4. **Screenshot Integration** - Implement efficient image handling
 
 ### **Frontend Enhancements:**
-1. **Loading States** - Better progress indicators
-2. **Responsive Design** - Mobile-first approach
-3. **Accessibility** - Make our own tool accessible
-4. **User Experience** - Streamline workflows
+1. **Loading States** - Better progress indicators for AI analysis
+2. **Responsive Design** - Mobile-optimized tabbed interface
+3. **Accessibility** - Make our own tool fully accessible
+4. **User Experience** - Streamline report navigation
 
 ## 🎯 **Success Metrics**
 
 ### **Technical Metrics:**
-- 100% core WCAG 2.1 AA compliance
-- <5 second analysis time
-- 99.9% uptime
-- Zero critical bugs
+- <3 second report generation time
+- 99.9% uptime for analysis service
+- Zero critical bugs in production
+- 100% translation coverage
 
 ### **Business Metrics:**
-- 10% free-to-paid conversion
-- $10k MRR within 3 months
-- 100+ active paid users
-- 4.5+ star average rating
+- 15% free-to-paid conversion rate
+- $15k MRR within 6 months
+- 200+ active paid users
+- 4.8+ star average rating
 
-## 📅 **Timeline Summary**
+## 📅 **Updated Timeline Summary**
 
-**Week 1-2:** Complete core accessibility features (100% compliance)
-**Week 3-4:** Multi-page analysis (competitive advantage)
-**Month 2:** Enterprise features (premium pricing)
-**Month 3:** Scale & optimize (growth focus)
+**Week 1:** Infrastructure & Data Models (Screenshot service, SEO analyzer foundation)
+**Week 2:** Frontend Report Components (Tabbed interface, visual enhancements)
+**Week 3:** Backend Integration (AI insights, API updates)
+**Week 4:** Testing & Optimization (Multi-language, performance tuning)
 
-**Ready for next phase implementation!** 🚀
+**Month 2:** Advanced Features (Multi-page analysis, enterprise tools)
+**Month 3:** Scale & Growth (Marketing, customer acquisition)
+
+---
+
+## 📋 **Migration Notes**
+
+### **Regarding sprint2-architecture.md:**
+The `docs/sprint2-architecture.md` file is now **outdated** and should be **archived or removed** because:
+
+1. **Scope Changed**: Original Sprint 2 was about tabular displays, but we've expanded to full report restructuring
+2. **PDF Removal**: The architecture assumed PDF generation, which we've eliminated
+3. **AI Integration**: The original plan didn't include AI-powered insights
+4. **SEO Addition**: The new plan includes SEO analysis not covered in Sprint 2
+
+### **Replaced By:**
+- `docs/detailed-report-enhancement-plan.md` - Complete new architecture
+- This updated roadmap document
+
+**Recommendation:** Archive `sprint2-architecture.md` to `docs/archive/` folder.
+
+**Ready for Phase 1 implementation!** 🚀
