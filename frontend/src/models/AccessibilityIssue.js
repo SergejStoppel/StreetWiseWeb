@@ -16,6 +16,13 @@ export class AccessibilityIssue {
     this.remediation = data.remediation || {};
     this.metadata = data.metadata || {};
     this.timestamp = data.timestamp || new Date().toISOString();
+    
+    // Enhanced properties
+    this.userBenefit = data.userBenefit || '';
+    this.estimatedFixTime = data.estimatedFixTime || 30; // minutes
+    this.businessImpact = data.businessImpact || 'medium';
+    this.testingInstructions = data.testingInstructions || '';
+    this.relatedIssues = data.relatedIssues || [];
   }
 
   generateId() {
@@ -117,7 +124,12 @@ export class AccessibilityIssue {
       codeExamples: this.codeExamples,
       remediation: this.remediation,
       metadata: this.metadata,
-      timestamp: this.timestamp
+      timestamp: this.timestamp,
+      userBenefit: this.userBenefit,
+      estimatedFixTime: this.estimatedFixTime,
+      businessImpact: this.businessImpact,
+      testingInstructions: this.testingInstructions,
+      relatedIssues: this.relatedIssues
     };
   }
 

@@ -21,7 +21,6 @@ import {
   FaArrowRight
 } from 'react-icons/fa';
 import ScoreCard from '../components/ScoreCard';
-import ViolationsList from '../components/ViolationsList';
 import RecommendationsList from '../components/RecommendationsList';
 import NavigationResults from '../components/NavigationResults';
 import TouchTargetResults from '../components/TouchTargetResults';

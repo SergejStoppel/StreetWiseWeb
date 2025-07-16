@@ -2,13 +2,30 @@ const express = require('express');
 const { body, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
 const AccessibilityAnalyzer = require('../services/accessibilityAnalyzer');
-const pdfGenerator = require('../services/pdfGenerator');
+const SeoAnalyzer = require('../services/analysis/SeoAnalyzer');
+const AiAnalysisService = require('../services/analysis/AiAnalysisService');
+const screenshotService = require('../services/ScreenshotService');
+// const pdfGenerator = require('../services/pdfGenerator'); // Removed - PDF functionality disabled
 const logger = require('../utils/logger');
 
-// Create analyzer instance
+// Create analyzer instances
 const accessibilityAnalyzer = new AccessibilityAnalyzer();
+const seoAnalyzer = new SeoAnalyzer();
+const aiAnalysisService = new AiAnalysisService();
 
 const router = express.Router();
+
+// Debug logging for route loading
+logger.info('Accessibility routes module loaded');
+
+// Add middleware to log all requests to this router
+router.use((req, res, next) => {
+  logger.info(`=== ACCESSIBILITY ROUTER REQUEST: ${req.method} ${req.path} ===`);
+  logger.info('Full URL:', req.originalUrl);
+  logger.info('Headers:', req.headers);
+  logger.info('Body:', req.body);
+  next();
+});
 
 // Rate limiting for analysis endpoint
 const analysisLimiter = rateLimit({
@@ -19,7 +36,18 @@ const analysisLimiter = rateLimit({
     retryAfter: 15 * 60 * 1000
   },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  handler: (req, res) => {
+    logger.warn('Rate limit exceeded for analysis endpoint', {
+      ip: req.ip,
+      path: req.path,
+      method: req.method
+    });
+    res.status(429).json({
+      error: 'Too many analysis requests, please try again later.',
+      retryAfter: 15 * 60 * 1000
+    });
+  }
 });
 
 // Validation middleware
@@ -44,16 +72,26 @@ const validateAnalysisRequest = [
 
 // POST /api/accessibility/analyze
 router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, res) => {
+  logger.info('=== ANALYZE ENDPOINT CALLED ===');
+  logger.info('Request received at analyze endpoint:', {
+    method: req.method,
+    url: req.url,
+    path: req.path,
+    body: req.body
+  });
   try {
+    logger.info('Step 1: Checking validation errors');
     // Check for validation errors
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      logger.error('Validation failed:', errors.array());
       return res.status(400).json({
         error: 'Validation failed',
         details: errors.array()
       });
     }
 
+    logger.info('Step 2: Extracting request data');
     const { url, reportType = 'overview', language = 'en' } = req.body;
     const clientIp = req.ip || req.connection.remoteAddress;
     
@@ -63,20 +101,171 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
       userAgent: req.get('User-Agent') 
     });
 
-    // Start analysis
+    logger.info('Step 3: Starting comprehensive analysis');
+    // Start comprehensive analysis
     const startTime = Date.now();
     
     try {
-      const report = await accessibilityAnalyzer.analyzeWebsite(url, reportType, language);
+      logger.info('Starting comprehensive analysis with Phase 1 services', { url });
+      
+      logger.info('Step 4: Initializing Phase 1 services data');
+      // Initialize Phase 1 services data
+      let screenshotData = null;
+      let seoData = null;
+      let aiData = null;
+      let accessibilityReport = null;
+      
+      logger.info('Step 5: About to run Phase 1 services');
+      // Run Phase 1 services with proper error handling
+      try {
+        logger.info('Running Phase 1 services', { url });
+        
+        // Check if Chrome is available before launching browser-dependent services
+        const puppeteer = require('puppeteer');
+        const BrowserConfig = require('../utils/browserConfig');
+        const browserConfig = new BrowserConfig();
+        
+        let browserAvailable = false;
+        
+        try {
+          logger.info('Testing browser availability with cross-platform configuration', {
+            platform: browserConfig.platform,
+            isWSL: browserConfig.isWSL,
+            isDocker: browserConfig.isDocker,
+            chromeExecutablePath: browserConfig.chromeExecutablePath
+          });
+          
+          logger.info('About to call testBrowserLaunch...');
+          browserAvailable = await browserConfig.testBrowserLaunch();
+          logger.info('testBrowserLaunch returned:', browserAvailable);
+          
+          if (browserAvailable) {
+            logger.info('Browser test successful, proceeding with Phase 1 services');
+          } else {
+            logger.warn('Browser test failed, will throw error');
+          }
+        } catch (err) {
+          logger.warn('Browser availability test failed:', err.message);
+          logger.warn('Browser availability test stack:', err.stack);
+          browserAvailable = false;
+        }
+        
+        // Try to run accessibility analysis first
+        try {
+          if (browserAvailable) {
+            logger.info('Running accessibility analysis with browser');
+            accessibilityReport = await accessibilityAnalyzer.analyzeWebsite(url, reportType, language);
+          } else {
+            logger.error('Browser not available, cannot perform accessibility analysis');
+            throw new Error('Browser dependencies not available. Please ensure Chrome/Chromium is properly installed.');
+          }
+        } catch (err) {
+          logger.error('Accessibility analysis failed:', err.message);
+          throw err; // Re-throw the error instead of creating fallback data
+        }
+        
+        if (browserAvailable) {
+          // Run screenshot service (uses its own browser)
+          try {
+            screenshotData = await screenshotService.captureScreenshotsWithRetry(url, {
+              desktopWidth: 1920,
+              desktopHeight: 1080,
+              mobileWidth: 375,
+              mobileHeight: 667,
+              quality: 85
+            });
+          } catch (err) {
+            logger.warn('Screenshot service failed:', err.message);
+          }
+          
+          // Run SEO and AI analysis with separate browser
+          let browser = null;
+          let page = null;
+          
+          try {
+            const launchOptions = browserConfig.getLaunchOptions();
+            browser = await puppeteer.launch(launchOptions);
+            page = await browser.newPage();
+            await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+            
+            // Run SEO analysis
+            try {
+              seoData = await seoAnalyzer.analyze(page, url);
+            } catch (err) {
+              logger.warn('SEO analysis failed:', err.message);
+            }
+            
+            // Run AI analysis
+            try {
+              aiData = await aiAnalysisService.analyze(page, url, {
+                accessibility: accessibilityReport,
+                seo: seoData
+              });
+            } catch (err) {
+              logger.warn('AI analysis failed:', err.message);
+            }
+            
+          } catch (err) {
+            logger.warn('Browser operations failed:', err.message);
+          } finally {
+            if (page) {
+              try { await page.close(); } catch (e) { logger.warn('Page close error:', e.message); }
+            }
+            if (browser) {
+              try { await browser.close(); } catch (e) { logger.warn('Browser close error:', e.message); }
+            }
+          }
+        } else {
+          // No browser available - throw error instead of using fallback data
+          logger.error('Browser not available, cannot perform comprehensive analysis');
+          throw new Error('Browser dependencies not available. Please install Chrome dependencies using setup-chrome-wsl.bat or install-chrome-deps.sh');
+        }
+        
+      } catch (err) {
+        logger.warn('Phase 1 services error:', err.message);
+      }
+      
+      // AI analysis was already run with SEO data above
+      
+      // Create comprehensive report
+      const report = {
+        ...accessibilityReport,
+        screenshot: screenshotData,
+        seo: seoData,
+        aiInsights: aiData,
+        metadata: {
+          ...(accessibilityReport?.metadata || {}),
+          hasScreenshots: !!screenshotData,
+          hasSeoAnalysis: !!seoData,
+          hasAiInsights: !!aiData
+        }
+      };
+      
+      // Update summary with comprehensive data
+      if (report.summary) {
+        report.summary.seoScore = seoData?.score || 0;
+        report.summary.performanceScore = 0; // Placeholder for future performance analysis
+        report.summary.overallScore = Math.round(
+          (report.summary.accessibilityScore * 0.5) + 
+          (report.summary.seoScore * 0.3) + 
+          (report.summary.performanceScore * 0.2)
+        );
+      }
+      
       const analysisTime = Date.now() - startTime;
       
-      logger.info(`Analysis completed successfully`, {
+      logger.info(`Comprehensive analysis completed successfully`, {
         url,
         analysisId: report.analysisId,
-        score: report.scores.overall,
+        accessibilityScore: report.summary.accessibilityScore,
+        seoScore: report.summary.seoScore,
+        overallScore: report.summary.overallScore,
         analysisTime,
         violations: report.summary.totalIssues,
-        reportType
+        reportType,
+        hasScreenshots: report.metadata.hasScreenshots,
+        hasSeoAnalysis: report.metadata.hasSeoAnalysis,
+        hasAiInsights: report.metadata.hasAiInsights
       });
 
       logger.info('Sending response to frontend', {
@@ -105,7 +294,7 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
       });
 
       // Return user-friendly error message
-      let errorMessage = 'Unable to analyze the website. ';
+      let errorMessage = 'DEBUGGING: Unable to analyze the website. ';
       
       if (analysisError.message.includes('net::ERR_NAME_NOT_RESOLVED')) {
         errorMessage += 'The website could not be found. Please check the URL.';
@@ -207,130 +396,22 @@ router.get('/detailed/:analysisId', async (req, res) => {
   }
 });
 
-// GET /api/accessibility/pdf/:analysisId
+// GET /api/accessibility/pdf/:analysisId - DISABLED
 router.get('/pdf/:analysisId', async (req, res) => {
-  try {
-    const { analysisId } = req.params;
-    const { language = 'en' } = req.query; // Accept language parameter
-    
-    if (!analysisId) {
-      return res.status(400).json({
-        error: 'Missing analysis ID',
-        message: 'Please provide a valid analysis ID'
-      });
-    }
-
-    logger.info('PDF download request received', { analysisId, language });
-    console.log('DEBUG: Backend received language parameter:', language);
-
-    // Create cache key that includes language
-    const cacheKey = `${analysisId}_${language}`;
-    const pdfBuffer = accessibilityAnalyzer.getCachedPDF(cacheKey);
-    
-    if (!pdfBuffer) {
-      // Try to get the detailed report and generate PDF on demand
-      const detailedReport = accessibilityAnalyzer.getDetailedReport(analysisId);
-      
-      if (!detailedReport) {
-        return res.status(404).json({
-          error: 'Report not found',
-          message: 'The requested analysis report was not found or has expired'
-        });
-      }
-      
-      logger.info('Generating PDF on demand', { analysisId, language });
-      // Pass language to PDF generator
-      const newPdfBuffer = await pdfGenerator.generateAccessibilityReport(detailedReport, language);
-      accessibilityAnalyzer.pdfCache.set(cacheKey, newPdfBuffer);
-      
-      const filename = `accessibility-report-${analysisId}.pdf`;
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      res.setHeader('Content-Length', newPdfBuffer.length);
-      
-      res.send(newPdfBuffer);
-      
-      logger.info('PDF generated and sent successfully', { analysisId, language, size: newPdfBuffer.length });
-      return;
-    }
-    
-    const filename = `accessibility-report-${analysisId}.pdf`;
-    
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
-    
-    res.send(pdfBuffer);
-    
-    logger.info('Cached PDF sent successfully', { analysisId, language, size: pdfBuffer.length });
-
-  } catch (error) {
-    logger.error('PDF download failed:', { error: error.message, analysisId: req.params.analysisId });
-    res.status(500).json({
-      error: 'PDF download failed',
-      message: 'Unable to download PDF report. Please try again later.'
-    });
-  }
+  logger.info('PDF download request - feature disabled');
+  res.status(501).json({
+    error: 'PDF generation not available',
+    message: 'PDF functionality has been disabled'
+  });
 });
 
-// POST /api/accessibility/generate-pdf (legacy endpoint for backward compatibility)
+// POST /api/accessibility/generate-pdf - DISABLED
 router.post('/generate-pdf', analysisLimiter, async (req, res) => {
-  try {
-    const { analysisId, reportData, language = 'en' } = req.body;
-    
-    if (!analysisId) {
-      return res.status(400).json({
-        error: 'Missing required data',
-        message: 'analysisId is required'
-      });
-    }
-
-    // Try to use cached PDF first (with language-specific cache key)
-    const cacheKey = `${analysisId}_${language}`;
-    const cachedPdf = accessibilityAnalyzer.getCachedPDF(cacheKey);
-    if (cachedPdf) {
-      const filename = `accessibility-report-${analysisId}.pdf`;
-      
-      res.setHeader('Content-Type', 'application/pdf');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      res.setHeader('Content-Length', cachedPdf.length);
-      
-      res.send(cachedPdf);
-      
-      logger.info('Cached PDF sent via legacy endpoint', { analysisId, language, size: cachedPdf.length });
-      return;
-    }
-
-    // Fallback to generating PDF if reportData is provided
-    if (!reportData) {
-      return res.status(400).json({
-        error: 'Missing required data',
-        message: 'reportData is required when PDF is not cached'
-      });
-    }
-
-    logger.info('PDF generation request received (legacy)', { analysisId, language });
-
-    const pdfBuffer = await pdfGenerator.generateAccessibilityReport(reportData, language);
-    
-    const filename = `accessibility-report-${analysisId}.pdf`;
-    
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-    res.setHeader('Content-Length', pdfBuffer.length);
-    
-    res.send(pdfBuffer);
-    
-    logger.info('PDF generated and sent successfully (legacy)', { analysisId, language, size: pdfBuffer.length });
-
-  } catch (error) {
-    logger.error('PDF generation failed (legacy):', { error: error.message });
-    res.status(500).json({
-      error: 'PDF generation failed',
-      message: 'Unable to generate PDF report. Please try again later.'
-    });
-  }
+  logger.info('PDF generation request - feature disabled');
+  res.status(501).json({
+    error: 'PDF generation not available',
+    message: 'PDF functionality has been disabled'
+  });
 });
 
 // GET /api/accessibility/demo

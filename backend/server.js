@@ -51,8 +51,24 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Debug middleware to log all requests
+app.use((req, res, next) => {
+  logger.info(`=== REQUEST: ${req.method} ${req.path} ===`);
+  logger.info(`Request Headers:`, req.headers);
+  logger.info(`Request Body:`, req.body);
+  next();
+});
+
 // Routes
+logger.info('Loading accessibility routes');
 app.use('/api/accessibility', accessibilityRoutes);
+logger.info('Accessibility routes loaded successfully');
+
+// Test route for Phase 1 services (development only)
+if (process.env.NODE_ENV !== 'production') {
+  const testPhase1Routes = require('./routes/test-phase1');
+  app.use('/api/test-phase1', testPhase1Routes);
+}
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -61,7 +77,11 @@ app.get('/api/health', (req, res) => {
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  logger.error('Unhandled error:', err);
+  logger.error('=== UNHANDLED ERROR ===');
+  logger.error('Error:', err);
+  logger.error('Stack:', err.stack);
+  logger.error('Request:', req.method, req.path);
+  logger.error('Body:', req.body);
   res.status(500).json({ 
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'

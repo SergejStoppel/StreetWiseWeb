@@ -1,7 +1,7 @@
 const { AxePuppeteer } = require('@axe-core/puppeteer');
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
-const pdfGenerator = require('./pdfGenerator');
+// const pdfGenerator = require('./pdfGenerator'); // Removed - PDF functionality disabled
 const i18n = require('../utils/i18n');
 const colorContrastAnalyzer = require('./analysis/colorContrastAnalyzer');
 
@@ -909,13 +909,9 @@ class AccessibilityAnalyzer {
         return cachedPDF;
       }
       
-      // Generate new PDF
-      const pdfBuffer = await pdfGenerator.generateAccessibilityReport(analysisData, language);
-      
-      // Cache the PDF
-      this.cacheManager.setPDF(analysisId, pdfBuffer, language);
-      
-      return pdfBuffer;
+      // PDF generation disabled
+      logger.info('PDF generation disabled', { analysisId, language });
+      return null;
     } catch (error) {
       logger.error('PDF generation failed:', error);
       throw error;

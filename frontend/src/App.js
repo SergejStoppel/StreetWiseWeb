@@ -8,6 +8,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import ResultsPage from './pages/ResultsPage';
+import EnhancedResultsPage from './pages/EnhancedResultsPage';
 import ServicesPage from './pages/ServicesPage';
 import AccessibilityServicePage from './pages/AccessibilityServicePage';
 import SeoContentServicePage from './pages/SeoContentServicePage';
@@ -78,7 +79,8 @@ function App() {
           <MainContent>
             <Routes>
               <Route path="/" element={<HomePage />} />
-              <Route path="/results" element={<ResultsPage />} />
+              <Route path="/results" element={<EnhancedResultsPage />} />
+              <Route path="/results-old" element={<ResultsPage />} />
               <Route path="/services" element={<ServicesPage />} />
               <Route path="/services/accessibility" element={<AccessibilityServicePage />} />
               <Route path="/services/seo-content" element={<SeoContentServicePage />} />

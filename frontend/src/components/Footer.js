@@ -38,7 +38,7 @@ const Footer = () => {
     <FooterContainer>
       <FooterContent>
         <FooterText>
-          &copy; 2024 {branding.company.name}. All rights reserved.
+          &copy; 2025 {branding.company.name}. All rights reserved.
         </FooterText>
         <FooterText>
           {branding.company.tagline}

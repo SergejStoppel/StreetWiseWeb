@@ -1,39 +1,29 @@
 const puppeteer = require('puppeteer');
 const logger = require('../../utils/logger');
+const BrowserConfig = require('../../utils/browserConfig');
 
 class BrowserUtils {
   constructor() {
     this.browser = null;
+    this.browserConfig = new BrowserConfig();
   }
 
   async initBrowser() {
     if (!this.browser) {
-      this.browser = await puppeteer.launch({
-        headless: 'new',
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--disable-gpu',
-          '--disable-background-timer-throttling',
-          '--disable-renderer-backgrounding',
-          '--disable-features=VizDisplayCompositor',
-          '--disable-ipc-flooding-protection',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-background-media-strategy',
-          '--disable-web-security',
-          '--window-size=1920,1080'
-        ],
-        defaultViewport: {
-          width: 1920,
-          height: 1080
-        },
-        timeout: 60000,
-        ignoreHTTPSErrors: true,
-        ignoreDefaultArgs: ['--disable-extensions']
-      });
+      try {
+        const launchOptions = this.browserConfig.getLaunchOptions();
+        logger.info('Initializing browser with cross-platform configuration', {
+          platform: this.browserConfig.platform,
+          isWSL: this.browserConfig.isWSL,
+          executablePath: launchOptions.executablePath || 'bundled'
+        });
+        
+        this.browser = await puppeteer.launch(launchOptions);
+        logger.info('Browser initialized successfully');
+      } catch (error) {
+        logger.error('Failed to initialize browser:', error.message);
+        throw new Error(`Browser initialization failed: ${error.message}`);
+      }
     }
     return this.browser;
   }
