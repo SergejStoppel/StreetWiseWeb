@@ -66,7 +66,7 @@ class ScreenshotService {
       });
 
       // Wait for potential dynamic content
-      await page.waitForTimeout(2000);
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       const screenshots = {};
 
@@ -153,7 +153,7 @@ class ScreenshotService {
         timeout: 30000
       });
 
-      await page.waitForTimeout(2000);
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       const screenshot = await page.screenshot({
         encoding: 'base64',

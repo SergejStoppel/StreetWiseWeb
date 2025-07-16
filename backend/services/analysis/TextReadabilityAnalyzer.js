@@ -175,7 +175,7 @@ class TextReadabilityAnalyzer {
       });
 
       // Wait for layout to stabilize
-      await page.waitForTimeout(1000);
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const zoomedMetrics = await page.evaluate(() => ({
         documentWidth: document.documentElement.scrollWidth,
@@ -404,7 +404,7 @@ class TextReadabilityAnalyzer {
           deviceScaleFactor: originalViewport.deviceScaleFactor
         });
 
-        await page.waitForTimeout(500); // Let layout settle
+        await new Promise(resolve => setTimeout(resolve, 500)); // Let layout settle
 
         const metrics = await page.evaluate(() => {
           const textElements = document.querySelectorAll('p, h1, h2, h3, h4, h5, h6');

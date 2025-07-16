@@ -18,6 +18,82 @@ const router = express.Router();
 // Debug logging for route loading
 logger.info('Accessibility routes module loaded');
 
+// Helper function to capture screenshots with existing browser
+async function captureScreenshotsWithBrowser(browser, url, options = {}) {
+  try {
+    const page = await browser.newPage();
+    
+    // Set user agent to avoid bot detection
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+    
+    // Navigate to the page with timeout
+    await page.goto(url, {
+      waitUntil: 'networkidle2',
+      timeout: 30000
+    });
+
+    // Wait for potential dynamic content
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    const screenshots = {};
+
+    // Desktop screenshot
+    await page.setViewport({
+      width: options.desktopWidth || 1920,
+      height: options.desktopHeight || 1080,
+      deviceScaleFactor: options.deviceScaleFactor || 1
+    });
+
+    screenshots.desktop = await page.screenshot({
+      encoding: 'base64',
+      fullPage: options.fullPage || false,
+      type: 'jpeg',
+      quality: options.quality || 85,
+      clip: options.desktopClip || {
+        x: 0,
+        y: 0,
+        width: options.desktopWidth || 1920,
+        height: Math.min(options.desktopHeight || 1080, 1080)
+      }
+    });
+
+    // Mobile screenshot
+    await page.setViewport({
+      width: options.mobileWidth || 375,
+      height: options.mobileHeight || 667,
+      deviceScaleFactor: options.mobileDeviceScaleFactor || 2
+    });
+
+    screenshots.mobile = await page.screenshot({
+      encoding: 'base64',
+      fullPage: options.fullPage || false,
+      type: 'jpeg',
+      quality: options.quality || 85,
+      clip: options.mobileClip || {
+        x: 0,
+        y: 0,
+        width: options.mobileWidth || 375,
+        height: Math.min(options.mobileHeight || 667, 667)
+      }
+    });
+
+    await page.close();
+
+    logger.info(`Screenshots captured successfully for ${url}`);
+    
+    return {
+      desktop: `data:image/jpeg;base64,${screenshots.desktop}`,
+      mobile: `data:image/jpeg;base64,${screenshots.mobile}`,
+      timestamp: new Date().toISOString(),
+      url: url
+    };
+
+  } catch (error) {
+    logger.error(`Failed to capture screenshots for ${url}:`, error);
+    throw new Error(`Screenshot capture failed: ${error.message}`);
+  }
+}
+
 // Add middleware to log all requests to this router
 router.use((req, res, next) => {
   logger.info(`=== ACCESSIBILITY ROUTER REQUEST: ${req.method} ${req.path} ===`);
@@ -165,55 +241,73 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
         }
         
         if (browserAvailable) {
-          // Run screenshot service (uses its own browser)
-          try {
-            screenshotData = await screenshotService.captureScreenshotsWithRetry(url, {
-              desktopWidth: 1920,
-              desktopHeight: 1080,
-              mobileWidth: 375,
-              mobileHeight: 667,
-              quality: 85
-            });
-          } catch (err) {
-            logger.warn('Screenshot service failed:', err.message);
-          }
-          
-          // Run SEO and AI analysis with separate browser
+          // Reuse the browser instance from the accessibility analyzer
           let browser = null;
           let page = null;
           
           try {
-            const launchOptions = browserConfig.getLaunchOptions();
-            browser = await puppeteer.launch(launchOptions);
+            // Get the browser instance from the accessibility analyzer
+            browser = accessibilityAnalyzer.browserUtils.getBrowser();
+            
+            if (!browser) {
+              logger.warn('No browser instance available from accessibility analyzer, creating new one');
+              const launchOptions = browserConfig.getLaunchOptions();
+              browser = await puppeteer.launch(launchOptions);
+            }
+            
+            logger.info('Using browser instance for comprehensive analysis');
             page = await browser.newPage();
+            
+            // Set up page for comprehensive analysis
+            await page.setViewport({ width: 1920, height: 1080 });
+            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
             
-            // Run SEO analysis
+            // Run SEO analysis first
             try {
+              logger.info('Running SEO analysis');
               seoData = await seoAnalyzer.analyze(page, url);
+              logger.info('SEO analysis completed', { score: seoData?.score || 0 });
             } catch (err) {
               logger.warn('SEO analysis failed:', err.message);
             }
             
             // Run AI analysis
             try {
+              logger.info('Running AI analysis');
               aiData = await aiAnalysisService.analyze(page, url, {
                 accessibility: accessibilityReport,
                 seo: seoData
               });
+              logger.info('AI analysis completed');
             } catch (err) {
               logger.warn('AI analysis failed:', err.message);
             }
             
+            // Run screenshot service with the same browser instance
+            try {
+              logger.info('Running screenshot capture with existing browser');
+              screenshotData = await captureScreenshotsWithBrowser(browser, url, {
+                desktopWidth: 1920,
+                desktopHeight: 1080,
+                mobileWidth: 375,
+                mobileHeight: 667,
+                quality: 85
+              });
+              logger.info('Screenshot capture completed');
+            } catch (err) {
+              logger.warn('Screenshot service failed:', err.message);
+            }
+            
           } catch (err) {
             logger.warn('Browser operations failed:', err.message);
+            logger.warn('Browser operations stack:', err.stack);
           } finally {
             if (page) {
               try { await page.close(); } catch (e) { logger.warn('Page close error:', e.message); }
             }
-            if (browser) {
-              try { await browser.close(); } catch (e) { logger.warn('Browser close error:', e.message); }
-            }
+            // Don't close the browser here since it belongs to the accessibility analyzer
+            // The accessibility analyzer will handle browser cleanup
           }
         } else {
           // No browser available - throw error instead of using fallback data
