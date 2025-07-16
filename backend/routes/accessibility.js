@@ -346,6 +346,45 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
         );
       }
       
+      // Update the cached detailed report with enhanced features
+      if (accessibilityReport && accessibilityReport.analysisId) {
+        logger.info('Updating cached detailed report with enhanced features', { 
+          analysisId: accessibilityReport.analysisId,
+          hasScreenshots: !!screenshotData,
+          hasSeoAnalysis: !!seoData,
+          hasAiInsights: !!aiData
+        });
+        
+        // Get the cached detailed report
+        const cachedDetailedReport = accessibilityAnalyzer.getDetailedReport(accessibilityReport.analysisId);
+        if (cachedDetailedReport) {
+          // Add enhanced features to the detailed report
+          cachedDetailedReport.screenshot = screenshotData;
+          cachedDetailedReport.seo = seoData;
+          cachedDetailedReport.aiInsights = aiData;
+          cachedDetailedReport.metadata = {
+            ...cachedDetailedReport.metadata,
+            hasScreenshots: !!screenshotData,
+            hasSeoAnalysis: !!seoData,
+            hasAiInsights: !!aiData
+          };
+          
+          // Update summary in detailed report
+          if (cachedDetailedReport.summary) {
+            cachedDetailedReport.summary.seoScore = seoData?.score || 0;
+            cachedDetailedReport.summary.performanceScore = 0;
+            cachedDetailedReport.summary.overallScore = Math.round(
+              (cachedDetailedReport.summary.accessibilityScore * 0.5) + 
+              (cachedDetailedReport.summary.seoScore * 0.3) + 
+              (cachedDetailedReport.summary.performanceScore * 0.2)
+            );
+          }
+          
+          // Re-cache the updated detailed report
+          accessibilityAnalyzer.cacheManager.setAnalysis(accessibilityReport.analysisId, cachedDetailedReport);
+        }
+      }
+      
       const analysisTime = Date.now() - startTime;
       
       logger.info(`Comprehensive analysis completed successfully`, {

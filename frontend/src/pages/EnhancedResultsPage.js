@@ -5,7 +5,6 @@ import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
 import { 
   FaArrowLeft, 
-  FaDownload, 
   FaCrown,
   FaSync
 } from 'react-icons/fa';
@@ -95,30 +94,6 @@ const BackButton = styled.button`
   }
 `;
 
-const DownloadButton = styled.button`
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  background: ${props => props.premium ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' : '#10b981'};
-  border: none;
-  border-radius: 8px;
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  }
-  
-  &:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
-  }
-`;
 
 const UpgradeButton = styled.button`
   display: flex;
@@ -233,13 +208,12 @@ const EnhancedResultsPage = () => {
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [downloadingPDF, setDownloadingPDF] = useState(false);
   const [upgradingToDetailed, setUpgradingToDetailed] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedIssues, setExpandedIssues] = useState([]);
   
   const navigate = useNavigate();
-  const { t, i18n } = useTranslation();
+  const { i18n } = useTranslation();
 
   useEffect(() => {
     const storedResults = sessionStorage.getItem('analysisResult');
@@ -289,26 +263,6 @@ const EnhancedResultsPage = () => {
     }
   };
 
-  const handleDownloadPDF = async () => {
-    if (!results) return;
-    
-    setDownloadingPDF(true);
-    
-    try {
-      const response = await accessibilityAPI.downloadPDF(results.analysisId || results.id, i18n.language);
-      
-      if (response.success) {
-        toast.success('PDF downloaded successfully!');
-      } else {
-        toast.error('Failed to download PDF');
-      }
-    } catch (error) {
-      console.error('Download error:', error);
-      toast.error(error.message || 'Failed to download PDF');
-    } finally {
-      setDownloadingPDF(false);
-    }
-  };
 
   const handleRefresh = () => {
     window.location.reload();
@@ -424,25 +378,7 @@ const EnhancedResultsPage = () => {
             Back to Home
           </BackButton>
           
-          {results.reportType === 'detailed' ? (
-            <DownloadButton 
-              premium 
-              onClick={handleDownloadPDF} 
-              disabled={downloadingPDF}
-            >
-              {downloadingPDF ? (
-                <>
-                  <LoadingSpinner size="small" />
-                  Generating PDF...
-                </>
-              ) : (
-                <>
-                  <FaDownload />
-                  Download PDF Report
-                </>
-              )}
-            </DownloadButton>
-          ) : (
+          {results.reportType !== 'detailed' && (
             <UpgradeButton 
               onClick={handleUpgradeToDetailed}
               disabled={upgradingToDetailed}
@@ -557,14 +493,138 @@ const EnhancedResultsPage = () => {
                   : [...prev, issueId]
               )}
               expandedIssues={expandedIssues}
+              detailedMode={results.reportType === 'detailed'}
             />
+            
+            {/* Show additional detailed analysis sections for premium reports */}
+            {results.reportType === 'detailed' && (
+              <div style={{ marginTop: '2rem' }}>
+                {/* Structure Analysis */}
+                {results.structure && (
+                  <div style={{ 
+                    background: 'white', 
+                    borderRadius: '12px', 
+                    padding: '2rem', 
+                    marginBottom: '1.5rem',
+                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)' 
+                  }}>
+                    <h3 style={{ color: '#1f2937', marginBottom: '1rem' }}>Structure Analysis</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                      <div>
+                        <strong>Headings:</strong> {results.structure.headings?.length || 0} found
+                      </div>
+                      <div>
+                        <strong>Structure Score:</strong> {results.structure.score || 0}%
+                      </div>
+                      <div>
+                        <strong>Issues:</strong> {results.structure.issues?.length || 0}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* ARIA Analysis */}
+                {results.aria && (
+                  <div style={{ 
+                    background: 'white', 
+                    borderRadius: '12px', 
+                    padding: '2rem', 
+                    marginBottom: '1.5rem',
+                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)' 
+                  }}>
+                    <h3 style={{ color: '#1f2937', marginBottom: '1rem' }}>ARIA Analysis</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                      <div>
+                        <strong>ARIA Score:</strong> {results.aria.score || 0}%
+                      </div>
+                      <div>
+                        <strong>Elements with ARIA:</strong> {results.aria.elementsWithAria?.length || 0}
+                      </div>
+                      <div>
+                        <strong>Issues:</strong> {results.aria.issues?.length || 0}
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Form Analysis */}
+                {results.forms && (
+                  <div style={{ 
+                    background: 'white', 
+                    borderRadius: '12px', 
+                    padding: '2rem', 
+                    marginBottom: '1.5rem',
+                    boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)' 
+                  }}>
+                    <h3 style={{ color: '#1f2937', marginBottom: '1rem' }}>Form Analysis</h3>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1rem' }}>
+                      <div>
+                        <strong>Forms Found:</strong> {results.forms.formsFound || 0}
+                      </div>
+                      <div>
+                        <strong>Form Score:</strong> {results.forms.score || 0}%
+                      </div>
+                      <div>
+                        <strong>Issues:</strong> {results.forms.issues?.length || 0}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </TabContent>
 
           <TabContent active={activeTab === 'recommendations'}>
-            <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
-              <h3>Recommendations</h3>
-              <p>Detailed recommendations based on your analysis will appear here.</p>
-            </div>
+            {results.reportType === 'detailed' && results.recommendations && results.recommendations.length > 0 ? (
+              <div style={{ padding: '2rem' }}>
+                <h3 style={{ color: '#1f2937', marginBottom: '2rem' }}>Detailed Recommendations</h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                  {results.recommendations.map((rec, index) => (
+                    <div key={index} style={{ 
+                      background: 'white', 
+                      borderRadius: '12px', 
+                      padding: '1.5rem', 
+                      boxShadow: '0 2px 10px rgba(0, 0, 0, 0.1)',
+                      border: '1px solid #e5e7eb'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                        <h4 style={{ color: '#1f2937', margin: 0 }}>{rec.title || rec.description}</h4>
+                        <span style={{ 
+                          background: rec.priority === 'high' ? '#ef4444' : rec.priority === 'medium' ? '#f59e0b' : '#10b981',
+                          color: 'white',
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '12px',
+                          fontSize: '0.75rem',
+                          fontWeight: '500',
+                          textTransform: 'capitalize'
+                        }}>
+                          {rec.priority} Priority
+                        </span>
+                      </div>
+                      <p style={{ color: '#4b5563', margin: '0 0 1rem 0' }}>{rec.explanation || rec.description}</p>
+                      {rec.userBenefit && (
+                        <p style={{ color: '#059669', margin: '0 0 1rem 0', fontStyle: 'italic' }}>
+                          <strong>Benefit:</strong> {rec.userBenefit}
+                        </p>
+                      )}
+                      {rec.estimatedFixTime && (
+                        <p style={{ color: '#6b7280', margin: 0, fontSize: '0.875rem' }}>
+                          <strong>Estimated fix time:</strong> {rec.estimatedFixTime} minutes
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+                <h3>Recommendations</h3>
+                <p>{results.reportType === 'detailed' 
+                  ? 'No specific recommendations available for this analysis.' 
+                  : 'Upgrade to Premium Report to see detailed recommendations with implementation guides.'
+                }</p>
+              </div>
+            )}
           </TabContent>
         </TabContainer>
         

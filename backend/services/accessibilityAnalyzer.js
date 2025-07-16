@@ -866,13 +866,20 @@ class AccessibilityAnalyzer {
         return null;
       }
       
+      
       // If the cached report is an overview, we need to construct the detailed version
       if (!cachedReport.structure || !cachedReport.aria) {
         logger.warn('Cached report appears to be overview only', { analysisId });
         return null;
       }
       
-      return cachedReport;
+      // Ensure the detailed report has the correct reportType
+      const detailedReport = {
+        ...cachedReport,
+        reportType: 'detailed'
+      };
+      
+      return detailedReport;
     } catch (error) {
       logger.error('Failed to retrieve detailed report:', { error: error.message, analysisId });
       return null;

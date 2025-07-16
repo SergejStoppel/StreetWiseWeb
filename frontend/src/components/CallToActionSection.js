@@ -335,9 +335,9 @@ const CallToActionSection = ({ reportType, onUpgrade, onConsultation }) => {
               <FaCheckCircle />
             </FeatureIcon>
             <FeatureContent>
-              <FeatureTitle>Professional PDF Report</FeatureTitle>
+              <FeatureTitle>Screenshot Analysis</FeatureTitle>
               <FeatureDescription>
-                Share with your team or use for compliance documentation
+                Desktop and mobile screenshots to visualize your site's accessibility
               </FeatureDescription>
             </FeatureContent>
           </Feature>
