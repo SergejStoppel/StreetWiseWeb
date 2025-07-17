@@ -321,6 +321,11 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
       
       // AI analysis was already run with SEO data above
       
+      // If accessibility analysis failed, throw error immediately
+      if (!accessibilityReport) {
+        throw new Error('Accessibility analysis failed. Unable to generate report.');
+      }
+
       // Create comprehensive report
       const report = {
         ...accessibilityReport,

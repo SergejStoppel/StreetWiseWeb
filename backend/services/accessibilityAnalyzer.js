@@ -126,25 +126,6 @@ class AccessibilityAnalyzer {
           this.runLegacyCustomChecks(page, analysisId)
         ]);
         
-        // Debug: Check if analyzers are returning data
-        logger.info('Analyzer results debug:', {
-          analysisId,
-          structureData: structureData ? {
-            headings: structureData.headings?.length || 0,
-            score: structureData.score || 0,
-            issues: structureData.issues?.length || 0
-          } : 'null',
-          ariaData: ariaData ? {
-            elementsWithAria: ariaData.elementsWithAria?.length || 0,
-            score: ariaData.score || 0,
-            issues: ariaData.issues?.length || 0
-          } : 'null',
-          formData: formData ? {
-            formsFound: formData.formsFound || 0,
-            score: formData.score || 0,
-            issues: formData.issues?.length || 0
-          } : 'null'
-        });
         
         // Run color contrast analysis
         const colorContrastAnalysis = colorContrastAnalyzer.analyzeColorContrast(
