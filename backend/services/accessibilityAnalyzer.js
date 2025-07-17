@@ -91,39 +91,77 @@ class AccessibilityAnalyzer {
         // Get page metadata
         const metadata = await this.browserUtils.getPageMetadata(page);
         
-        // Run all analyzers in parallel for better performance
-        const [
-          axeResults,
-          structureData,
-          ariaData,
-          formData,
-          tableData,
-          keyboardData,
-          textReadabilityData,
-          enhancedImageData,
-          focusManagementData,
-          navigationData,
-          touchTargetData,
-          keyboardShortcutData,
-          contentStructureData,
-          mobileAccessibilityData,
-          customChecks
-        ] = await Promise.all([
-          this.runAxeAnalysis(page, analysisId),
-          this.structureAnalyzer.analyze(page, analysisId),
-          this.ariaAnalyzer.analyze(page, analysisId),
-          this.formAnalyzer.analyze(page, analysisId),
-          this.tableAnalyzer.analyze(page, analysisId),
-          this.keyboardAnalyzer.analyze(page, analysisId),
-          this.textReadabilityAnalyzer.analyze(page, analysisId),
-          this.enhancedImageAnalyzer.analyze(page, analysisId),
-          this.focusManagementAnalyzer.analyze(page, analysisId),
-          this.navigationAnalyzer.analyze(page, analysisId),
-          this.touchTargetAnalyzer.analyze(page, analysisId),
-          this.keyboardShortcutAnalyzer.analyze(page, analysisId),
-          this.contentStructureAnalyzer.analyze(page, analysisId),
-          this.mobileAccessibilityAnalyzer.analyze(page, analysisId),
-          this.runLegacyCustomChecks(page, analysisId)
+        // Run core accessibility analysis first (most important)
+        logger.info('Running core accessibility analysis', { analysisId });
+        const axeResults = await this.runAxeAnalysis(page, analysisId);
+        
+        // Run other analyzers in smaller batches to avoid browser overload
+        logger.info('Running structure and content analyzers', { analysisId });
+        const [structureData, ariaData, formData] = await Promise.all([
+          this.structureAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Structure analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.ariaAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`ARIA analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.formAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Form analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          })
+        ]);
+        
+        logger.info('Running additional analyzers', { analysisId });
+        const [tableData, keyboardData, textReadabilityData, enhancedImageData] = await Promise.all([
+          this.tableAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Table analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.keyboardAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Keyboard analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.textReadabilityAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Text readability analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.enhancedImageAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Enhanced image analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          })
+        ]);
+        
+        logger.info('Running mobile and navigation analyzers', { analysisId });
+        const [focusManagementData, navigationData, touchTargetData, keyboardShortcutData, contentStructureData, mobileAccessibilityData, customChecks] = await Promise.all([
+          this.focusManagementAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Focus management analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.navigationAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Navigation analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.touchTargetAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Touch target analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.keyboardShortcutAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Keyboard shortcut analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.contentStructureAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Content structure analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.mobileAccessibilityAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Mobile accessibility analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.runLegacyCustomChecks(page, analysisId).catch(err => {
+            logger.warn(`Legacy custom checks failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          })
         ]);
         
         
@@ -167,7 +205,12 @@ class AccessibilityAnalyzer {
           this.generateOverviewReport(detailedReport) : 
           detailedReport;
         
-        await page.close();
+        // Ensure proper cleanup
+        try {
+          await page.close();
+        } catch (cleanupError) {
+          logger.warn(`Page cleanup warning: ${cleanupError.message}`, { analysisId });
+        }
         
         logger.info('Analysis completed successfully', { 
           analysisId, 
@@ -179,7 +222,26 @@ class AccessibilityAnalyzer {
         
       } catch (navigationError) {
         logger.error(`Navigation failed: ${navigationError.message}`, { analysisId });
-        throw new Error(`Unable to load the website: ${navigationError.message}`);
+        
+        // Ensure cleanup even on error
+        try {
+          await page.close();
+        } catch (cleanupError) {
+          logger.warn(`Page cleanup error: ${cleanupError.message}`, { analysisId });
+        }
+        
+        // Check if it's a connection closed error and suggest retry
+        if (navigationError.message.includes('Connection closed') || navigationError.message.includes('Protocol error')) {
+          throw new Error(`The website connection was interrupted during analysis. This may be due to the website's security settings or heavy traffic. Please try again.`);
+        } else if (navigationError.message.includes('net::ERR_NAME_NOT_RESOLVED')) {
+          throw new Error(`The website "${validUrl}" could not be found. Please check the URL and try again.`);
+        } else if (navigationError.message.includes('net::ERR_CONNECTION_REFUSED')) {
+          throw new Error(`The website "${validUrl}" refused the connection. It may be down or blocking automated requests.`);
+        } else if (navigationError.message.includes('Timeout')) {
+          throw new Error(`The website "${validUrl}" took too long to respond. Please try again later.`);
+        } else {
+          throw new Error(`Unable to load the website: ${navigationError.message}`);
+        }
       }
       
     } catch (error) {

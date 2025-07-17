@@ -117,7 +117,31 @@ class BrowserConfig {
       '--disable-extensions',
       '--disable-default-apps',
       '--disable-background-networking',
-      '--disable-sync'
+      '--disable-sync',
+      // Anti-detection measures
+      '--disable-blink-features=AutomationControlled',
+      '--disable-features=site-per-process',
+      '--disable-features=VizDisplayCompositor',
+      '--disable-site-isolation-trials',
+      '--disable-web-security',
+      '--disable-features=TranslateUI',
+      '--disable-component-extensions-with-background-pages',
+      '--disable-client-side-phishing-detection',
+      '--disable-component-update',
+      '--disable-domain-reliability',
+      '--disable-features=AudioServiceOutOfProcess',
+      '--disable-hang-monitor',
+      '--disable-notifications',
+      '--disable-popup-blocking',
+      '--disable-prompt-on-repost',
+      '--disable-speech-api',
+      '--disable-translate',
+      '--ignore-gpu-blacklist',
+      '--mute-audio',
+      '--no-default-browser-check',
+      '--no-pings',
+      '--password-store=basic',
+      '--use-mock-keychain'
     ];
 
     const options = {

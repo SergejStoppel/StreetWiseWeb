@@ -305,7 +305,10 @@ const TechnicalIcon = () => (
 const SeoAnalysisSection = ({ seoAnalysis }) => {
   const [activeTab, setActiveTab] = useState('meta');
 
-  if (!seoAnalysis || Object.keys(seoAnalysis).length === 0) {
+  // Debug: Log the seoAnalysis data to see what we're receiving
+  console.log('SeoAnalysisSection received seoAnalysis:', seoAnalysis);
+  
+  if (!seoAnalysis || (typeof seoAnalysis === 'object' && Object.keys(seoAnalysis).length === 0)) {
     return (
       <SectionContainer>
         <SectionHeader>

@@ -255,7 +255,10 @@ const InsightIcon1 = () => (
 const AiInsightsDashboard = ({ aiInsights }) => {
   const [showAllRecommendations, setShowAllRecommendations] = useState(false);
 
-  if (!aiInsights || Object.keys(aiInsights).length === 0) {
+  // Debug: Log the aiInsights data to see what we're receiving
+  console.log('AiInsightsDashboard received aiInsights:', aiInsights);
+  
+  if (!aiInsights || (typeof aiInsights === 'object' && Object.keys(aiInsights).length === 0)) {
     return (
       <DashboardContainer>
         <DashboardHeader>

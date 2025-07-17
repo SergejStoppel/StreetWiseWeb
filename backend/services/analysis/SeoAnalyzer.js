@@ -59,6 +59,18 @@ class SeoAnalyzer {
 
       logger.info(`SEO analysis completed for ${url}. Score: ${results.score}%`);
       
+      // Debug: Log key SEO data to verify it's different per site
+      logger.info('SEO Analysis Debug:', {
+        url,
+        score: results.score,
+        titleScore: results.metaAnalysis?.title?.score || 0,
+        descriptionScore: results.metaAnalysis?.description?.score || 0,
+        openGraphScore: results.metaAnalysis?.openGraph?.score || 0,
+        issuesCount: results.issues?.length || 0,
+        titleText: results.metaAnalysis?.title?.text?.substring(0, 50) || 'none',
+        descriptionText: results.metaAnalysis?.description?.text?.substring(0, 50) || 'none'
+      });
+      
       return results;
 
     } catch (error) {

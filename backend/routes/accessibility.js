@@ -226,18 +226,36 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
           browserAvailable = false;
         }
         
-        // Try to run accessibility analysis first
-        try {
-          if (browserAvailable) {
-            logger.info('Running accessibility analysis with browser');
-            accessibilityReport = await accessibilityAnalyzer.analyzeWebsite(url, reportType, language);
-          } else {
-            logger.error('Browser not available, cannot perform accessibility analysis');
-            throw new Error('Browser dependencies not available. Please ensure Chrome/Chromium is properly installed.');
+        // Try to run accessibility analysis first with retry mechanism
+        let accessibilityAttempts = 0;
+        const maxAttempts = 2;
+        
+        while (accessibilityAttempts < maxAttempts && !accessibilityReport) {
+          accessibilityAttempts++;
+          try {
+            if (browserAvailable) {
+              logger.info(`Running accessibility analysis with browser (attempt ${accessibilityAttempts}/${maxAttempts})`);
+              accessibilityReport = await accessibilityAnalyzer.analyzeWebsite(url, reportType, language);
+            } else {
+              logger.error('Browser not available, cannot perform accessibility analysis');
+              throw new Error('Browser dependencies not available. Please ensure Chrome/Chromium is properly installed.');
+            }
+          } catch (err) {
+            logger.error(`Accessibility analysis attempt ${accessibilityAttempts} failed:`, err.message);
+            
+            if (accessibilityAttempts >= maxAttempts) {
+              // After all attempts failed, provide more specific error message
+              if (err.message.includes('connection was interrupted') || err.message.includes('Protocol error') || err.message.includes('Connection closed')) {
+                throw new Error(`Unable to analyze "${url}". This website appears to have security measures that prevent automated analysis. Please try a different website or contact support.`);
+              } else {
+                throw err; // Re-throw other errors
+              }
+            } else {
+              // Wait a bit before retry
+              logger.info(`Waiting before retry attempt...`);
+              await new Promise(resolve => setTimeout(resolve, 2000));
+            }
           }
-        } catch (err) {
-          logger.error('Accessibility analysis failed:', err.message);
-          throw err; // Re-throw the error instead of creating fallback data
         }
         
         if (browserAvailable) {
@@ -344,11 +362,21 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
       if (report.summary) {
         report.summary.seoScore = seoData?.score || 0;
         report.summary.performanceScore = 0; // Placeholder for future performance analysis
+        
+        // Use the calculated overallScore from the detailed report
+        report.summary.accessibilityScore = report.overallScore || report.summary.accessibilityScore || 0;
         report.summary.overallScore = Math.round(
           (report.summary.accessibilityScore * 0.5) + 
           (report.summary.seoScore * 0.3) + 
           (report.summary.performanceScore * 0.2)
         );
+        
+        logger.info('Updated summary scores:', {
+          accessibilityScore: report.summary.accessibilityScore,
+          seoScore: report.summary.seoScore,
+          overallScore: report.summary.overallScore,
+          reportOverallScore: report.overallScore
+        });
       }
       
       // Update the cached detailed report with enhanced features
@@ -410,12 +438,23 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
         analysisId: report.analysisId,
         imagesWithoutAlt: report.summary?.imagesWithoutAlt,
         totalViolations: report.summary?.totalViolations,
-        reportType: report.reportType
+        reportType: report.reportType,
+        overallScore: report.summary?.overallScore,
+        accessibilityScore: report.summary?.accessibilityScore,
+        seoScore: report.summary?.seoScore,
+        performanceScore: report.summary?.performanceScore
       });
 
       res.json({
         success: true,
-        data: report,
+        data: {
+          ...report,
+          // Ensure all summary scores are included at the top level for frontend compatibility
+          overallScore: report.summary?.overallScore || report.overallScore || 0,
+          accessibilityScore: report.summary?.accessibilityScore || report.overallScore || 0,
+          seoScore: report.summary?.seoScore || report.seo?.score || 0,
+          performanceScore: report.summary?.performanceScore || 0
+        },
         meta: {
           analysisTime,
           timestamp: new Date().toISOString(),
