@@ -126,6 +126,26 @@ class AccessibilityAnalyzer {
           this.runLegacyCustomChecks(page, analysisId)
         ]);
         
+        // Debug: Check if analyzers are returning data
+        logger.info('Analyzer results debug:', {
+          analysisId,
+          structureData: structureData ? {
+            headings: structureData.headings?.length || 0,
+            score: structureData.score || 0,
+            issues: structureData.issues?.length || 0
+          } : 'null',
+          ariaData: ariaData ? {
+            elementsWithAria: ariaData.elementsWithAria?.length || 0,
+            score: ariaData.score || 0,
+            issues: ariaData.issues?.length || 0
+          } : 'null',
+          formData: formData ? {
+            formsFound: formData.formsFound || 0,
+            score: formData.score || 0,
+            issues: formData.issues?.length || 0
+          } : 'null'
+        });
+        
         // Run color contrast analysis
         const colorContrastAnalysis = colorContrastAnalyzer.analyzeColorContrast(
           axeResults, 
@@ -375,6 +395,7 @@ class AccessibilityAnalyzer {
       customChecks: customChecks,
       colorContrast: colorContrastAnalysis,
       axeResults,
+      violations: axeResults?.violations || [], // Add violations field for frontend compatibility
       recommendations: flatRecommendations, // Flat array for frontend compatibility
       recommendationsGrouped: recommendations, // Keep grouped version for internal use
       technicalDetails: {
@@ -388,6 +409,12 @@ class AccessibilityAnalyzer {
   calculateOverallScore(scores, axeResults) {
     // Start with axe-core violations as the primary score factor
     let score = this.calculateRealisticAxeScore(axeResults);
+    
+    // Ensure we have a valid score to start with
+    if (score === null || score === undefined || isNaN(score)) {
+      score = 50; // Default fallback score
+    }
+    
     
     // Apply modifiers based on individual analysis areas (smaller impact)
     const modifiers = {
@@ -408,14 +435,18 @@ class AccessibilityAnalyzer {
     };
 
     // Individual scores can only provide small bonuses/penalties
-    Object.keys(modifiers).forEach(key => {
-      if (scores[key] !== undefined && scores[key] !== null) {
-        const modifier = (scores[key] - 80) * modifiers[key]; // Baseline 80, can add/subtract
-        score += modifier;
-      }
-    });
+    if (scores && typeof scores === 'object') {
+      Object.keys(modifiers).forEach(key => {
+        if (scores[key] !== undefined && scores[key] !== null && !isNaN(scores[key])) {
+          const modifier = (scores[key] - 80) * modifiers[key]; // Baseline 80, can add/subtract
+          score += modifier;
+        }
+      });
+    }
 
-    return Math.max(0, Math.min(100, Math.round(score)));
+    const finalScore = Math.max(0, Math.min(100, Math.round(score)));
+    
+    return finalScore;
   }
 
   calculateRealisticAxeScore(axeResults) {
@@ -621,6 +652,7 @@ class AccessibilityAnalyzer {
     
     // Extract specific violation counts from axe results
     const axeViolations = axeResults.violations || [];
+    
     
     // Use enhanced image analyzer data if available, otherwise fall back to custom checks
     const enhancedImageData = additionalData.enhancedImageData;
@@ -828,7 +860,11 @@ class AccessibilityAnalyzer {
       reportType: 'overview', // Frontend expects this to show overview UI
       overallScore: detailedReport.overallScore,
       scores: detailedReport.scores,
-      summary: detailedReport.summary,
+      summary: {
+        ...detailedReport.summary,
+        accessibilityScore: detailedReport.overallScore // Add accessibilityScore field for frontend compatibility
+      },
+      violations: detailedReport.axeResults?.violations || [], // Add violations field for frontend
       recommendations: flatRecommendations, // Flat array for frontend compatibility
       recommendationsSummary: {
         total: detailedReport.recommendations.total,
