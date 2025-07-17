@@ -12,6 +12,11 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3001
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+    env_file:
+      - ./backend/.env
     networks:
       - sitecraft-network
     restart: unless-stopped
@@ -25,14 +30,19 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     ports:
       - "3000:3000"
     volumes:
+      - ./frontend:/app
       - /app/node_modules
     environment:
       - REACT_APP_API_URL=http://localhost:3005
       - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_SUPABASE_URL=${REACT_APP_SUPABASE_URL}
+      - REACT_APP_SUPABASE_ANON_KEY=${REACT_APP_SUPABASE_ANON_KEY}
+    env_file:
+      - ./frontend/.env
     depends_on:
       - backend
     networks:

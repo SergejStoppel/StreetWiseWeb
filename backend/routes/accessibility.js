@@ -6,6 +6,8 @@ const SeoAnalyzer = require('../services/analysis/SeoAnalyzer');
 const AiAnalysisService = require('../services/analysis/AiAnalysisService');
 const screenshotService = require('../services/ScreenshotService');
 // const pdfGenerator = require('../services/pdfGenerator'); // Removed - PDF functionality disabled
+const Analysis = require('../models/Analysis');
+const { extractUser } = require('../middleware/auth');
 const logger = require('../utils/logger');
 
 // Create analyzer instances
@@ -146,8 +148,9 @@ const validateAnalysisRequest = [
     .withMessage('URL is too long')
 ];
 
+
 // POST /api/accessibility/analyze
-router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, res) => {
+router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, async (req, res) => {
   logger.info('=== ANALYZE ENDPOINT CALLED ===');
   logger.info('Request received at analyze endpoint:', {
     method: req.method,
@@ -420,6 +423,60 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, async (req, re
       
       const analysisTime = Date.now() - startTime;
       
+      // Save analysis to Supabase database (if user is authenticated)
+      try {
+        logger.info('Checking user authentication for database save', { 
+          hasUser: !!req.user,
+          userId: req.user?.id,
+          userEmail: req.user?.email,
+          analysisId: report.analysisId
+        });
+        
+        if (req.user && req.user.id) {
+          logger.info('Saving analysis to database', { 
+            analysisId: report.analysisId, 
+            userId: req.user.id 
+          });
+          
+          const savedAnalysis = await Analysis.create({
+            userId: req.user.id,
+            url: url,
+            reportType: reportType,
+            language: language,
+            overallScore: report.summary?.overallScore || report.overallScore || 0,
+            accessibilityScore: report.summary?.accessibilityScore || report.overallScore || 0,
+            seoScore: report.summary?.seoScore || 0,
+            performanceScore: report.summary?.performanceScore || 0,
+            analysisData: report,
+            metadata: {
+              ...report.metadata,
+              originalAnalysisId: report.analysisId,
+              analysisTime,
+              clientIp,
+              userAgent: req.get('User-Agent')
+            },
+            status: 'completed'
+          });
+          
+          // Update the report with the database ID for frontend reference
+          report.databaseId = savedAnalysis.id;
+          
+          logger.info('Analysis saved to database successfully', { 
+            analysisId: report.analysisId 
+          });
+        } else {
+          logger.info('Anonymous analysis - not saving to database', { 
+            analysisId: report.analysisId 
+          });
+        }
+      } catch (dbError) {
+        logger.error('Failed to save analysis to database:', {
+          error: dbError.message,
+          analysisId: report.analysisId
+        });
+        // Continue anyway - don't fail the analysis if database save fails
+      }
+      
       logger.info(`Comprehensive analysis completed successfully`, {
         url,
         analysisId: report.analysisId,
@@ -527,7 +584,7 @@ router.get('/health', async (req, res) => {
 });
 
 // GET /api/accessibility/detailed/:analysisId
-router.get('/detailed/:analysisId', async (req, res) => {
+router.get('/detailed/:analysisId', extractUser, async (req, res) => {
   try {
     const { analysisId } = req.params;
     
@@ -541,7 +598,24 @@ router.get('/detailed/:analysisId', async (req, res) => {
     logger.info('Detailed report request received', { analysisId });
 
     const { language = 'en' } = req.query;
-    const detailedReport = accessibilityAnalyzer.getDetailedReport(analysisId);
+    
+    // First try to get from cache
+    let detailedReport = accessibilityAnalyzer.getDetailedReport(analysisId);
+    
+    // If not in cache, try to get from database
+    if (!detailedReport && req.user && req.user.id) {
+      logger.info('Report not in cache, checking database', { analysisId, userId: req.user.id });
+      
+      try {
+        const dbAnalysis = await Analysis.findById(analysisId, req.user.id);
+        if (dbAnalysis && dbAnalysis.analysis_data) {
+          detailedReport = dbAnalysis.analysis_data;
+          logger.info('Report found in database', { analysisId });
+        }
+      } catch (dbError) {
+        logger.error('Database lookup failed:', { error: dbError.message, analysisId });
+      }
+    }
     
     if (!detailedReport) {
       return res.status(404).json({

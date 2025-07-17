@@ -692,51 +692,75 @@ const HomePage = () => {
   const navigate = useNavigate();
   const { t, i18n, ready } = useTranslation(['homepage', 'forms']);
 
+  // Component mount debugging
+  console.log('🏠 HomePage component rendered', { url, isAnalyzing, ready });
+
   const handleSubmit = async (e) => {
+    console.log('=== FORM SUBMITTED ===', { url, timestamp: new Date().toISOString() });
     e.preventDefault();
     
-    if (!url.trim()) {
-      toast.error(t('forms:messages.enterUrl'));
-      return;
-    }
-
-    // Basic URL validation - allow domains without protocol
-    const urlPattern = /^(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(\/.*)?$/;
-    if (!urlPattern.test(url.trim())) {
-      toast.error(t('forms:validation.invalidUrl'));
-      return;
-    }
-
-    // Ensure URL has protocol
-    let fullUrl = url.trim();
-    if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
-      fullUrl = 'https://' + fullUrl;
-    }
-
-    setIsAnalyzing(true);
-    
     try {
-      toast.info(t('forms:messages.analysisStarted'), {
+      if (!url.trim()) {
+        console.log('❌ URL validation failed - empty URL');
+        toast.error('Please enter a URL');
+        return;
+      }
+
+      // Basic URL validation - allow domains without protocol
+      const urlPattern = /^(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}(\\/.*)?$/;
+      if (!urlPattern.test(url.trim())) {
+        console.log('❌ URL validation failed - invalid format');
+        toast.error('Please enter a valid URL');
+        return;
+      }
+
+      // Ensure URL has protocol
+      let fullUrl = url.trim();
+      if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+        fullUrl = 'https://' + fullUrl;
+      }
+
+      console.log('✅ URL validation passed, processed URL:', fullUrl);
+      console.log('🔄 Setting isAnalyzing to true');
+      setIsAnalyzing(true);
+      
+      console.log('📊 Starting analysis for:', fullUrl);
+      toast.info('Starting analysis...', {
         autoClose: 2000,
       });
       
-      const result = await accessibilityAPI.analyzeWebsite(fullUrl, 'overview', i18n.language);
+      console.log('🚀 About to call accessibilityAPI.analyzeWebsite at:', new Date().toISOString());
+      console.log('🚀 API parameters:', { url: fullUrl, reportType: 'overview', language: i18n.language });
       
-      if (result.success) {
-        toast.success(t('forms:messages.analysisComplete'));
+      // Add timeout wrapper to detect if API call hangs
+      const analysisPromise = accessibilityAPI.analyzeWebsite(fullUrl, 'overview', i18n.language);
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Analysis timed out after 3 minutes')), 180000);
+      });
+      
+      const result = await Promise.race([analysisPromise, timeoutPromise]);
+      console.log('📨 Analysis result received:', result);
+      
+      if (result && result.success) {
+        console.log('✅ Analysis successful, navigating to results');
+        toast.success('Analysis complete!');
         
         // Store results in sessionStorage for the results page
         sessionStorage.setItem('analysisResult', JSON.stringify(result.data));
         
         // Navigate to results page
+        console.log('🧭 Navigating to results page');
         navigate('/results');
       } else {
-        toast.error(t('forms:messages.analysisFailed'));
+        console.log('❌ Analysis failed with result:', result);
+        toast.error('Analysis failed');
       }
     } catch (error) {
-      console.error('Analysis error:', error);
-      toast.error(error.message || t('forms:messages.error'));
+      console.error('💥 Analysis error:', error);
+      console.error('💥 Error stack:', error.stack);
+      toast.error(error.message || 'Analysis failed with error');
     } finally {
+      console.log('🔄 Setting isAnalyzing to false at:', new Date().toISOString());
       setIsAnalyzing(false);
     }
   };
@@ -769,7 +793,15 @@ const HomePage = () => {
                 required
                 aria-label={t('forms:labels.websiteUrl')}
               />
-              <AnalyzeButton type="submit" disabled={isAnalyzing}>
+              <AnalyzeButton 
+                type="submit" 
+                disabled={isAnalyzing}
+                onClick={(e) => {
+                  console.log('🔥 BUTTON CLICKED DIRECTLY!', { isAnalyzing, url });
+                  console.log('🔥 Button event:', e.type, e.target);
+                  // Let form submission handle the rest
+                }}
+              >
                 {isAnalyzing ? (
                   <>
                     <LoadingSpinner size="small" />

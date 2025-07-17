@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaAccessibleIcon, FaBars, FaTimes } from 'react-icons/fa';
+import { FaAccessibleIcon, FaBars, FaTimes, FaUser, FaSignOutAlt, FaTachometerAlt } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 import { SimpleThemeToggle } from './ThemeToggle';
+import { useAuth } from '../contexts/AuthContext';
 
 const HeaderContainer = styled.header`
   background-color: var(--color-surface-elevated);
@@ -293,11 +294,150 @@ const CTAButton = styled(Link)`
   }
 `;
 
+const UserSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+`;
+
+const UserDropdown = styled.div`
+  position: relative;
+`;
+
+const UserButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-sm);
+  background: none;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--border-radius-md);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: var(--font-family-primary);
+  
+  &:hover {
+    background-color: var(--color-surface-secondary);
+    border-color: var(--color-interactive-primary);
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-interactive-primary);
+  }
+`;
+
+const UserEmail = styled.span`
+  font-size: var(--font-size-sm);
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
+`;
+
+const UserDropdownMenu = styled.div`
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  background-color: var(--color-surface-elevated);
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border-primary);
+  padding: var(--spacing-sm);
+  min-width: 200px;
+  transform: ${props => props.isOpen ? 'translateY(0)' : 'translateY(-8px)'};
+  opacity: ${props => props.isOpen ? '1' : '0'};
+  visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
+  transition: all var(--transition-fast);
+  z-index: var(--z-index-dropdown);
+`;
+
+const UserDropdownItem = styled(Link)`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: var(--color-text-primary);
+  text-decoration: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-fast);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
+  
+  &:hover {
+    background-color: var(--color-surface-secondary);
+    color: var(--color-interactive-primary);
+    text-decoration: none;
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-interactive-primary);
+  }
+`;
+
+const UserDropdownButton = styled.button`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--color-text-primary);
+  text-decoration: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-fast);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-base);
+  cursor: pointer;
+  text-align: left;
+  
+  &:hover {
+    background-color: var(--color-surface-secondary);
+    color: var(--color-interactive-primary);
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-interactive-primary);
+  }
+`;
+
+const AuthButtons = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+`;
+
+const LoginButton = styled(Link)`
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  transition: all var(--transition-fast);
+  font-family: var(--font-family-primary);
+  font-weight: var(--font-weight-medium);
+  
+  &:hover {
+    color: var(--color-interactive-primary);
+    background-color: var(--color-surface-secondary);
+    text-decoration: none;
+  }
+`;
+
 const Header = () => {
   const { t } = useTranslation('navigation');
   const location = useLocation();
+  const { user, userProfile, signOut } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isServicesDropdownOpen, setIsServicesDropdownOpen] = useState(false);
+  const [isUserDropdownOpen, setIsUserDropdownOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
   const isServicesActive = () => location.pathname.startsWith('/services');
@@ -312,6 +452,15 @@ const Header = () => {
 
   const toggleServicesDropdown = () => {
     setIsServicesDropdownOpen(!isServicesDropdownOpen);
+  };
+
+  const toggleUserDropdown = () => {
+    setIsUserDropdownOpen(!isUserDropdownOpen);
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    setIsUserDropdownOpen(false);
   };
 
   return (
@@ -366,9 +515,38 @@ const Header = () => {
           
           <SimpleThemeToggle />
           
-          <CTAButton to="/free-audit">
-            {t('freeAudit', 'Free Audit')}
-          </CTAButton>
+          {user ? (
+            <UserSection>
+              <CTAButton to="/free-audit">
+                {t('freeAudit', 'Free Audit')}
+              </CTAButton>
+              
+              <UserDropdown>
+                <UserButton onClick={toggleUserDropdown}>
+                  <FaUser />
+                </UserButton>
+                <UserDropdownMenu isOpen={isUserDropdownOpen}>
+                  <UserDropdownItem to="/dashboard" onClick={() => setIsUserDropdownOpen(false)}>
+                    <FaTachometerAlt />
+                    Dashboard
+                  </UserDropdownItem>
+                  <UserDropdownButton onClick={handleSignOut}>
+                    <FaSignOutAlt />
+                    Sign Out
+                  </UserDropdownButton>
+                </UserDropdownMenu>
+              </UserDropdown>
+            </UserSection>
+          ) : (
+            <AuthButtons>
+              <CTAButton to="/free-audit">
+                {t('freeAudit', 'Free Audit')}
+              </CTAButton>
+              <LoginButton to="/login">
+                Sign In
+              </LoginButton>
+            </AuthButtons>
+          )}
         </DesktopNavigation>
         
         <MobileMenuButton onClick={toggleMobileMenu} aria-label="Toggle mobile menu">
@@ -405,11 +583,30 @@ const Header = () => {
           <MobileNavLink to="/contact" isActive={isActive('/contact')} onClick={closeMobileMenu}>
             {t('contact', 'Contact')}
           </MobileNavLink>
+          
+          {user && (
+            <>
+              <MobileNavLink to="/dashboard" isActive={isActive('/dashboard')} onClick={closeMobileMenu}>
+                Dashboard
+              </MobileNavLink>
+              <UserDropdownButton onClick={() => { handleSignOut(); closeMobileMenu(); }}>
+                <FaSignOutAlt />
+                Sign Out
+              </UserDropdownButton>
+            </>
+          )}
+          
           <LanguageSelector />
           <SimpleThemeToggle />
           <CTAButton to="/free-audit" onClick={closeMobileMenu}>
             {t('freeAudit', 'Free Audit')}
           </CTAButton>
+          
+          {!user && (
+            <LoginButton to="/login" onClick={closeMobileMenu}>
+              Sign In
+            </LoginButton>
+          )}
         </MobileNavContent>
       </MobileNavigation>
     </HeaderContainer>

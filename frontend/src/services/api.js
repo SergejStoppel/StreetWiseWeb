@@ -1,4 +1,5 @@
 import axios from 'axios';
+import supabase from '../config/supabase';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3005';
 
@@ -12,8 +13,16 @@ const api = axios.create({
 
 // Request interceptor
 api.interceptors.request.use(
-  (config) => {
-    // Add any auth headers here if needed
+  async (config) => {
+    // Add auth headers if user is authenticated
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        config.headers.Authorization = `Bearer ${session.access_token}`;
+      }
+    } catch (error) {
+      console.warn('Failed to get auth session:', error);
+    }
     return config;
   },
   (error) => {
@@ -139,6 +148,74 @@ export const accessibilityAPI = {
   getDemo: async () => {
     try {
       const response = await api.get('/api/accessibility/demo');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
+export const analysisAPI = {
+  // Get user's analysis history
+  getHistory: async (options = {}) => {
+    try {
+      const params = new URLSearchParams();
+      if (options.limit) params.append('limit', options.limit);
+      if (options.offset) params.append('offset', options.offset);
+      if (options.projectId) params.append('projectId', options.projectId);
+      if (options.status) params.append('status', options.status);
+      
+      const response = await api.get(`/api/analysis?${params.toString()}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get recent analyses
+  getRecent: async (limit = 5) => {
+    try {
+      const response = await api.get(`/api/analysis/recent?limit=${limit}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get analysis statistics
+  getStats: async () => {
+    try {
+      const response = await api.get('/api/analysis/stats');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Get specific analysis by ID
+  getById: async (analysisId) => {
+    try {
+      const response = await api.get(`/api/analysis/${analysisId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Delete analysis
+  delete: async (analysisId) => {
+    try {
+      const response = await api.delete(`/api/analysis/${analysisId}`);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  // Search analyses by URL
+  search: async (term, limit = 10) => {
+    try {
+      const response = await api.get(`/api/analysis/search/${encodeURIComponent(term)}?limit=${limit}`);
       return response.data;
     } catch (error) {
       throw error;

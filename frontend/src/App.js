@@ -20,7 +20,14 @@ import ContactPage from './pages/ContactPage';
 import LoginPage from './pages/LoginPage';
 import CaseStudiesPage from './pages/CaseStudiesPage';
 import FreeAuditPage from './pages/FreeAuditPage';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
+import Dashboard from './pages/Dashboard';
 import { ThemeProvider } from './theme/ThemeContext';
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 import ThemeToggle from './components/ThemeToggle';
 import './styles/globals.css';
 
@@ -73,48 +80,76 @@ const ComingSoonPage = ({ title, description }) => (
 function App() {
   return (
     <ThemeProvider>
-      <Router>
-        <AppContainer>
-          <Header />
-          <MainContent>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/results" element={<EnhancedResultsPage />} />
-              <Route path="/results-old" element={<ResultsPage />} />
-              <Route path="/services" element={<ServicesPage />} />
-              <Route path="/services/accessibility" element={<AccessibilityServicePage />} />
-              <Route path="/services/seo-content" element={<SeoContentServicePage />} />
-              <Route path="/services/website-overhaul" element={<WebsiteOverhaulServicePage />} />
-              <Route path="/pricing" element={<PricingPage />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/blog" element={<BlogPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-              <Route path="/free-audit" element={<FreeAuditPage />} />
-              <Route path="/login" element={<LoginPage />} />
-              <Route path="/case-studies" element={<CaseStudiesPage />} />
-              {/* 404 Page */}
-              <Route path="*" element={
-                <ComingSoonPage 
-                  title="Page Not Found" 
-                  description="The page you're looking for doesn't exist or hasn't been implemented yet." 
-                />
-              } />
-            </Routes>
-          </MainContent>
-          <Footer />
-          <ToastContainer 
-            position="top-right"
-            autoClose={5000}
-            hideProgressBar={false}
-            newestOnTop={false}
-            closeOnClick
-            rtl={false}
-            pauseOnFocusLoss
-            draggable
-            pauseOnHover
-          />
-        </AppContainer>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <AppContainer>
+            <Header />
+            <MainContent>
+              <Routes>
+                {/* Public Routes */}
+                <Route path="/" element={<HomePage />} />
+                <Route path="/services" element={<ServicesPage />} />
+                <Route path="/services/accessibility" element={<AccessibilityServicePage />} />
+                <Route path="/services/seo-content" element={<SeoContentServicePage />} />
+                <Route path="/services/website-overhaul" element={<WebsiteOverhaulServicePage />} />
+                <Route path="/pricing" element={<PricingPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/blog" element={<BlogPage />} />
+                <Route path="/contact" element={<ContactPage />} />
+                <Route path="/free-audit" element={<FreeAuditPage />} />
+                <Route path="/case-studies" element={<CaseStudiesPage />} />
+                
+                {/* Authentication Routes */}
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                
+                {/* Protected Routes */}
+                <Route path="/results" element={
+                  <ProtectedRoute>
+                    <EnhancedResultsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/results-old" element={
+                  <ProtectedRoute>
+                    <ResultsPage />
+                  </ProtectedRoute>
+                } />
+                <Route path="/dashboard" element={
+                  <ProtectedRoute>
+                    <Dashboard />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Legacy login route redirect */}
+                <Route path="/login-old" element={<LoginPage />} />
+                
+                {/* 404 Page */}
+                <Route path="*" element={
+                  <ComingSoonPage 
+                    title="Page Not Found" 
+                    description="The page you're looking for doesn't exist or hasn't been implemented yet." 
+                  />
+                } />
+              </Routes>
+            </MainContent>
+            <Footer />
+            <ToastContainer 
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="colored"
+            />
+          </AppContainer>
+        </Router>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

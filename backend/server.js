@@ -5,6 +5,7 @@ const rateLimit = require('express-rate-limit');
 require('dotenv').config();
 
 const accessibilityRoutes = require('./routes/accessibility');
+const analysisRoutes = require('./routes/analysis');
 const logger = require('./utils/logger');
 
 const app = express();
@@ -63,6 +64,10 @@ app.use((req, res, next) => {
 logger.info('Loading accessibility routes');
 app.use('/api/accessibility', accessibilityRoutes);
 logger.info('Accessibility routes loaded successfully');
+
+logger.info('Loading analysis routes');
+app.use('/api/analysis', analysisRoutes);
+logger.info('Analysis routes loaded successfully');
 
 // Test route for Phase 1 services (development only)
 if (process.env.NODE_ENV !== 'production') {

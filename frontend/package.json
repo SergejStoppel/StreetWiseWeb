@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@supabase/supabase-js": "^2.39.0",
     "axios": "^1.4.0",
     "file-saver": "^2.0.5",
     "html-react-parser": "^4.2.2",

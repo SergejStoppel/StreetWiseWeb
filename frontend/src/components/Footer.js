@@ -4,27 +4,27 @@ import { useBranding } from '../hooks/useBranding';
 const { branding } = require('../shared/branding');
 
 const FooterContainer = styled.footer`
-  background-color: ${branding.colors.neutral[800]};
-  color: ${branding.colors.neutral[200]};
-  padding: 2rem 0;
+  background-color: var(--color-surface-elevated);
+  color: var(--color-text-secondary);
+  padding: var(--spacing-4xl) 0;
   margin-top: auto;
 `;
 
 const FooterContent = styled.div`
-  max-width: 1200px;
+  max-width: var(--container-max-width);
   margin: 0 auto;
-  padding: 0 1rem;
+  padding: 0 var(--container-padding);
   text-align: center;
   
   @media (min-width: 768px) {
-    padding: 0 2rem;
+    padding: 0 var(--spacing-xl);
   }
 `;
 
 const FooterText = styled.p`
-  font-size: ${branding.typography.scales.sm};
-  margin-bottom: 0.5rem;
-  font-family: "${branding.typography.fonts.primary.name}", ${branding.typography.fonts.primary.fallback};
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--spacing-sm);
+  font-family: var(--font-family-primary);
   
   &:last-child {
     margin-bottom: 0;
