@@ -216,21 +216,42 @@ const EnhancedResultsPage = () => {
   const { i18n } = useTranslation();
 
   useEffect(() => {
+    console.log('📊 Results page useEffect triggered');
     const storedResults = sessionStorage.getItem('analysisResult');
+    
+    console.log('🔍 Checking sessionStorage for analysisResult:', {
+      hasData: !!storedResults,
+      dataLength: storedResults?.length,
+      dataPreview: storedResults?.substring(0, 100)
+    });
     
     if (storedResults) {
       try {
         const parsedResults = JSON.parse(storedResults);
-        // Use parsed results directly for now
-        setResults(parsedResults);
+        console.log('✅ Successfully parsed results:', {
+          resultKeys: Object.keys(parsedResults),
+          hasViolations: !!parsedResults.violations,
+          hasSummary: !!parsedResults.summary
+        });
+        
+        // Mark as anonymous/free report for non-authenticated users
+        const enhancedResults = {
+          ...parsedResults,
+          reportType: parsedResults.reportType || 'overview', // Default to overview for anonymous
+          isAnonymous: true // Flag to show free vs premium features
+        };
+        
+        setResults(enhancedResults);
       } catch (error) {
-        console.error('Error parsing stored results:', error);
+        console.error('❌ Error parsing stored results:', error);
         setError('Failed to load analysis results');
       }
     } else {
+      console.log('❌ No analysis results found in sessionStorage');
       setError('No analysis results found');
     }
     
+    console.log('🔄 Setting loading to false');
     setLoading(false);
   }, []);
 

@@ -459,8 +459,14 @@ const Header = () => {
   };
 
   const handleSignOut = async () => {
-    await signOut();
-    setIsUserDropdownOpen(false);
+    console.log('🚪 Logout button clicked, attempting sign out...');
+    try {
+      await signOut();
+      console.log('✅ Sign out successful');
+      setIsUserDropdownOpen(false);
+    } catch (error) {
+      console.error('❌ Sign out failed:', error);
+    }
   };
 
   return (

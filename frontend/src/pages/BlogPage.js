@@ -327,7 +327,7 @@ const BlogPage = () => {
     <BlogContainer>
       <HeroSection>
         <HeroContent>
-          <HeroTitle>SiteCraft Blog</HeroTitle>
+          <HeroTitle>StreetWiseWeb Blog</HeroTitle>
           <HeroSubtitle>
             Insights, tips, and strategies to help your small business thrive online
           </HeroSubtitle>

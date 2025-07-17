@@ -105,12 +105,10 @@ function App() {
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 
+                {/* Results Route - Temporarily public for testing */}
+                <Route path="/results" element={<EnhancedResultsPage />} />
+                
                 {/* Protected Routes */}
-                <Route path="/results" element={
-                  <ProtectedRoute>
-                    <EnhancedResultsPage />
-                  </ProtectedRoute>
-                } />
                 <Route path="/results-old" element={
                   <ProtectedRoute>
                     <ResultsPage />

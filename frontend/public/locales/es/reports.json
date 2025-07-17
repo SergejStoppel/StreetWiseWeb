@@ -16,7 +16,7 @@
   "pageCount_plural": "{{count}} páginas analizadas",
   "pdf": {
     "documentTitle": "Informe de Análisis de Accesibilidad Web",
-    "generatedBy": "Generado por SiteCraft",
+    "generatedBy": "Generado por StreetWiseWeb",
     "analysisDate": "Fecha de Análisis",
     "websiteUrl": "URL del Sitio Web",
     "overallScore": "Puntuación General de Accesibilidad",
@@ -472,8 +472,8 @@
     }
   },
   "footer": {
-    "poweredBy": "Desarrollado por SiteCraft - Análisis Profesional de Accesibilidad Web",
+    "poweredBy": "Desarrollado por StreetWiseWeb - Análisis Profesional de Accesibilidad Web",
     "contactUs": "Contacta a nuestro equipo para soporte de implementación y consultoría continua de accesibilidad.",
-    "website": "Visita sitecraft.com para más información"
+    "website": "Visita streetwiseweb.com para más información"
   }
 }

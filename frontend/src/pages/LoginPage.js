@@ -286,7 +286,7 @@ const LoginPage = () => {
     <LoginContainer>
       <LoginCard>
         <LoginForm>
-          <Logo>SiteCraft</Logo>
+                          <Logo>StreetWiseWeb</Logo>
           
           <ComingSoonNotice>
             <ComingSoonTitle>Client Portal Coming Soon!</ComingSoonTitle>

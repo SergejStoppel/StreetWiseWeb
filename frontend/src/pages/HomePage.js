@@ -692,75 +692,92 @@ const HomePage = () => {
   const navigate = useNavigate();
   const { t, i18n, ready } = useTranslation(['homepage', 'forms']);
 
-  // Component mount debugging
-  console.log('🏠 HomePage component rendered', { url, isAnalyzing, ready });
+  // Component mount debugging (removed to prevent StrictMode spam)
 
   const handleSubmit = async (e) => {
-    console.log('=== FORM SUBMITTED ===', { url, timestamp: new Date().toISOString() });
     e.preventDefault();
     
+    // Guard against double-submission in StrictMode
+    if (isAnalyzing) {
+      console.log('⚠️ Analysis already in progress, ignoring duplicate submission');
+      return;
+    }
+    
+    if (!url.trim()) {
+      toast.error('Please enter a URL');
+      return;
+    }
+
+    // Ensure URL has protocol
+    let fullUrl = url.trim();
+    if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
+      fullUrl = 'https://' + fullUrl;
+    }
+
+    console.log('🚀 Starting analysis for:', fullUrl);
+    console.log('🌐 API Base URL:', process.env.REACT_APP_API_URL);
+    
+    // Test backend connectivity first
     try {
-      if (!url.trim()) {
-        console.log('❌ URL validation failed - empty URL');
-        toast.error('Please enter a URL');
-        return;
-      }
-
-      // Basic URL validation - allow domains without protocol
-      const urlPattern = /^(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}(\\/.*)?$/;
-      if (!urlPattern.test(url.trim())) {
-        console.log('❌ URL validation failed - invalid format');
-        toast.error('Please enter a valid URL');
-        return;
-      }
-
-      // Ensure URL has protocol
-      let fullUrl = url.trim();
-      if (!fullUrl.startsWith('http://') && !fullUrl.startsWith('https://')) {
-        fullUrl = 'https://' + fullUrl;
-      }
-
-      console.log('✅ URL validation passed, processed URL:', fullUrl);
-      console.log('🔄 Setting isAnalyzing to true');
-      setIsAnalyzing(true);
-      
-      console.log('📊 Starting analysis for:', fullUrl);
-      toast.info('Starting analysis...', {
-        autoClose: 2000,
+      console.log('🔍 Testing backend connectivity...');
+      const healthResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/health`);
+      console.log('🏥 Health check response:', {
+        status: healthResponse.status,
+        statusText: healthResponse.statusText,
+        ok: healthResponse.ok
       });
+    } catch (healthError) {
+      console.error('❌ Backend health check failed:', healthError);
+    }
+    
+    setIsAnalyzing(true);
+    
+    try {
+      toast.info('Starting analysis...', { autoClose: 2000 });
       
-      console.log('🚀 About to call accessibilityAPI.analyzeWebsite at:', new Date().toISOString());
-      console.log('🚀 API parameters:', { url: fullUrl, reportType: 'overview', language: i18n.language });
+      const result = await accessibilityAPI.analyzeWebsite(fullUrl, 'overview', i18n.language);
       
-      // Add timeout wrapper to detect if API call hangs
-      const analysisPromise = accessibilityAPI.analyzeWebsite(fullUrl, 'overview', i18n.language);
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Analysis timed out after 3 minutes')), 180000);
+      console.log('🔍 Analysis result structure:', {
+        result: !!result,
+        resultKeys: result ? Object.keys(result) : null,
+        hasSuccess: result?.success,
+        hasData: result?.data,
+        resultType: typeof result
       });
-      
-      const result = await Promise.race([analysisPromise, timeoutPromise]);
-      console.log('📨 Analysis result received:', result);
       
       if (result && result.success) {
-        console.log('✅ Analysis successful, navigating to results');
+        console.log('✅ Analysis successful, storing result and navigating');
         toast.success('Analysis complete!');
         
-        // Store results in sessionStorage for the results page
+        console.log('💾 Storing result in sessionStorage:', {
+          dataKeys: Object.keys(result.data),
+          dataSize: JSON.stringify(result.data).length
+        });
         sessionStorage.setItem('analysisResult', JSON.stringify(result.data));
         
-        // Navigate to results page
-        console.log('🧭 Navigating to results page');
+        console.log('🧭 Attempting navigation to /results');
         navigate('/results');
+        
+        // Verify navigation after a short delay
+        setTimeout(() => {
+          console.log('🔍 Current location after navigation:', window.location.pathname);
+        }, 100);
       } else {
-        console.log('❌ Analysis failed with result:', result);
+        console.log('❌ Analysis failed - no success flag or no result');
+        console.log('Result object:', result);
         toast.error('Analysis failed');
       }
     } catch (error) {
-      console.error('💥 Analysis error:', error);
-      console.error('💥 Error stack:', error.stack);
+      console.error('💥 Analysis error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        response: error.response,
+        code: error.code
+      });
       toast.error(error.message || 'Analysis failed with error');
     } finally {
-      console.log('🔄 Setting isAnalyzing to false at:', new Date().toISOString());
+      console.log('🔄 Analysis completed, setting isAnalyzing to false');
       setIsAnalyzing(false);
     }
   };
@@ -796,11 +813,6 @@ const HomePage = () => {
               <AnalyzeButton 
                 type="submit" 
                 disabled={isAnalyzing}
-                onClick={(e) => {
-                  console.log('🔥 BUTTON CLICKED DIRECTLY!', { isAnalyzing, url });
-                  console.log('🔥 Button event:', e.type, e.target);
-                  // Let form submission handle the rest
-                }}
               >
                 {isAnalyzing ? (
                   <>

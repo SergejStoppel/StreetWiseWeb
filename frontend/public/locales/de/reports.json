@@ -16,7 +16,7 @@
   "pageCount_plural": "{{count}} Seiten analysiert",
   "pdf": {
     "documentTitle": "Website-Barrierefreiheits-Analysebericht",
-    "generatedBy": "Erstellt von SiteCraft",
+    "generatedBy": "Erstellt von StreetWiseWeb",
     "analysisDate": "Analysedatum",
     "websiteUrl": "Website-URL",
     "overallScore": "Gesamtpunktzahl Barrierefreiheit",
@@ -424,9 +424,9 @@
       }
     },
     "footer": {
-      "poweredBy": "Bereitgestellt von SiteCraft - Professionelle Web-Barrierefreiheits-Analyse",
+      "poweredBy": "Bereitgestellt von StreetWiseWeb - Professionelle Web-Barrierefreiheits-Analyse",
       "contactUs": "Kontaktieren Sie unser Team für Implementierungsunterstützung und kontinuierliche Barrierefreiheits-Beratung.",
-      "website": "Besuchen Sie sitecraft.com für weitere Informationen"
+      "website": "Besuchen Sie streetwiseweb.com für weitere Informationen"
     }
   },
   "recommendations": {

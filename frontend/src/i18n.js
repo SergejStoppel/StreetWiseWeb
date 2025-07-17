@@ -36,7 +36,7 @@ i18n
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
-      lookupLocalStorage: 'sitecraft-language',
+      lookupLocalStorage: 'streetwiseweb-language',
     },
     
     // React configuration

@@ -1,7 +1,7 @@
 {
-  "name": "sitecraft-backend",
+  "name": "streetwiseweb-backend",
   "version": "1.0.0",
-  "description": "Backend API for SiteCraft accessibility analysis",
+  "description": "Backend API for StreetWiseWeb accessibility analysis",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

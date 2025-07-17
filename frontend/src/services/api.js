@@ -14,18 +14,34 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   async (config) => {
+    console.log('🔧 Request interceptor called for:', config.url);
     // Add auth headers if user is authenticated
     try {
-      const { data: { session } } = await supabase.auth.getSession();
+      console.log('🔍 Getting Supabase session...');
+      
+      // Add timeout to prevent hanging
+      const sessionPromise = supabase.auth.getSession();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Supabase session timeout')), 5000);
+      });
+      
+      const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
+      
       if (session?.access_token) {
         config.headers.Authorization = `Bearer ${session.access_token}`;
+        console.log('🔑 Added auth token to request');
+      } else {
+        console.log('ℹ️ No auth session found, proceeding without token');
       }
     } catch (error) {
-      console.warn('Failed to get auth session:', error);
+      console.warn('❌ Failed to get auth session, proceeding without auth:', error.message);
+      // Continue with request even if auth fails
     }
+    console.log('✅ Request interceptor completed, config:', config);
     return config;
   },
   (error) => {
+    console.error('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -33,9 +49,17 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
+    console.log('📥 Response interceptor - Success:', response.status, response.statusText);
     return response;
   },
   (error) => {
+    console.error('📥 Response interceptor - Error:', {
+      message: error.message,
+      response: error.response,
+      request: error.request,
+      config: error.config
+    });
+    
     if (error.response) {
       // Server responded with error status
       const { status, data } = error.response;
@@ -53,6 +77,7 @@ api.interceptors.response.use(
       }
     } else if (error.request) {
       // Network error
+      console.error('📡 Network error details:', error.request);
       throw new Error('Network error. Please check your connection and try again.');
     } else {
       // Other error
@@ -64,9 +89,33 @@ api.interceptors.response.use(
 export const accessibilityAPI = {
   analyzeWebsite: async (url, reportType = 'overview', language = 'en') => {
     try {
+      console.log('🚀 API Call Starting:', {
+        baseURL: API_BASE_URL,
+        endpoint: '/api/accessibility/analyze',
+        payload: { url, reportType, language },
+        timestamp: new Date().toISOString()
+      });
+      
+      console.log('📡 Making POST request to /api/accessibility/analyze...');
       const response = await api.post('/api/accessibility/analyze', { url, reportType, language });
+      
+      console.log('✅ API Response Received:', {
+        status: response.status,
+        statusText: response.statusText,
+        dataKeys: Object.keys(response.data || {}),
+        dataSize: JSON.stringify(response.data || {}).length
+      });
+      
+      console.log('📦 Response data:', response.data);
+      
       return response.data;
     } catch (error) {
+      console.error('❌ API Error:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        stack: error.stack
+      });
       throw error;
     }
   },

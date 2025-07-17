@@ -1,17 +1,17 @@
 /**
- * SiteCraft Branding Configuration
+ * StreetWiseWeb Branding Configuration
  * 
  * Centralized branding configuration for consistent brand presentation
- * across the entire SiteCraft platform.
+ * across the entire StreetWiseWeb platform.
  */
 
 const branding = {
   // Company Information
   company: {
-    name: "SiteCraft",
+    name: "StreetWiseWeb",
     tagline: "Professional Web Accessibility Analysis",
-    website: "https://sitecraft.com",
-    email: "contact@sitecraft.com",
+    website: "https://streetwiseweb.com",
+    email: "contact@streetwiseweb.com",
     phone: "+1 (555) 123-4567",
     address: {
       street: "123 Accessibility Lane",
@@ -180,9 +180,9 @@ const branding = {
 
   // Social Media
   social: {
-    twitter: "https://twitter.com/sitecraft",
-    linkedin: "https://linkedin.com/company/sitecraft",
-    github: "https://github.com/sitecraft"
+    twitter: "https://twitter.com/streetwiseweb",
+    linkedin: "https://linkedin.com/company/streetwiseweb",
+    github: "https://github.com/streetwiseweb"
   },
 
   // Legal

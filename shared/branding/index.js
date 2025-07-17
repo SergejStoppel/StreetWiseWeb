@@ -4,7 +4,7 @@
  * This file contains all branding elements that are used across the entire platform,
  * including frontend website, PDF reports, email templates, and any other branded materials.
  * 
- * Update this file to customize the branding for your SiteCraft installation.
+ * Update this file to customize the branding for your StreetWiseWeb installation.
  */
 
 const path = require('path');
@@ -12,11 +12,11 @@ const path = require('path');
 const brandingConfig = {
   // Company Information
   company: {
-    name: "SiteCraft",
+    name: "StreetWiseWeb",
     tagline: "Professional Web Accessibility Analysis",
     description: "Making the web accessible for everyone",
-    website: "https://sitecraft.com",
-    email: "contact@sitecraft.com",
+    website: "https://streetwiseweb.com",
+    email: "contact@streetwiseweb.com",
     phone: "+1 (555) 123-4567",
     address: {
       street: "123 Accessibility Lane",
@@ -189,10 +189,10 @@ const brandingConfig = {
 
   // Social Media & Marketing
   social: {
-    linkedin: "https://linkedin.com/company/sitecraft",
-    twitter: "https://twitter.com/sitecraft",
-    facebook: "https://facebook.com/sitecraft",
-    github: "https://github.com/sitecraft"
+    linkedin: "https://linkedin.com/company/streetwiseweb",
+    twitter: "https://twitter.com/streetwiseweb",
+    facebook: "https://facebook.com/streetwiseweb",
+    github: "https://github.com/streetwiseweb"
   },
 
   // Feature Flags for Customization
@@ -211,5 +211,5 @@ module.exports = brandingConfig;
 
 // For ES6 environments
 if (typeof window !== 'undefined') {
-  window.SITECRAFT_BRANDING = brandingConfig;
+  window.STREETWISEWEB_BRANDING = brandingConfig;
 }
