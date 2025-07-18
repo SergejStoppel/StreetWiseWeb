@@ -199,33 +199,57 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  console.log('🏠 Dashboard: Component rendered', {
+    user: user ? { id: user.id, email: user.email } : null,
+    loading,
+    error
+  });
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
+        console.log('🏠 Dashboard: Starting to fetch dashboard data...');
         setLoading(true);
-        
+
+        console.log('🏠 Dashboard: Making API calls to getRecent and getStats...');
+
         // Fetch recent analyses and stats in parallel
         const [analysesResult, statsResult] = await Promise.allSettled([
           analysisAPI.getRecent(10),
           analysisAPI.getStats()
         ]);
-        
+
+        console.log('🏠 Dashboard: API calls completed', {
+          analysesResult: analysesResult.status,
+          statsResult: statsResult.status,
+          analysesReason: analysesResult.reason,
+          statsReason: statsResult.reason
+        });
+
         if (analysesResult.status === 'fulfilled') {
+          console.log('✅ Dashboard: Recent analyses loaded successfully', analysesResult.value);
           setAnalyses(analysesResult.value.data || []);
+        } else {
+          console.error('❌ Dashboard: Failed to load recent analyses', analysesResult.reason);
         }
-        
+
         if (statsResult.status === 'fulfilled') {
+          console.log('✅ Dashboard: Stats loaded successfully', statsResult.value);
           setStats(statsResult.value.data || {});
+        } else {
+          console.error('❌ Dashboard: Failed to load stats', statsResult.reason);
         }
-        
+
       } catch (err) {
-        console.error('Error fetching dashboard data:', err);
+        console.error('❌ Dashboard: Error fetching dashboard data:', err);
         setError('Failed to load dashboard data');
       } finally {
+        console.log('🏠 Dashboard: Setting loading to false');
         setLoading(false);
       }
     };
 
+    console.log('🏠 Dashboard: useEffect triggered, calling fetchDashboardData');
     fetchDashboardData();
   }, []);
 

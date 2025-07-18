@@ -33,29 +33,90 @@ function isCacheValid(createdAt, cacheHours = 24) {
   return hoursOld < cacheHours;
 }
 
-// Helper function to find cached analysis
-async function findCachedAnalysis(url, cacheHours = 24) {
-  try {
-    const { data, error } = await supabase
-      .rpc('find_cached_analysis', {
-        p_url: url,
-        p_cache_hours: cacheHours
-      });
+// Helper function to validate report data structure
+function validateReportData(report) {
+  const errors = [];
 
-    if (error) {
-      logger.error('Error finding cached analysis:', error);
-      return null;
-    }
-
-    return data?.[0] || null;
-  } catch (error) {
-    logger.error('Failed to find cached analysis:', error);
-    return null;
+  // Check required fields
+  if (!report.analysisId) {
+    errors.push('Missing analysisId');
   }
+
+  if (!report.url) {
+    errors.push('Missing URL');
+  }
+
+  // Validate scores are numbers within valid range
+  const scores = ['overallScore', 'accessibilityScore', 'seoScore', 'performanceScore'];
+  scores.forEach(scoreField => {
+    if (report.summary && report.summary[scoreField] !== undefined) {
+      const score = report.summary[scoreField];
+      if (typeof score !== 'number' || score < 0 || score > 100) {
+        errors.push(`Invalid ${scoreField}: must be a number between 0 and 100`);
+      }
+    }
+  });
+
+  // Validate violations structure
+  if (report.violations && !Array.isArray(report.violations)) {
+    errors.push('Violations must be an array');
+  }
+
+  // Validate summary structure
+  if (report.summary && typeof report.summary !== 'object') {
+    errors.push('Summary must be an object');
+  }
+
+  // Validate metadata structure
+  if (report.metadata && typeof report.metadata !== 'object') {
+    errors.push('Metadata must be an object');
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
+}
+
+// Helper function to find cached analysis with retry logic
+async function findCachedAnalysis(url, cacheHours = 24, maxRetries = 2) {
+  let lastError;
+
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const { data, error } = await supabase
+        .rpc('find_cached_analysis', {
+          p_url: url,
+          p_cache_hours: cacheHours
+        });
+
+      if (error) {
+        // Log the error but don't retry for function not found errors
+        if (error.code === 'PGRST202') {
+          logger.error('find_cached_analysis function not found in database:', error);
+          return null;
+        }
+        throw error;
+      }
+
+      return data?.[0] || null;
+    } catch (error) {
+      lastError = error;
+      logger.warn(`Cache lookup attempt ${attempt}/${maxRetries} failed:`, error.message);
+
+      if (attempt < maxRetries) {
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+      }
+    }
+  }
+
+  logger.error('All cache lookup attempts failed:', lastError);
+  return null;
 }
 
 // Helper function to upload screenshot to Supabase Storage
-async function uploadScreenshotToStorage(screenshotData, analysisId, type = 'desktop') {
+async function uploadScreenshotToStorage(screenshotData, analysisId, userId, type = 'desktop') {
   try {
     if (!screenshotData) return null;
 
@@ -63,11 +124,25 @@ async function uploadScreenshotToStorage(screenshotData, analysisId, type = 'des
     const base64Data = screenshotData.replace(/^data:image\/\w+;base64,/, '');
     const buffer = Buffer.from(base64Data, 'base64');
 
-    // Create file path
-    const fileName = `${analysisId}_${type}_${Date.now()}.jpg`;
-    const filePath = `screenshots/${fileName}`;
+    // Create user-specific file path: {userId}/{analysisId}/screenshots/{type}.jpg
+    const fileName = `${type}_${Date.now()}.jpg`;
+    const filePath = userId ?
+      `${userId}/${analysisId}/screenshots/${fileName}` :
+      `anonymous/${analysisId}/screenshots/${fileName}`;
 
     // Upload to Supabase Storage
+    logger.info('Attempting to upload screenshot to Supabase Storage', {
+      filePath,
+      bufferSize: buffer.length,
+      hasSupabase: !!supabase,
+      hasStorage: !!supabase?.storage
+    });
+
+    if (!supabase || !supabase.storage) {
+      logger.error('Supabase client or storage not available');
+      return null;
+    }
+
     const { data, error } = await supabase.storage
       .from('analysis-screenshots')
       .upload(filePath, buffer, {
@@ -94,13 +169,13 @@ async function uploadScreenshotToStorage(screenshotData, analysisId, type = 'des
 }
 
 // Helper function to process and store screenshots
-async function processScreenshots(screenshotData, analysisId) {
+async function processScreenshots(screenshotData, analysisId, userId = null) {
   if (!screenshotData) return null;
 
   try {
     const [desktopUrl, mobileUrl] = await Promise.all([
-      uploadScreenshotToStorage(screenshotData.desktop, analysisId, 'desktop'),
-      uploadScreenshotToStorage(screenshotData.mobile, analysisId, 'mobile')
+      uploadScreenshotToStorage(screenshotData.desktop, analysisId, userId, 'desktop'),
+      uploadScreenshotToStorage(screenshotData.mobile, analysisId, userId, 'mobile')
     ]);
 
     return {
@@ -310,15 +385,29 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
             .eq('id', cachedResult.analysis_id)
             .single();
           
-          if (!error && cachedAnalysis && cachedAnalysis.analysis_data) {
+          if (!error && cachedAnalysis) {
             logger.info('Returning cached analysis', {
               analysisId: cachedResult.analysis_id,
               url: url
             });
-            
+
+            // Reconstruct the analysis data from separate columns
+            const reconstructedAnalysis = {
+              analysisId: cachedAnalysis.id,
+              url: cachedAnalysis.url,
+              reportType: cachedAnalysis.report_type,
+              overallScore: cachedAnalysis.overall_score,
+              violations: cachedAnalysis.violations,
+              summary: cachedAnalysis.summary,
+              metadata: cachedAnalysis.metadata,
+              screenshot: cachedAnalysis.screenshots,
+              seo: cachedAnalysis.seo_analysis,
+              aiInsights: cachedAnalysis.ai_insights
+            };
+
             // Add cache metadata to response
             const response = {
-              ...cachedAnalysis.analysis_data,
+              ...reconstructedAnalysis,
               _cache: {
                 hit: true,
                 createdAt: cachedAnalysis.created_at,
@@ -597,22 +686,31 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
       
       // Save analysis to Supabase database (always save, including anonymous)
       try {
-        logger.info('Preparing to save analysis to database', { 
+        logger.info('Preparing to save analysis to database', {
           hasUser: !!req.user,
           userId: req.user?.id,
           userEmail: req.user?.email,
           analysisId: report.analysisId,
-          isAnonymous: !req.user || !req.user.id
+          isAnonymous: !req.user || !req.user.id,
+          authHeader: req.headers.authorization ? 'present' : 'missing',
+          authHeaderLength: req.headers.authorization?.length || 0
         });
         
         // Generate a unique ID for the analysis if needed
         const analysisId = report.analysisId || crypto.randomUUID();
-        
+
+        // Validate report data structure before saving
+        const validation = validateReportData(report);
+        if (!validation.isValid) {
+          logger.warn('Report validation failed:', validation.errors);
+          // Continue anyway but log the issues for debugging
+        }
+
         // Process and upload screenshots to Supabase Storage
         let processedScreenshots = null;
         if (screenshotData) {
-          logger.info('Processing screenshots for storage', { analysisId });
-          processedScreenshots = await processScreenshots(screenshotData, analysisId);
+          logger.info('Processing screenshots for storage', { analysisId, userId: req.user?.id });
+          processedScreenshots = await processScreenshots(screenshotData, analysisId, req.user?.id);
           
           // Update report with processed screenshot URLs
           if (processedScreenshots) {
@@ -688,7 +786,20 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
           .single();
           
         if (error) {
-          throw error;
+          // Provide more specific error messages based on error type
+          if (error.code === '23505') {
+            logger.warn('Duplicate analysis detected, this may be a race condition:', error);
+            throw new Error('Analysis already exists for this URL');
+          } else if (error.code === '23503') {
+            logger.error('Foreign key constraint violation:', error);
+            throw new Error('Invalid user or project reference');
+          } else if (error.code === '23514') {
+            logger.error('Check constraint violation:', error);
+            throw new Error('Invalid data values provided');
+          } else {
+            logger.error('Database save error:', error);
+            throw error;
+          }
         }
         
         // Update the report with the database ID for frontend reference
@@ -837,9 +948,28 @@ router.get('/detailed/:analysisId', extractUser, async (req, res) => {
       logger.info('Report not in cache, checking database', { analysisId, userId: req.user.id });
       
       try {
-        const dbAnalysis = await Analysis.findById(analysisId, req.user.id);
-        if (dbAnalysis && dbAnalysis.analysis_data) {
-          detailedReport = dbAnalysis.analysis_data;
+        // Query Supabase directly to get the analysis with all columns
+        const { data: dbAnalysis, error } = await supabase
+          .from('analyses')
+          .select('*')
+          .eq('id', analysisId)
+          .eq('user_id', req.user.id)
+          .single();
+
+        if (!error && dbAnalysis) {
+          // Reconstruct the detailed report from separate columns
+          detailedReport = {
+            analysisId: dbAnalysis.id,
+            url: dbAnalysis.url,
+            reportType: dbAnalysis.report_type,
+            overallScore: dbAnalysis.overall_score,
+            violations: dbAnalysis.violations,
+            summary: dbAnalysis.summary,
+            metadata: dbAnalysis.metadata,
+            screenshot: dbAnalysis.screenshots,
+            seo: dbAnalysis.seo_analysis,
+            aiInsights: dbAnalysis.ai_insights
+          };
           logger.info('Report found in database', { analysisId });
         }
       } catch (dbError) {

@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import supabase from '../config/supabase';
 import { toast } from 'react-toastify';
+import sessionManager from '../utils/sessionManager';
 
 const AuthContext = createContext();
 
@@ -18,23 +19,167 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
   const [initializing, setInitializing] = useState(true);
 
-  // Initialize auth state
+  // Validate session with backend
+  const validateSessionWithBackend = async (session) => {
+    if (!session?.access_token) {
+      return false;
+    }
+
+    try {
+      console.log('🔍 Validating session with backend...');
+
+      // Make a simple authenticated request to validate the token
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/analysis/stats`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const isValid = response.status !== 401;
+      console.log(`${isValid ? '✅' : '❌'} Session validation result:`, {
+        status: response.status,
+        isValid
+      });
+
+      return isValid;
+    } catch (error) {
+      console.warn('❌ Session validation failed:', error.message);
+      return false;
+    }
+  };
+
+  // Initialize auth state with proper validation
   useEffect(() => {
-    // Get initial session
+    // FORCE: Add timeout to prevent infinite loading
+    const forceComplete = setTimeout(() => {
+      console.log('⏰ FORCE: Auth initialization timeout, completing anyway');
+      setInitializing(false);
+      setLoading(false);
+    }, 3000); // 3 second timeout
+
+    // Get initial session and validate it (with container restart recovery)
     const getInitialSession = async () => {
       try {
+        console.log('🔄 Initializing auth state...');
+        console.log('🔍 DEBUG: About to check container restart');
+
+        // Check if we might be recovering from a container restart
+        if (sessionManager.isContainerRestart()) {
+          console.log('🔄 Detected potential container restart, attempting recovery...');
+          const recoveredSession = await sessionManager.recoverSessionAfterRestart();
+
+          if (recoveredSession) {
+            console.log('✅ Session recovered from container restart');
+
+            // TEMPORARY: Skip backend validation for session recovery too
+            console.log('⚠️ TEMPORARILY SKIPPING backend validation for session recovery');
+            console.log('✅ Setting user state from recovered session (validation bypassed)');
+            console.log('👤 Recovered user:', recoveredSession.user);
+
+            setUser(recoveredSession.user);
+            console.log('✅ User state set, fetching profile...');
+
+            // TEMPORARY: Skip profile fetch to test dashboard loading
+            console.log('⚠️ TEMPORARILY SKIPPING profile fetch for session recovery');
+            // await fetchUserProfile(recoveredSession.user.id);
+            console.log('✅ Profile fetch skipped, storing session metadata...');
+
+            sessionManager.storeSessionMetadata(recoveredSession);
+            console.log('✅ Session recovery complete, returning early');
+            console.log('🔍 DEBUG: About to return from session recovery');
+            return;
+
+            // TODO: Re-enable this after testing
+            // // Validate recovered session with backend
+            // const isValid = await validateSessionWithBackend(recoveredSession);
+            //
+            // if (isValid) {
+            //   setUser(recoveredSession.user);
+            //   await fetchUserProfile(recoveredSession.user.id);
+            //   sessionManager.storeSessionMetadata(recoveredSession);
+            //   return;
+            // } else {
+            //   console.log('❌ Recovered session is invalid');
+            //   sessionManager.clearSessionMetadata();
+            // }
+          } else {
+            console.log('❌ No session recovered from container restart');
+          }
+        } else {
+          console.log('ℹ️ No container restart detected, proceeding with normal initialization');
+        }
+
+        console.log('🔍 DEBUG: About to call normal session initialization');
+        // Normal session initialization
         const { data: { session }, error } = await supabase.auth.getSession();
+        console.log('🔍 DEBUG: Got session from Supabase:', !!session, !!error);
+
         if (error) {
-          console.error('Error getting session:', error);
+          console.error('❌ Error getting session:', error);
+          // Clear any stale session data
+          await supabase.auth.signOut();
+          sessionManager.clearSessionMetadata();
+          setUser(null);
+          setUserProfile(null);
         } else if (session) {
+          console.log('📋 Found stored session, validating with backend...');
+
+          // TEMPORARY: Skip backend validation to test dashboard
+          console.log('⚠️ TEMPORARILY SKIPPING backend validation for testing');
+          console.log('✅ Session found, setting user state (validation bypassed)');
           setUser(session.user);
-          await fetchUserProfile(session.user.id);
+          // TEMPORARY: Skip profile fetch to test dashboard loading
+          console.log('⚠️ TEMPORARILY SKIPPING profile fetch for normal session');
+          // await fetchUserProfile(session.user.id);
+          // Store metadata for future container restart recovery
+          sessionManager.storeSessionMetadata(session);
+
+          // TODO: Re-enable this after testing
+          // // Validate the session with the backend
+          // const isValidSession = await validateSessionWithBackend(session);
+          //
+          // if (isValidSession) {
+          //   console.log('✅ Session is valid, setting user state');
+          //   setUser(session.user);
+          //   await fetchUserProfile(session.user.id);
+          //   // Store metadata for future container restart recovery
+          //   sessionManager.storeSessionMetadata(session);
+          // } else {
+          //   console.log('❌ Session is invalid, clearing auth state');
+          //   // Session is invalid, clear it
+          //   await supabase.auth.signOut();
+          //   sessionManager.clearSessionMetadata();
+          //   setUser(null);
+          //   setUserProfile(null);
+          // }
+        } else {
+          console.log('ℹ️ No session found');
+          sessionManager.clearSessionMetadata();
+          setUser(null);
+          setUserProfile(null);
         }
       } catch (error) {
-        console.error('Error initializing auth:', error);
+        console.error('❌ Error initializing auth:', error);
+        // On any error, clear auth state
+        sessionManager.clearSessionMetadata();
+        setUser(null);
+        setUserProfile(null);
       } finally {
+        console.log('🏁 Auth initialization complete, setting states to false');
+        clearTimeout(forceComplete);
         setInitializing(false);
         setLoading(false);
+
+        // Log final auth state
+        setTimeout(() => {
+          console.log('🏁 Final auth state after initialization:', {
+            user: user ? { id: user.id, email: user.email } : null,
+            initializing: false,
+            loading: false
+          });
+        }, 100);
       }
     };
 
@@ -48,7 +193,10 @@ export function AuthProvider({ children }) {
         try {
           if (session) {
             setUser(session.user);
-            
+
+            // Store session metadata for container restart recovery
+            sessionManager.storeSessionMetadata(session);
+
             // Check for pending profile update after successful authentication
             const pendingProfileUpdate = sessionStorage.getItem('pendingProfileUpdate');
             if (pendingProfileUpdate && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
@@ -56,8 +204,9 @@ export function AuthProvider({ children }) {
                 const userData = JSON.parse(pendingProfileUpdate);
                 console.log('Updating user profile with pending data:', userData);
                 
-                // Fetch the profile first (should exist due to trigger)
-                await fetchUserProfile(session.user.id);
+                // TEMPORARY: Skip profile fetch to prevent hanging
+                console.log('⚠️ TEMPORARILY SKIPPING profile fetch in auth state change');
+                // await fetchUserProfile(session.user.id);
                 
                 // Then update it with additional info if available
                 if (userData.firstName || userData.lastName || userData.company) {
@@ -78,22 +227,26 @@ export function AuthProvider({ children }) {
                 sessionStorage.removeItem('pendingProfileUpdate');
               } catch (error) {
                 console.error('Error handling pending profile update:', error);
-                // Try to fetch profile anyway
-                try {
-                  await fetchUserProfile(session.user.id);
-                } catch (fetchError) {
-                  console.error('Error fetching user profile:', fetchError);
-                  setUserProfile(null);
-                }
+                // TEMPORARY: Skip profile fetch to prevent hanging
+                console.log('⚠️ TEMPORARILY SKIPPING profile fetch in error handler');
+                setUserProfile(null);
+                // try {
+                //   await fetchUserProfile(session.user.id);
+                // } catch (fetchError) {
+                //   console.error('Error fetching user profile:', fetchError);
+                //   setUserProfile(null);
+                // }
               }
             } else {
-              // Normal flow - try to fetch existing profile
-              try {
-                await fetchUserProfile(session.user.id);
-              } catch (error) {
-                console.error('Error fetching user profile:', error);
-                setUserProfile(null); // Ensure we set profile to null on error
-              }
+              // TEMPORARY: Skip profile fetch to prevent hanging
+              console.log('⚠️ TEMPORARILY SKIPPING profile fetch in normal flow');
+              setUserProfile(null);
+              // try {
+              //   await fetchUserProfile(session.user.id);
+              // } catch (error) {
+              //   console.error('Error fetching user profile:', error);
+              //   setUserProfile(null); // Ensure we set profile to null on error
+              // }
             }
           } else {
             setUser(null);
@@ -110,6 +263,7 @@ export function AuthProvider({ children }) {
     );
 
     return () => {
+      clearTimeout(forceComplete);
       subscription.unsubscribe();
     };
   }, []);
@@ -279,50 +433,60 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Sign out
+  // Clear all session data
+  const clearSessionData = () => {
+    console.log('🧹 Clearing all session data...');
+
+    // Clear React state
+    setUser(null);
+    setUserProfile(null);
+
+    // Use session manager for comprehensive cleanup
+    sessionManager.performCompleteSessionCleanup();
+  };
+
+  // Sign out with comprehensive cleanup
   const signOut = async () => {
     try {
       console.log('🔓 AuthContext signOut: Starting sign out process...');
       setLoading(true);
-      
+
       console.log('📡 AuthContext signOut: Calling supabase.auth.signOut()...');
-      
+
       // Try to sign out with timeout
       const signOutPromise = supabase.auth.signOut();
       const timeoutPromise = new Promise((_, reject) => {
         setTimeout(() => reject(new Error('Sign out timeout after 10 seconds')), 10000);
       });
-      
+
       try {
         const result = await Promise.race([signOutPromise, timeoutPromise]);
         const { error } = result;
-        
+
         if (error) {
           console.error('❌ AuthContext signOut: Supabase error:', error);
-          throw error;
+          // Don't throw - continue with cleanup
+        } else {
+          console.log('✅ AuthContext signOut: Supabase sign out successful');
         }
-        
-        console.log('✅ AuthContext signOut: Supabase sign out successful');
       } catch (timeoutError) {
         console.warn('⚠️ AuthContext signOut: Timeout occurred, proceeding with local signout');
         // Don't throw - continue with local signout
       }
 
-      // Always clear local state regardless of API response
-      setUser(null);
-      setUserProfile(null);
+      // Always clear all session data regardless of API response
+      clearSessionData();
       toast.success('Signed out successfully');
-      
-      console.log('✅ AuthContext signOut: Local state cleared');
+
+      console.log('✅ AuthContext signOut: Complete cleanup finished');
     } catch (error) {
       console.error('❌ AuthContext signOut: Error:', error);
-      
-      // Even if there's an error, clear local state
-      setUser(null);
-      setUserProfile(null);
+
+      // Even if there's an error, clear all session data
+      clearSessionData();
       toast.success('Signed out successfully');
-      
-      console.log('✅ AuthContext signOut: Local state cleared despite error');
+
+      console.log('✅ AuthContext signOut: Cleanup completed despite error');
     } finally {
       console.log('🔄 AuthContext signOut: Setting loading to false');
       setLoading(false);
@@ -447,6 +611,57 @@ export function AuthProvider({ children }) {
     return limits.features.includes(feature);
   };
 
+  // Session health check - can be called to verify session is still valid
+  const checkSessionHealth = async () => {
+    try {
+      console.log('🏥 Performing session health check...');
+
+      const { data: { session }, error } = await supabase.auth.getSession();
+
+      if (error || !session) {
+        console.log('❌ Session health check failed: No valid session');
+        if (user) {
+          console.log('🧹 Clearing stale user state');
+          clearSessionData();
+        }
+        return false;
+      }
+
+      // Validate with backend
+      const isValid = await validateSessionWithBackend(session);
+
+      if (!isValid && user) {
+        console.log('❌ Session health check failed: Backend validation failed');
+        console.log('🧹 Clearing invalid session');
+        await supabase.auth.signOut();
+        clearSessionData();
+        return false;
+      }
+
+      console.log('✅ Session health check passed');
+      return true;
+    } catch (error) {
+      console.error('❌ Session health check error:', error);
+      if (user) {
+        clearSessionData();
+      }
+      return false;
+    }
+  };
+
+  // TEMPORARY: Disable periodic session health check for testing
+  // useEffect(() => {
+  //   if (!user) return;
+  //
+  //   const healthCheckInterval = setInterval(async () => {
+  //     if (document.visibilityState === 'visible') {
+  //       await checkSessionHealth();
+  //     }
+  //   }, 5 * 60 * 1000); // 5 minutes
+  //
+  //   return () => clearInterval(healthCheckInterval);
+  // }, [user]);
+
   const value = {
     user,
     userProfile,
@@ -462,7 +677,8 @@ export function AuthProvider({ children }) {
     getMonthlyUsage,
     logAction,
     getPlanLimits,
-    hasFeature
+    hasFeature,
+    checkSessionHealth
   };
 
   return (

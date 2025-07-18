@@ -11,33 +11,71 @@ const api = axios.create({
   },
 });
 
-// Request interceptor
+// Session validation cache to avoid repeated backend calls (currently unused but reserved for future optimization)
+// let sessionValidationCache = {
+//   token: null,
+//   isValid: false,
+//   timestamp: 0,
+//   cacheDuration: 5 * 60 * 1000 // 5 minutes
+// };
+
+// Helper function to check if session is expired
+const isSessionExpired = (session) => {
+  if (!session?.expires_at) return false;
+  return new Date(session.expires_at * 1000) <= new Date();
+};
+
+// Request interceptor with enhanced session handling
 api.interceptors.request.use(
   async (config) => {
     console.log('🔧 Request interceptor called for:', config.url);
-    // Add auth headers if user is authenticated
+
     try {
       console.log('🔍 Getting Supabase session...');
-      
+
       // Add timeout to prevent hanging
       const sessionPromise = supabase.auth.getSession();
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Supabase session timeout')), 5000);
+        setTimeout(() => reject(new Error('Supabase session timeout')), 10000);
       });
-      
-      const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]);
-      
+
+      const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]);
+
+      if (error) {
+        console.warn('❌ Session retrieval error:', error.message);
+        return config;
+      }
+
       if (session?.access_token) {
-        config.headers.Authorization = `Bearer ${session.access_token}`;
-        console.log('🔑 Added auth token to request');
+        // Check if session is expired
+        if (isSessionExpired(session)) {
+          console.warn('⏰ Session is expired, attempting refresh...');
+          try {
+            const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+            if (refreshError || !refreshData.session) {
+              console.warn('❌ Session refresh failed, clearing auth');
+              await supabase.auth.signOut();
+              return config;
+            }
+            // Use refreshed session
+            config.headers.Authorization = `Bearer ${refreshData.session.access_token}`;
+            console.log('🔄 Used refreshed auth token');
+          } catch (refreshErr) {
+            console.warn('❌ Session refresh error:', refreshErr.message);
+            return config;
+          }
+        } else {
+          // Use existing valid session
+          config.headers.Authorization = `Bearer ${session.access_token}`;
+          console.log('🔑 Added auth token to request');
+        }
       } else {
         console.log('ℹ️ No auth session found, proceeding without token');
       }
     } catch (error) {
       console.warn('❌ Failed to get auth session, proceeding without auth:', error.message);
-      // Continue with request even if auth fails
     }
-    console.log('✅ Request interceptor completed, config:', config);
+
     return config;
   },
   (error) => {
@@ -52,7 +90,7 @@ api.interceptors.response.use(
     console.log('📥 Response interceptor - Success:', response.status, response.statusText);
     return response;
   },
-  (error) => {
+  async (error) => {
     console.error('📥 Response interceptor - Error:', {
       message: error.message,
       response: error.response,
@@ -64,7 +102,25 @@ api.interceptors.response.use(
       // Server responded with error status
       const { status, data } = error.response;
       
-      if (status === 429) {
+      if (status === 401) {
+        // Authentication error - token may be expired
+        console.warn('🔐 Authentication error detected, clearing session');
+
+        // Clear the session and redirect to login if needed
+        try {
+          await supabase.auth.signOut();
+
+          // Force a page reload to clear any stale state
+          if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
+            console.log('🔄 Redirecting to login due to auth error');
+            window.location.href = '/login';
+            return;
+          }
+        } catch (signOutError) {
+          console.warn('Failed to sign out after auth error:', signOutError);
+        }
+        throw new Error('Your session has expired. Please sign in again.');
+      } else if (status === 429) {
         throw new Error('Too many requests. Please try again later.');
       } else if (status === 422) {
         throw new Error(data.message || 'Unable to analyze the website. Please check the URL and try again.');
@@ -224,9 +280,12 @@ export const analysisAPI = {
   // Get recent analyses
   getRecent: async (limit = 5) => {
     try {
+      console.log(`📊 API: Making request to /api/analysis/recent?limit=${limit}`);
       const response = await api.get(`/api/analysis/recent?limit=${limit}`);
+      console.log('✅ API: getRecent response received', response.data);
       return response.data;
     } catch (error) {
+      console.error('❌ API: getRecent failed', error);
       throw error;
     }
   },
@@ -234,9 +293,12 @@ export const analysisAPI = {
   // Get analysis statistics
   getStats: async () => {
     try {
+      console.log('📊 API: Making request to /api/analysis/stats');
       const response = await api.get('/api/analysis/stats');
+      console.log('✅ API: getStats response received', response.data);
       return response.data;
     } catch (error) {
+      console.error('❌ API: getStats failed', error);
       throw error;
     }
   },

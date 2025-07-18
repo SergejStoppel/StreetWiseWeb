@@ -23,9 +23,10 @@ i18n
     // Supported languages
     supportedLngs: Object.keys(SUPPORTED_LANGUAGES),
     
-    // Namespaces
+    // Namespaces - preload the most critical ones
     ns: ['common', 'navigation', 'analysis', 'forms', 'reports', 'dashboard', 'homepage'],
     defaultNS: 'common',
+    preload: ['en', 'es', 'de'],
     
     // Backend configuration
     backend: {
@@ -49,8 +50,16 @@ i18n
       escapeValue: false, // React already escapes values
     },
     
-    // Debug in development
-    debug: process.env.NODE_ENV === 'development',
+    // Load namespaces synchronously
+    partialBundledLanguages: true,
+    
+    // Disable debug logs
+    debug: false,
   });
+
+// Preload navigation namespace for all languages to avoid missing key errors
+i18n.loadNamespaces(['navigation', 'common'], () => {
+  console.log('✅ Critical namespaces loaded');
+});
 
 export default i18n;

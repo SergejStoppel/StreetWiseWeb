@@ -25,9 +25,14 @@ const extractUser = async (req, res, next) => {
     logger.info('Attempting JWT verification', { tokenLength: token.length });
     
     try {
-      // Verify the JWT token with Supabase
-      const { data: { user }, error } = await supabase.auth.getUser(token);
-      
+      // Verify the JWT token with Supabase with timeout
+      const verificationPromise = supabase.auth.getUser(token);
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('JWT verification timeout')), 10000);
+      });
+
+      const { data: { user }, error } = await Promise.race([verificationPromise, timeoutPromise]);
+
       if (error) {
         logger.warn('JWT verification failed:', error.message);
         req.user = null;

@@ -129,7 +129,7 @@ const ScreenshotImage = styled.img`
   margin-top: 1.5rem;
   
   @media (max-width: 768px) {
-    width: 120px;
+    width: ${props => props.width === '200px' ? '160px' : '120px'};
   }
 `;
 
@@ -145,8 +145,8 @@ const ScreenshotPlaceholder = styled.div`
   margin-top: 1.5rem;
   
   @media (max-width: 768px) {
-    width: 120px;
-    height: 85px;
+    width: ${props => props.width === '200px' ? '160px' : '120px'};
+    height: ${props => props.width === '200px' ? '88px' : '68px'};
   }
 `;
 
@@ -272,10 +272,10 @@ const EnhancedReportHeader = ({ report }) => {
                 <ScreenshotImage 
                   src={screenshot.desktop} 
                   alt="Desktop screenshot" 
-                  width="140px"
+                  width="200px"
                 />
               ) : (
-                <ScreenshotPlaceholder width="140px" height="100px">
+                <ScreenshotPlaceholder width="200px" height="110px">
                   Desktop View
                 </ScreenshotPlaceholder>
               )}
@@ -289,7 +289,7 @@ const EnhancedReportHeader = ({ report }) => {
                   width="80px"
                 />
               ) : (
-                <ScreenshotPlaceholder width="80px" height="100px">
+                <ScreenshotPlaceholder width="80px" height="85px">
                   Mobile View
                 </ScreenshotPlaceholder>
               )}

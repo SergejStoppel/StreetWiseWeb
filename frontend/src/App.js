@@ -46,7 +46,7 @@ const MainContent = styled.main`
 
 // Placeholder components for pages not yet implemented
 const PlaceholderPage = styled.div`
-  min-height: 50vh;
+  min-height: 60vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -69,6 +69,8 @@ const PlaceholderText = styled.p`
   max-width: 600px;
   line-height: var(--line-height-relaxed);
 `;
+
+
 
 const ComingSoonPage = ({ title, description }) => (
   <PlaceholderPage>

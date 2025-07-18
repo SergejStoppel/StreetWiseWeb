@@ -34,5 +34,11 @@
   "backToTop": "Back to Top",
   "previousPage": "Previous Page",
   "nextPage": "Next Page",
-  "searchSite": "Search Site"
+  "searchSite": "Search Site",
+  "services": "Services",
+  "allServices": "All Services",
+  "accessibility": "Accessibility",
+  "seoContent": "SEO & Content",
+  "websiteOverhaul": "Website Overhaul",
+  "freeAudit": "Free Audit"
 }
