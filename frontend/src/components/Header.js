@@ -455,6 +455,11 @@ const Header = () => {
   };
 
   const toggleUserDropdown = () => {
+    console.log('👤 User dropdown toggled, current auth state:', {
+      user: !!user,
+      userEmail: user?.email,
+      isAuthenticated: !!user
+    });
     setIsUserDropdownOpen(!isUserDropdownOpen);
   };
 
@@ -463,9 +468,10 @@ const Header = () => {
     try {
       await signOut();
       console.log('✅ Sign out successful');
-      setIsUserDropdownOpen(false);
     } catch (error) {
-      console.error('❌ Sign out failed:', error);
+      console.log('ℹ️ Sign out completed with timeout, but user is logged out');
+    } finally {
+      setIsUserDropdownOpen(false);
     }
   };
 

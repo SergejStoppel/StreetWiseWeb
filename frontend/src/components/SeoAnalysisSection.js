@@ -100,8 +100,8 @@ const Tab = styled.button`
   padding: 1rem 1.5rem;
   cursor: pointer;
   font-weight: 500;
-  color: ${props => props.active ? '#10b981' : '#6b7280'};
-  border-bottom: 2px solid ${props => props.active ? '#10b981' : 'transparent'};
+  color: ${props => props.$active ? '#10b981' : '#6b7280'};
+  border-bottom: 2px solid ${props => props.$active ? '#10b981' : 'transparent'};
   transition: all 0.2s ease;
   
   &:hover {
@@ -110,7 +110,7 @@ const Tab = styled.button`
 `;
 
 const TabContent = styled.div`
-  display: ${props => props.active ? 'block' : 'none'};
+  display: ${props => props.$active ? 'block' : 'none'};
 `;
 
 const CategoryGrid = styled.div`
@@ -143,7 +143,7 @@ const CategoryHeader = styled.div`
 const CategoryIcon = styled.div`
   width: 32px;
   height: 32px;
-  background: ${props => props.background || '#10b981'};
+  background: ${props => props.$background || '#10b981'};
   border-radius: 6px;
   display: flex;
   align-items: center;
@@ -174,7 +174,7 @@ const IssuesList = styled.div`
 const IssueCard = styled.div`
   background: white;
   border: 1px solid #e5e7eb;
-  border-left: 4px solid ${props => props.impactColor || '#6b7280'};
+  border-left: 4px solid ${props => props.$impactColor || '#6b7280'};
   border-radius: 8px;
   padding: 1.5rem;
   transition: all 0.2s ease;
@@ -199,7 +199,7 @@ const IssueTitle = styled.h4`
 `;
 
 const ImpactBadge = styled.span`
-  background: ${props => props.background || '#6b7280'};
+  background: ${props => props.$background || '#6b7280'};
   color: white;
   padding: 0.25rem 0.75rem;
   border-radius: 12px;
@@ -392,7 +392,7 @@ const SeoAnalysisSection = ({ seoAnalysis }) => {
         {tabs.map(tab => (
           <Tab 
             key={tab.id}
-            active={activeTab === tab.id}
+            $active={activeTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.label}
@@ -401,14 +401,14 @@ const SeoAnalysisSection = ({ seoAnalysis }) => {
       </TabsContainer>
 
       {tabs.map(tab => (
-        <TabContent key={tab.id} active={activeTab === tab.id}>
+        <TabContent key={tab.id} $active={activeTab === tab.id}>
           {tab.data ? (
             <>
               <CategoryGrid>
                 {Object.entries(tab.data).filter(([key]) => key !== 'issues').map(([key, value]) => (
                   <CategoryCard key={key}>
                     <CategoryHeader>
-                      <CategoryIcon background={getScoreColor(value.score || 0)}>
+                      <CategoryIcon $background={getScoreColor(value.score || 0)}>
                         {getCategoryIcon(tab.id)}
                       </CategoryIcon>
                       <CategoryTitle>{key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}</CategoryTitle>
@@ -422,10 +422,10 @@ const SeoAnalysisSection = ({ seoAnalysis }) => {
 
               <IssuesList>
                 {tab.data.issues?.map((issue, index) => (
-                  <IssueCard key={index} impactColor={getImpactColor(issue.impact)}>
+                  <IssueCard key={index} $impactColor={getImpactColor(issue.impact)}>
                     <IssueHeader>
                       <IssueTitle>{issue.title}</IssueTitle>
-                      <ImpactBadge background={getImpactColor(issue.impact)}>
+                      <ImpactBadge $background={getImpactColor(issue.impact)}>
                         {issue.impact} Impact
                       </ImpactBadge>
                     </IssueHeader>

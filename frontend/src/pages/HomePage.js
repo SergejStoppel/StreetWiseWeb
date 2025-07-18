@@ -692,7 +692,44 @@ const HomePage = () => {
   const navigate = useNavigate();
   const { t, i18n, ready } = useTranslation(['homepage', 'forms']);
 
-  // Component mount debugging (removed to prevent StrictMode spam)
+  // Debug environment variables on component mount
+  console.log('🌍 Environment Variables Check:', {
+    NODE_ENV: process.env.NODE_ENV,
+    REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+    REACT_APP_SUPABASE_URL: process.env.REACT_APP_SUPABASE_URL ? 'LOADED' : 'MISSING',
+    REACT_APP_SUPABASE_ANON_KEY: process.env.REACT_APP_SUPABASE_ANON_KEY ? 'LOADED' : 'MISSING'
+  });
+
+  // Test Supabase connectivity directly
+  const testSupabaseConnection = async () => {
+    try {
+      console.log('🔍 Testing direct Supabase connection...');
+      // First test direct API access
+      const response = await fetch(`${process.env.REACT_APP_SUPABASE_URL}/rest/v1/`, {
+        headers: {
+          'apikey': process.env.REACT_APP_SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`
+        }
+      });
+      console.log('✅ Direct Supabase API response:', response.status, response.statusText);
+      
+      // Test Supabase Auth specifically
+      console.log('🔐 Testing Supabase Auth health...');
+      const authResponse = await fetch(`${process.env.REACT_APP_SUPABASE_URL}/auth/v1/health`, {
+        headers: {
+          'apikey': process.env.REACT_APP_SUPABASE_ANON_KEY
+        }
+      });
+      console.log('🔐 Auth health response:', authResponse.status, authResponse.statusText);
+    } catch (error) {
+      console.error('❌ Direct Supabase test failed:', error);
+    }
+  };
+
+  // Run test after component mounts
+  React.useEffect(() => {
+    testSupabaseConnection();
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();

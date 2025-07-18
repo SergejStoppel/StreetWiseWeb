@@ -1,6 +1,6 @@
-# SiteCraft Docker Setup
+# StreetWiseWeb Docker Setup
 
-This Docker setup provides a consistent environment for running SiteCraft with all Chrome dependencies pre-installed.
+This Docker setup provides a consistent environment for running StreetWiseWeb with all Chrome dependencies pre-installed.
 
 ## Prerequisites
 

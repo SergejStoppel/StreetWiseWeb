@@ -1,4 +1,4 @@
-# SiteCraft Production-Ready Implementation Plan
+# StreetWiseWeb Production-Ready Implementation Plan
 **Focus: Small Customer Segment with Database & User Management**
 
 ---
@@ -245,7 +245,7 @@ services:
     build: ./backend
     environment:
       - NODE_ENV=production
-      - DATABASE_URL=postgresql://user:pass@db:5432/sitecraft
+      - DATABASE_URL=postgresql://user:pass@db:5432/streetwiseweb
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET}
     depends_on:
@@ -261,8 +261,8 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_DB=sitecraft
-      - POSTGRES_USER=sitecraft_user
+          - POSTGRES_DB=streetwiseweb
+    - POSTGRES_USER=streetwiseweb_user
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data

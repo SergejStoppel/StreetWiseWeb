@@ -105,12 +105,12 @@ const TableHeaderCell = styled.th`
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
   background: var(--color-surface-tertiary);
-  cursor: ${props => props.sortable ? 'pointer' : 'default'};
+  cursor: ${props => props.$sortable ? 'pointer' : 'default'};
   user-select: none;
   transition: var(--transition-fast);
   
   &:hover {
-    background: ${props => props.sortable ? 'var(--color-surface-secondary)' : 'var(--color-surface-tertiary)'};
+    background: ${props => props.$sortable ? 'var(--color-surface-secondary)' : 'var(--color-surface-tertiary)'};
   }
   
   &.sortable {
@@ -314,28 +314,28 @@ const IssueTable = ({ issues, onIssueToggle, expandedIssues }) => {
         <TableHead>
           <TableRow>
             <TableHeaderCell 
-              sortable 
+              $sortable 
               onClick={() => handleSort('title')}
             >
               Issue
               <SortIcon>{getSortIcon('title')}</SortIcon>
             </TableHeaderCell>
             <TableHeaderCell 
-              sortable 
+              $sortable 
               onClick={() => handleSort('severity')}
             >
               Severity
               <SortIcon>{getSortIcon('severity')}</SortIcon>
             </TableHeaderCell>
             <TableHeaderCell 
-              sortable 
+              $sortable 
               onClick={() => handleSort('elementCount')}
             >
               Elements
               <SortIcon>{getSortIcon('elementCount')}</SortIcon>
             </TableHeaderCell>
             <TableHeaderCell 
-              sortable 
+              $sortable 
               onClick={() => handleSort('wcagLevel')}
             >
               WCAG Level

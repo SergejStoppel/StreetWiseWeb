@@ -20,7 +20,7 @@ services:
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
       - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
     networks:
-      - sitecraft-network
+      - streetwiseweb-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
@@ -48,7 +48,7 @@ services:
     depends_on:
       - backend
     networks:
-      - sitecraft-network
+      - streetwiseweb-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000"]
@@ -58,7 +58,7 @@ services:
       start_period: 40s
 
 networks:
-  sitecraft-network:
+  streetwiseweb-network:
     driver: bridge
 
 volumes:

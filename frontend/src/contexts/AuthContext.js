@@ -282,22 +282,49 @@ export function AuthProvider({ children }) {
   // Sign out
   const signOut = async () => {
     try {
+      console.log('🔓 AuthContext signOut: Starting sign out process...');
       setLoading(true);
       
-      const { error } = await supabase.auth.signOut();
+      console.log('📡 AuthContext signOut: Calling supabase.auth.signOut()...');
       
-      if (error) {
-        throw error;
+      // Try to sign out with timeout
+      const signOutPromise = supabase.auth.signOut();
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Sign out timeout after 10 seconds')), 10000);
+      });
+      
+      try {
+        const result = await Promise.race([signOutPromise, timeoutPromise]);
+        const { error } = result;
+        
+        if (error) {
+          console.error('❌ AuthContext signOut: Supabase error:', error);
+          throw error;
+        }
+        
+        console.log('✅ AuthContext signOut: Supabase sign out successful');
+      } catch (timeoutError) {
+        console.warn('⚠️ AuthContext signOut: Timeout occurred, proceeding with local signout');
+        // Don't throw - continue with local signout
       }
 
+      // Always clear local state regardless of API response
       setUser(null);
       setUserProfile(null);
       toast.success('Signed out successfully');
+      
+      console.log('✅ AuthContext signOut: Local state cleared');
     } catch (error) {
-      console.error('Error signing out:', error);
-      toast.error('Error signing out');
-      throw error;
+      console.error('❌ AuthContext signOut: Error:', error);
+      
+      // Even if there's an error, clear local state
+      setUser(null);
+      setUserProfile(null);
+      toast.success('Signed out successfully');
+      
+      console.log('✅ AuthContext signOut: Local state cleared despite error');
     } finally {
+      console.log('🔄 AuthContext signOut: Setting loading to false');
       setLoading(false);
     }
   };

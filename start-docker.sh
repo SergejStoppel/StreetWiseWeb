@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Starting SiteCraft with Docker..."
+echo "Starting StreetWiseWeb with Docker..."
 echo ""
 
 echo "Checking Docker availability..."
@@ -35,7 +35,7 @@ fi
 echo "✅ Docker Compose is available"
 echo ""
 
-echo "Building and starting SiteCraft containers..."
+echo "Building and starting StreetWiseWeb containers..."
 echo "This may take a few minutes on the first run..."
 echo ""
 
@@ -45,7 +45,7 @@ docker-compose up -d
 
 if [ $? -eq 0 ]; then
     echo ""
-    echo "✅ SiteCraft is starting in Docker containers!"
+    echo "✅ StreetWiseWeb is starting in Docker containers!"
     echo ""
     echo "Backend will be available at: http://localhost:3001"
     echo "Frontend will be available at: http://localhost:3000"
@@ -62,7 +62,7 @@ if [ $? -eq 0 ]; then
     echo ""
 else
     echo ""
-    echo "❌ Failed to start SiteCraft containers."
+    echo "❌ Failed to start StreetWiseWeb containers."
     echo "Check the error messages above for details."
     echo ""
 fi

@@ -1,8 +1,8 @@
-# SiteCraft Competitor Gap Analysis & Enhancement Plan
+# StreetWiseWeb Competitor Gap Analysis & Enhancement Plan
 
 ## Executive Summary
 
-Based on analysis of competitor accessibility tools, this document outlines strategic improvements for SiteCraft's overview and detailed reports to match or exceed competitor offerings while maintaining our unique value proposition.
+Based on analysis of competitor accessibility tools, this document outlines strategic improvements for StreetWiseWeb's overview and detailed reports to match or exceed competitor offerings while maintaining our unique value proposition.
 
 ## Competitor Strengths Identified
 
@@ -26,7 +26,7 @@ Based on analysis of competitor accessibility tools, this document outlines stra
 - **Code Examples**: Both correct and incorrect implementations
 - **Testing Criteria**: How to verify fixes work
 
-## SiteCraft Enhancement Plan
+## StreetWiseWeb Enhancement Plan
 
 ### Phase 1: Overview Report Enhancements (Free Tier)
 
@@ -289,6 +289,6 @@ const IssueDetail = {
 
 ## Conclusion
 
-This enhancement plan positions SiteCraft to match competitor strengths while leveraging our unique advantages in AI-powered guidance and developer experience. The phased approach ensures manageable implementation while delivering immediate value improvements.
+This enhancement plan positions StreetWiseWeb to match competitor strengths while leveraging our unique advantages in AI-powered guidance and developer experience. The phased approach ensures manageable implementation while delivering immediate value improvements.
 
 Priority focus should be on the overview report enhancements (Phase 1) to improve conversion rates, followed by detailed report improvements (Phase 2) to increase customer satisfaction and retention.

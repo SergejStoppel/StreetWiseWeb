@@ -1,4 +1,4 @@
-# SiteCraft - Website Accessibility Analysis Tool
+# StreetWiseWeb - Website Accessibility Analysis Tool
 
 A comprehensive web accessibility analysis tool that provides instant insights into website compliance and generates detailed reports with actionable recommendations.
 

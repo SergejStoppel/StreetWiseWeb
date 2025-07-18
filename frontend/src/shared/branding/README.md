@@ -1,6 +1,6 @@
-# SiteCraft Branding System
+# StreetWiseWeb Branding System
 
-This directory contains the centralized branding configuration for the entire SiteCraft platform.
+This directory contains the centralized branding configuration for the entire StreetWiseWeb platform.
 
 ## 📁 Directory Structure
 
@@ -139,4 +139,4 @@ When you update the branding configuration, it automatically affects:
 5. Test PDF generation with new branding
 6. Verify all brand elements display correctly
 
-This centralized approach ensures consistent branding across your entire SiteCraft installation while making it easy to customize for your organization.
+This centralized approach ensures consistent branding across your entire StreetWiseWeb installation while making it easy to customize for your organization.

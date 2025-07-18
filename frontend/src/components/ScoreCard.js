@@ -10,7 +10,7 @@ const Card = styled.div`
   text-align: center;
   position: relative;
   overflow: hidden;
-  border: 2px solid ${props => props.borderColor || 'var(--color-border-primary)'};
+  border: 2px solid ${props => props.$borderColor || 'var(--color-border-primary)'};
   transition: all var(--transition-fast);
   
   &:hover {
@@ -87,9 +87,9 @@ const StatusBadge = styled.div`
   text-transform: uppercase;
   letter-spacing: var(--letter-spacing-wide);
   margin-bottom: var(--spacing-lg);
-  background: ${props => props.compliant ? 'var(--color-success-light)' : 'var(--color-error-light)'};
-  color: ${props => props.compliant ? 'var(--color-success-text)' : 'var(--color-error-text)'};
-  border: 1px solid ${props => props.compliant ? 'var(--color-success)' : 'var(--color-error)'};
+  background: ${props => props.$compliant ? 'var(--color-success-light)' : 'var(--color-error-light)'};
+  color: ${props => props.$compliant ? 'var(--color-success-text)' : 'var(--color-error-text)'};
+  border: 1px solid ${props => props.$compliant ? 'var(--color-success)' : 'var(--color-error)'};
 `;
 
 const RiskWarning = styled.div`
@@ -142,8 +142,8 @@ const ScoreCard = ({ title, score, description, color, wcagBreakdown, enhanced =
   // Enhanced version with competitor-style features
   if (enhanced) {
     return (
-      <Card borderColor={isCompliant ? 'var(--color-success)' : 'var(--color-error)'}>
-        <StatusBadge compliant={isCompliant}>
+      <Card $borderColor={isCompliant ? 'var(--color-success)' : 'var(--color-error)'}>
+        <StatusBadge $compliant={isCompliant}>
           {isCompliant ? (
             <>
               <FaCheckCircle /> COMPLIANT

@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 async function testSystem() {
-  console.log('Testing SiteCraft Accessibility Analysis System...\n');
+  console.log('Testing StreetWiseWeb Accessibility Analysis System...\n');
   
   try {
     // Test 1: Health check

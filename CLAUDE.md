@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-SiteCraft is a comprehensive web accessibility analysis tool that provides instant insights into website compliance with WCAG guidelines. It uses a React frontend with a Node.js/Express backend powered by Puppeteer and axe-core for accessibility analysis.
+StreetWiseWeb is a comprehensive web accessibility analysis tool that provides instant insights into website compliance with WCAG guidelines. It uses a React frontend with a Node.js/Express backend powered by Puppeteer and axe-core for accessibility analysis.
 
 ## Key Commands
 

@@ -1,7 +1,7 @@
 # Detailed Report Enhancement Plan
 
 ## Overview
-This document outlines the comprehensive plan to enhance SiteCraft's detailed report structure, add AI-powered analysis, incorporate SEO insights, and implement a tabbed interface for better organization.
+This document outlines the comprehensive plan to enhance StreetWiseWeb's detailed report structure, add AI-powered analysis, incorporate SEO insights, and implement a tabbed interface for better organization.
 
 ## Key Changes from Original Scope
 - **Removed**: PDF generation functionality

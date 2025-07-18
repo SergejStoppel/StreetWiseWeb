@@ -1,5 +1,15 @@
+-- ⚠️ DEPRECATED: Use COMPLETE_PRODUCTION_SETUP.sql instead
+-- 
+-- This file is deprecated and should not be used for new installations.
+-- Use COMPLETE_PRODUCTION_SETUP.sql which includes:
+-- - Smart caching system
+-- - Anonymous user support  
+-- - Screenshot storage
+-- - Comprehensive error handling
+-- - Production-ready setup
+--
 -- =============================================
--- STREETWISEWEB DATABASE SCHEMA
+-- STREETWISEWEB DATABASE SCHEMA (DEPRECATED)
 -- =============================================
 -- Run this SQL in your Supabase SQL Editor to create the database schema
 -- Navigate to: Supabase Dashboard > SQL Editor > New Query

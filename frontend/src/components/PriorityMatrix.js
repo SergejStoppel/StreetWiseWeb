@@ -56,7 +56,7 @@ const MatrixGrid = styled.div`
 
 const QuadrantCard = styled.div`
   background: ${props => props.background || '#f9fafb'};
-  border: 2px solid ${props => props.borderColor || '#e5e7eb'};
+  border: 2px solid ${props => props.$borderColor || '#e5e7eb'};
   border-radius: 12px;
   padding: 1.5rem;
   position: relative;
@@ -383,7 +383,7 @@ const PriorityMatrix = ({ priorityMatrix, allIssues }) => {
               <QuadrantCard 
                 key={quadrant.id}
                 background={quadrant.background}
-                borderColor={quadrant.borderColor}
+                $borderColor={quadrant.borderColor}
               >
                 <QuadrantHeader>
                   <QuadrantIcon background={quadrant.iconBackground}>

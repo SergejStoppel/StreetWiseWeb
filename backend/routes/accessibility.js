@@ -1,6 +1,7 @@
 const express = require('express');
 const { body, validationResult } = require('express-validator');
 const rateLimit = require('express-rate-limit');
+const crypto = require('crypto');
 const AccessibilityAnalyzer = require('../services/accessibilityAnalyzer');
 const SeoAnalyzer = require('../services/analysis/SeoAnalyzer');
 const AiAnalysisService = require('../services/analysis/AiAnalysisService');
@@ -9,6 +10,7 @@ const screenshotService = require('../services/ScreenshotService');
 const Analysis = require('../models/Analysis');
 const { extractUser } = require('../middleware/auth');
 const logger = require('../utils/logger');
+const supabase = require('../config/supabase');
 
 // Create analyzer instances
 const accessibilityAnalyzer = new AccessibilityAnalyzer();
@@ -19,6 +21,99 @@ const router = express.Router();
 
 // Debug logging for route loading
 logger.info('Accessibility routes module loaded');
+
+// Helper function to generate URL hash for caching
+function generateUrlHash(url) {
+  return crypto.createHash('sha256').update(url).digest('hex');
+}
+
+// Helper function to check if cache is valid
+function isCacheValid(createdAt, cacheHours = 24) {
+  const hoursOld = (Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60);
+  return hoursOld < cacheHours;
+}
+
+// Helper function to find cached analysis
+async function findCachedAnalysis(url, cacheHours = 24) {
+  try {
+    const { data, error } = await supabase
+      .rpc('find_cached_analysis', {
+        p_url: url,
+        p_cache_hours: cacheHours
+      });
+
+    if (error) {
+      logger.error('Error finding cached analysis:', error);
+      return null;
+    }
+
+    return data?.[0] || null;
+  } catch (error) {
+    logger.error('Failed to find cached analysis:', error);
+    return null;
+  }
+}
+
+// Helper function to upload screenshot to Supabase Storage
+async function uploadScreenshotToStorage(screenshotData, analysisId, type = 'desktop') {
+  try {
+    if (!screenshotData) return null;
+
+    // Remove data URL prefix if present
+    const base64Data = screenshotData.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+
+    // Create file path
+    const fileName = `${analysisId}_${type}_${Date.now()}.jpg`;
+    const filePath = `screenshots/${fileName}`;
+
+    // Upload to Supabase Storage
+    const { data, error } = await supabase.storage
+      .from('analysis-screenshots')
+      .upload(filePath, buffer, {
+        contentType: 'image/jpeg',
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    if (error) {
+      logger.error(`Failed to upload ${type} screenshot:`, error);
+      return null;
+    }
+
+    // Get public URL
+    const { data: { publicUrl } } = supabase.storage
+      .from('analysis-screenshots')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  } catch (error) {
+    logger.error(`Error uploading ${type} screenshot:`, error);
+    return null;
+  }
+}
+
+// Helper function to process and store screenshots
+async function processScreenshots(screenshotData, analysisId) {
+  if (!screenshotData) return null;
+
+  try {
+    const [desktopUrl, mobileUrl] = await Promise.all([
+      uploadScreenshotToStorage(screenshotData.desktop, analysisId, 'desktop'),
+      uploadScreenshotToStorage(screenshotData.mobile, analysisId, 'mobile')
+    ]);
+
+    return {
+      desktop: desktopUrl,
+      mobile: mobileUrl,
+      timestamp: screenshotData.timestamp,
+      url: screenshotData.url
+    };
+  } catch (error) {
+    logger.error('Failed to process screenshots:', error);
+    return null;
+  }
+}
 
 // Helper function to capture screenshots with existing browser
 async function captureScreenshotsWithBrowser(browser, url, options = {}) {
@@ -172,15 +267,92 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
 
     logger.info('Step 2: Extracting request data');
     const { url, reportType = 'overview', language = 'en' } = req.body;
+    const { useCache } = req.query; // Allow forcing cache usage in development
     const clientIp = req.ip || req.connection.remoteAddress;
     
     logger.info(`Analysis request received`, { 
       url, 
       clientIp,
-      userAgent: req.get('User-Agent') 
+      userAgent: req.get('User-Agent'),
+      useCache,
+      environment: process.env.NODE_ENV
     });
 
-    logger.info('Step 3: Starting comprehensive analysis');
+    // Step 3: Check for cached analysis
+    logger.info('Step 3: Checking for cached analysis');
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const cacheHours = isDevelopment ? 0.5 : 24; // 30 minutes in dev, 24 hours in production
+    
+    // In development: only use cache if explicitly requested
+    // In production: always check cache first
+    const shouldCheckCache = isDevelopment ? (useCache === 'true') : true;
+    
+    if (shouldCheckCache) {
+      const cachedResult = await findCachedAnalysis(url, cacheHours);
+      
+      if (cachedResult && cachedResult.is_cache_valid) {
+        logger.info('Valid cached analysis found', {
+          analysisId: cachedResult.analysis_id,
+          hoursOld: cachedResult.hours_old,
+          createdAt: cachedResult.created_at
+        });
+        
+        try {
+          // Increment access count
+          await supabase.rpc('increment_analysis_access', {
+            p_analysis_id: cachedResult.analysis_id
+          });
+          
+          // Retrieve the full analysis data
+          const { data: cachedAnalysis, error } = await supabase
+            .from('analyses')
+            .select('*')
+            .eq('id', cachedResult.analysis_id)
+            .single();
+          
+          if (!error && cachedAnalysis && cachedAnalysis.analysis_data) {
+            logger.info('Returning cached analysis', {
+              analysisId: cachedResult.analysis_id,
+              url: url
+            });
+            
+            // Add cache metadata to response
+            const response = {
+              ...cachedAnalysis.analysis_data,
+              _cache: {
+                hit: true,
+                createdAt: cachedAnalysis.created_at,
+                hoursOld: cachedResult.hours_old,
+                accessCount: cachedAnalysis.access_count + 1
+              }
+            };
+            
+            return res.json({
+              success: true,
+              data: response,
+              meta: {
+                analysisTime: 0, // No analysis time for cached results
+                timestamp: new Date().toISOString(),
+                reportType: cachedAnalysis.report_type,
+                cached: true,
+                cacheAge: `${Math.round(cachedResult.hours_old)} hours`
+              }
+            });
+          }
+        } catch (error) {
+          logger.error('Failed to retrieve cached analysis:', error);
+          // Continue with fresh analysis if cache retrieval fails
+        }
+      } else {
+        logger.info('No valid cached analysis found', {
+          found: !!cachedResult,
+          isValid: cachedResult?.is_cache_valid,
+          hoursOld: cachedResult?.hours_old
+        });
+      }
+    }
+
+    logger.info('Step 4: Starting comprehensive analysis');
     // Start comprehensive analysis
     const startTime = Date.now();
     
@@ -423,52 +595,110 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
       
       const analysisTime = Date.now() - startTime;
       
-      // Save analysis to Supabase database (if user is authenticated)
+      // Save analysis to Supabase database (always save, including anonymous)
       try {
-        logger.info('Checking user authentication for database save', { 
+        logger.info('Preparing to save analysis to database', { 
           hasUser: !!req.user,
           userId: req.user?.id,
           userEmail: req.user?.email,
-          analysisId: report.analysisId
+          analysisId: report.analysisId,
+          isAnonymous: !req.user || !req.user.id
         });
         
-        if (req.user && req.user.id) {
-          logger.info('Saving analysis to database', { 
-            analysisId: report.analysisId, 
-            userId: req.user.id 
-          });
+        // Generate a unique ID for the analysis if needed
+        const analysisId = report.analysisId || crypto.randomUUID();
+        
+        // Process and upload screenshots to Supabase Storage
+        let processedScreenshots = null;
+        if (screenshotData) {
+          logger.info('Processing screenshots for storage', { analysisId });
+          processedScreenshots = await processScreenshots(screenshotData, analysisId);
           
-          const savedAnalysis = await Analysis.create({
-            userId: req.user.id,
-            url: url,
-            reportType: reportType,
-            language: language,
-            overallScore: report.summary?.overallScore || report.overallScore || 0,
-            accessibilityScore: report.summary?.accessibilityScore || report.overallScore || 0,
-            seoScore: report.summary?.seoScore || 0,
-            performanceScore: report.summary?.performanceScore || 0,
-            analysisData: report,
-            metadata: {
-              ...report.metadata,
-              originalAnalysisId: report.analysisId,
-              analysisTime,
-              clientIp,
-              userAgent: req.get('User-Agent')
-            },
-            status: 'completed'
-          });
-          
-          // Update the report with the database ID for frontend reference
-          report.databaseId = savedAnalysis.id;
-          
-          logger.info('Analysis saved to database successfully', { 
-            analysisId: report.analysisId 
-          });
-        } else {
-          logger.info('Anonymous analysis - not saving to database', { 
-            analysisId: report.analysisId 
-          });
+          // Update report with processed screenshot URLs
+          if (processedScreenshots) {
+            report.screenshot = processedScreenshots;
+          }
         }
+        
+        // Calculate cache expiry time
+        const cacheHours = isDevelopment ? 0.5 : 24; // 30 minutes in dev, 24 hours in production
+        const cacheExpiresAt = new Date(Date.now() + (cacheHours * 60 * 60 * 1000));
+        
+        // Prepare analysis data for database
+        const analysisDataForDb = {
+          url: url,
+          reportType: reportType,
+          language: language,
+          overallScore: report.summary?.overallScore || report.overallScore || 0,
+          accessibilityScore: report.summary?.accessibilityScore || report.overallScore || 0,
+          seoScore: report.summary?.seoScore || 0,
+          performanceScore: report.summary?.performanceScore || 0,
+          analysisData: report,
+          metadata: {
+            ...report.metadata,
+            originalAnalysisId: analysisId,
+            analysisTime,
+            clientIp,
+            userAgent: req.get('User-Agent'),
+            hasProcessedScreenshots: !!processedScreenshots
+          },
+          status: 'completed',
+          isAnonymous: !req.user || !req.user.id,
+          cacheExpiresAt: cacheExpiresAt.toISOString(),
+          urlHash: generateUrlHash(url)
+        };
+        
+        // Add user ID if authenticated
+        if (req.user && req.user.id) {
+          analysisDataForDb.userId = req.user.id;
+        }
+        
+        logger.info('Saving analysis to database', { 
+          analysisId: analysisId,
+          isAnonymous: analysisDataForDb.isAnonymous,
+          urlHash: analysisDataForDb.urlHash,
+          cacheExpiresAt: analysisDataForDb.cacheExpiresAt
+        });
+        
+        // Use direct Supabase insert to handle anonymous analyses
+        const { data: savedAnalysis, error } = await supabase
+          .from('analyses')
+          .insert({
+            id: analysisId,
+            user_id: analysisDataForDb.userId || null,
+            url: analysisDataForDb.url,
+            report_type: analysisDataForDb.reportType,
+            overall_score: analysisDataForDb.overallScore,
+            accessibility_score: analysisDataForDb.accessibilityScore,
+            seo_score: analysisDataForDb.seoScore,
+            performance_score: analysisDataForDb.performanceScore,
+            violations: report.violations || null,
+            summary: report.summary || null,
+            metadata: analysisDataForDb.metadata,
+            screenshots: report.screenshots || null,
+            seo_analysis: report.seoAnalysis || null,
+            ai_insights: report.aiInsights || null,
+            status: analysisDataForDb.status,
+            is_anonymous: analysisDataForDb.isAnonymous,
+            cache_expires_at: analysisDataForDb.cacheExpiresAt,
+            access_count: 1,
+            last_accessed_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+          
+        if (error) {
+          throw error;
+        }
+        
+        // Update the report with the database ID for frontend reference
+        report.databaseId = savedAnalysis.id;
+        
+        logger.info('Analysis saved to database successfully', { 
+          analysisId: savedAnalysis.id,
+          isAnonymous: savedAnalysis.is_anonymous,
+          cacheExpiresAt: savedAnalysis.cache_expires_at
+        });
       } catch (dbError) {
         logger.error('Failed to save analysis to database:', {
           error: dbError.message,
@@ -668,7 +898,7 @@ router.post('/generate-pdf', analysisLimiter, async (req, res) => {
 // GET /api/accessibility/demo
 router.get('/demo', (req, res) => {
   res.json({
-    message: 'SiteCraft Accessibility Analyzer API',
+    message: 'StreetWiseWeb Accessibility Analyzer API',
     version: '1.0.0',
     endpoints: {
       analyze: 'POST /api/accessibility/analyze',
@@ -677,7 +907,7 @@ router.get('/demo', (req, res) => {
       'generate-pdf': 'POST /api/accessibility/generate-pdf (legacy)',
       health: 'GET /api/accessibility/health'
     },
-    documentation: 'https://sitecraft.com/api-docs'
+    documentation: 'https://streetwiseweb.com/api-docs'
   });
 });
 

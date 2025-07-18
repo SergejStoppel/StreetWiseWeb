@@ -287,7 +287,7 @@ class AccessibilityAnalyzer {
       const results = await axe
         .configure({
           branding: {
-            brand: 'SiteCraft Accessibility Scanner'
+            brand: 'StreetWiseWeb Accessibility Scanner'
           }
         })
         .analyze();
