@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import styled from 'styled-components';
-import { 
-  FaArrowLeft, 
+import {
+  FaArrowLeft,
   FaCrown,
   FaSync
 } from 'react-icons/fa';
 import LoadingSpinner from '../components/LoadingSpinner';
-import { accessibilityAPI } from '../services/api';
+import { accessibilityAPI, analysisAPI } from '../services/api';
 
 // Import Phase 2 components
 import EnhancedReportHeader from '../components/EnhancedReportHeader';
@@ -211,49 +211,101 @@ const EnhancedResultsPage = () => {
   const [upgradingToDetailed, setUpgradingToDetailed] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [expandedIssues, setExpandedIssues] = useState([]);
-  
+
   const navigate = useNavigate();
+  const { analysisId } = useParams();
   const { i18n } = useTranslation();
 
   useEffect(() => {
-    console.log('📊 Results page useEffect triggered');
-    const storedResults = sessionStorage.getItem('analysisResult');
-    
-    console.log('🔍 Checking sessionStorage for analysisResult:', {
-      hasData: !!storedResults,
-      dataLength: storedResults?.length,
-      dataPreview: storedResults?.substring(0, 100)
-    });
-    
-    if (storedResults) {
+    console.log('📊 Results page useEffect triggered', { analysisId });
+
+    const loadResults = async () => {
       try {
-        const parsedResults = JSON.parse(storedResults);
-        console.log('✅ Successfully parsed results:', {
-          resultKeys: Object.keys(parsedResults),
-          hasViolations: !!parsedResults.violations,
-          hasSummary: !!parsedResults.summary
-        });
-        
-        // Mark as anonymous/free report for non-authenticated users
-        const enhancedResults = {
-          ...parsedResults,
-          reportType: parsedResults.reportType || 'overview', // Default to overview for anonymous
-          isAnonymous: true // Flag to show free vs premium features
-        };
-        
-        setResults(enhancedResults);
+        // If we have an analysisId parameter, fetch from API (authenticated user)
+        if (analysisId) {
+          console.log('🔍 Loading analysis from API with ID:', analysisId);
+          const response = await analysisAPI.getById(analysisId);
+
+          if (response.success && response.data) {
+            const analysisData = response.data.analysis_data;
+
+            if (!analysisData || typeof analysisData !== 'object') {
+              console.error('❌ Analysis data is null or invalid:', analysisData);
+              setError('This analysis does not have detailed results available. Please run a new analysis.');
+              return;
+            }
+
+            console.log('✅ Successfully loaded analysis from API:', {
+              id: response.data.id,
+              url: response.data.url,
+              hasAnalysisData: !!analysisData,
+              dataKeys: Object.keys(analysisData)
+            });
+
+            // Mark as authenticated user report
+            const enhancedResults = {
+              ...analysisData,
+              analysisId: response.data.id,
+              reportType: response.data.report_type || 'overview',
+              isAnonymous: false // Flag to show premium features
+            };
+
+            setResults(enhancedResults);
+          } else {
+            console.error('❌ Failed to load analysis from API:', response);
+            setError('Failed to load analysis results');
+          }
+        } else {
+          // No analysisId parameter, try sessionStorage (anonymous user)
+          console.log('🔍 No analysisId parameter, checking sessionStorage');
+          const storedResults = sessionStorage.getItem('analysisResult');
+
+          console.log('🔍 Checking sessionStorage for analysisResult:', {
+            hasData: !!storedResults,
+            dataLength: storedResults?.length,
+            dataPreview: storedResults?.substring(0, 100)
+          });
+
+          if (storedResults) {
+            const parsedResults = JSON.parse(storedResults);
+
+            // Check if parsed results is null or invalid
+            if (!parsedResults || typeof parsedResults !== 'object') {
+              console.error('❌ Parsed results is null or invalid:', parsedResults);
+              setError('Analysis results are not available. Please run a new analysis.');
+              return;
+            }
+
+            console.log('✅ Successfully parsed results from sessionStorage:', {
+              resultKeys: Object.keys(parsedResults),
+              hasViolations: !!parsedResults.violations,
+              hasSummary: !!parsedResults.summary
+            });
+
+            // Mark as anonymous/free report
+            const enhancedResults = {
+              ...parsedResults,
+              reportType: parsedResults.reportType || 'overview',
+              isAnonymous: true // Flag to show free vs premium features
+            };
+
+            setResults(enhancedResults);
+          } else {
+            console.log('❌ No analysis results found in sessionStorage');
+            setError('No analysis results found');
+          }
+        }
       } catch (error) {
-        console.error('❌ Error parsing stored results:', error);
+        console.error('❌ Error loading results:', error);
         setError('Failed to load analysis results');
+      } finally {
+        console.log('🔄 Setting loading to false');
+        setLoading(false);
       }
-    } else {
-      console.log('❌ No analysis results found in sessionStorage');
-      setError('No analysis results found');
-    }
-    
-    console.log('🔄 Setting loading to false');
-    setLoading(false);
-  }, []);
+    };
+
+    loadResults();
+  }, [analysisId]);
 
   const handleBack = () => {
     navigate('/');

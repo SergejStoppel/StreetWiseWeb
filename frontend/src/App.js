@@ -107,8 +107,9 @@ function App() {
                 <Route path="/forgot-password" element={<ForgotPassword />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 
-                {/* Results Route - Temporarily public for testing */}
+                {/* Results Routes - Support both sessionStorage (anonymous) and database (authenticated) */}
                 <Route path="/results" element={<EnhancedResultsPage />} />
+                <Route path="/results/:analysisId" element={<EnhancedResultsPage />} />
                 
                 {/* Protected Routes */}
                 <Route path="/results-old" element={

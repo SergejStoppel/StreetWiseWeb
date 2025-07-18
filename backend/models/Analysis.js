@@ -250,31 +250,63 @@ class Analysis {
    * @returns {Promise<Object>} Analysis statistics
    */
   static async getStats(userId, options = {}) {
-    const { data, error } = await supabase
-      .from('user_analytics')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    try {
+      // Get all analyses for the user
+      const { data: analyses, error } = await supabase
+        .from('analyses')
+        .select('overall_score, accessibility_score, seo_score, performance_score, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
 
-    if (error) {
-      if (error.code === 'PGRST116') {
+      if (error) {
+        throw new Error(`Error fetching analysis stats: ${error.message}`);
+      }
+
+      if (!analyses || analyses.length === 0) {
         return {
           totalAnalyses: 0,
           recentAnalyses: 0,
           avgOverallScore: 0,
-          avgAccessibilityScore: 0
+          avgAccessibilityScore: 0,
+          avgSeoScore: 0,
+          avgPerformanceScore: 0,
+          lastAnalysisDate: null
         };
       }
-      throw new Error(`Error fetching analysis stats: ${error.message}`);
-    }
 
-    return {
-      totalAnalyses: data.analysis_count || 0,
-      recentAnalyses: data.recent_analyses || 0,
-      avgOverallScore: data.avg_overall_score || 0,
-      avgAccessibilityScore: data.avg_accessibility_score || 0,
-      lastAnalysisDate: data.last_analysis_date
-    };
+      // Calculate statistics
+      const totalAnalyses = analyses.length;
+      const recentAnalyses = analyses.filter(a => {
+        const analysisDate = new Date(a.created_at);
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        return analysisDate >= thirtyDaysAgo;
+      }).length;
+
+      const avgOverallScore = Math.round(
+        analyses.reduce((sum, a) => sum + (a.overall_score || 0), 0) / totalAnalyses
+      );
+      const avgAccessibilityScore = Math.round(
+        analyses.reduce((sum, a) => sum + (a.accessibility_score || 0), 0) / totalAnalyses
+      );
+      const avgSeoScore = Math.round(
+        analyses.reduce((sum, a) => sum + (a.seo_score || 0), 0) / totalAnalyses
+      );
+      const avgPerformanceScore = Math.round(
+        analyses.reduce((sum, a) => sum + (a.performance_score || 0), 0) / totalAnalyses
+      );
+
+      return {
+        totalAnalyses,
+        recentAnalyses,
+        avgOverallScore,
+        avgAccessibilityScore,
+        avgSeoScore,
+        avgPerformanceScore,
+        lastAnalysisDate: analyses[0].created_at
+      };
+    } catch (error) {
+      throw new Error(`Error calculating analysis stats: ${error.message}`);
+    }
   }
 }
 

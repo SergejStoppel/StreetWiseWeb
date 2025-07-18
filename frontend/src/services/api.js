@@ -290,6 +290,19 @@ export const analysisAPI = {
     }
   },
 
+  // Get specific analysis by ID
+  getById: async (analysisId) => {
+    try {
+      console.log(`📊 API: Making request to /api/analysis/${analysisId}`);
+      const response = await api.get(`/api/analysis/${analysisId}`);
+      console.log('✅ API: getById response received', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('❌ API: getById failed', error);
+      throw error;
+    }
+  },
+
   // Get analysis statistics
   getStats: async () => {
     try {

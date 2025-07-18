@@ -254,9 +254,17 @@ const Dashboard = () => {
   }, []);
 
   const handleViewAnalysis = (analysis) => {
-    // Store analysis data in sessionStorage for the results page
-    sessionStorage.setItem('analysisResult', JSON.stringify(analysis.analysis_data));
-    navigate('/results');
+    console.log('🔍 Dashboard: Viewing analysis:', {
+      id: analysis.id,
+      url: analysis.url,
+      hasAnalysisData: !!analysis.analysis_data,
+      analysisDataType: typeof analysis.analysis_data,
+      analysisDataPreview: analysis.analysis_data ? Object.keys(analysis.analysis_data) : 'null'
+    });
+
+    // Navigate to results page with analysis ID - let the results page fetch the data
+    console.log('🧭 Dashboard: Navigating to results with ID:', analysis.id);
+    navigate(`/results/${analysis.id}`);
   };
 
   const handleDeleteAnalysis = async (analysisId) => {
