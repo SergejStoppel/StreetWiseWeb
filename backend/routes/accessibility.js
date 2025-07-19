@@ -770,6 +770,9 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
             accessibility_score: analysisDataForDb.accessibilityScore,
             seo_score: analysisDataForDb.seoScore,
             performance_score: analysisDataForDb.performanceScore,
+            // Store complete analysis data for frontend compatibility
+            analysis_data: report,
+            // Keep these for backward compatibility and faster queries
             violations: report.violations || null,
             summary: report.summary || null,
             metadata: analysisDataForDb.metadata,

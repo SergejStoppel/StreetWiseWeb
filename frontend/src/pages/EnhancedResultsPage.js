@@ -227,7 +227,8 @@ const EnhancedResultsPage = () => {
           const response = await analysisAPI.getById(analysisId);
 
           if (response.success && response.data) {
-            const analysisData = response.data.analysis_data;
+            // With the new backend transformation, the data is now directly in response.data
+            let analysisData = response.data;
 
             if (!analysisData || typeof analysisData !== 'object') {
               console.error('❌ Analysis data is null or invalid:', analysisData);

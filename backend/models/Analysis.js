@@ -66,7 +66,8 @@ class Analysis {
       throw new Error(`Error fetching analysis: ${error.message}`);
     }
 
-    return data;
+    // Transform database record to expected frontend format
+    return this.transformDbRecord(data);
   }
 
   /**
@@ -108,7 +109,8 @@ class Analysis {
       throw new Error(`Error fetching analyses: ${error.message}`);
     }
 
-    return data || [];
+    // Transform database records to expected frontend format
+    return (data || []).map(record => this.transformDbRecord(record));
   }
 
   /**
@@ -219,7 +221,8 @@ class Analysis {
       throw new Error(`Error searching analyses: ${error.message}`);
     }
 
-    return data || [];
+    // Transform database records to expected frontend format
+    return (data || []).map(record => this.transformDbRecord(record));
   }
 
   /**
@@ -240,7 +243,8 @@ class Analysis {
       throw new Error(`Error fetching recent analyses: ${error.message}`);
     }
 
-    return data || [];
+    // Transform database records to expected frontend format
+    return (data || []).map(record => this.transformDbRecord(record));
   }
 
   /**
@@ -307,6 +311,76 @@ class Analysis {
     } catch (error) {
       throw new Error(`Error calculating analysis stats: ${error.message}`);
     }
+  }
+
+  /**
+   * Transform database record to expected frontend format
+   * @param {Object} dbRecord - Database record
+   * @returns {Object} Transformed record
+   */
+  static transformDbRecord(dbRecord) {
+    if (!dbRecord) return null;
+
+    // If analysis_data exists, use it as the base and add database metadata
+    if (dbRecord.analysis_data) {
+      return {
+        ...dbRecord.analysis_data,
+        // Ensure database-specific fields are included
+        id: dbRecord.id,
+        databaseId: dbRecord.id,
+        createdAt: dbRecord.created_at,
+        updatedAt: dbRecord.updated_at,
+        userId: dbRecord.user_id,
+        projectId: dbRecord.project_id,
+        status: dbRecord.status,
+        isAnonymous: dbRecord.is_anonymous,
+        // Override with database scores if present
+        overallScore: dbRecord.overall_score ?? dbRecord.analysis_data.overallScore,
+        accessibilityScore: dbRecord.accessibility_score ?? dbRecord.analysis_data.accessibilityScore,
+        seoScore: dbRecord.seo_score ?? dbRecord.analysis_data.seoScore,
+        performanceScore: dbRecord.performance_score ?? dbRecord.analysis_data.performanceScore,
+        // Ensure summary includes database scores
+        summary: {
+          ...dbRecord.analysis_data.summary,
+          overallScore: dbRecord.overall_score ?? dbRecord.analysis_data.summary?.overallScore,
+          accessibilityScore: dbRecord.accessibility_score ?? dbRecord.analysis_data.summary?.accessibilityScore,
+          seoScore: dbRecord.seo_score ?? dbRecord.analysis_data.summary?.seoScore,
+          performanceScore: dbRecord.performance_score ?? dbRecord.analysis_data.summary?.performanceScore,
+        }
+      };
+    }
+
+    // Fallback: construct from separate database fields (for backwards compatibility)
+    return {
+      analysisId: dbRecord.id,
+      id: dbRecord.id,
+      databaseId: dbRecord.id,
+      url: dbRecord.url,
+      reportType: dbRecord.report_type,
+      language: dbRecord.language,
+      createdAt: dbRecord.created_at,
+      updatedAt: dbRecord.updated_at,
+      userId: dbRecord.user_id,
+      projectId: dbRecord.project_id,
+      status: dbRecord.status,
+      isAnonymous: dbRecord.is_anonymous,
+      overallScore: dbRecord.overall_score,
+      accessibilityScore: dbRecord.accessibility_score,
+      seoScore: dbRecord.seo_score,
+      performanceScore: dbRecord.performance_score,
+      violations: dbRecord.violations,
+      summary: {
+        overallScore: dbRecord.overall_score,
+        accessibilityScore: dbRecord.accessibility_score,
+        seoScore: dbRecord.seo_score,
+        performanceScore: dbRecord.performance_score,
+        ...dbRecord.summary
+      },
+      metadata: dbRecord.metadata,
+      screenshot: dbRecord.screenshots,
+      seo: dbRecord.seo_analysis,
+      aiInsights: dbRecord.ai_insights
+    };
   }
 }
 
