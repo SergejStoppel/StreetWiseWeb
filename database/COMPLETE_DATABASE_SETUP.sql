@@ -1,10 +1,33 @@
--- StreetWiseWeb Complete Production Database Setup (Optimized)
--- Version: 2.0
--- This script sets up the entire optimized database schema
--- Run this in your Supabase SQL Editor on a fresh database or to update existing one
+-- StreetWiseWeb Complete Database Setup
+-- This single script handles both fresh installations and existing databases
+-- Run this in your Supabase SQL Editor
 
 -- =============================================================================
--- 1. CREATE BASE TABLES
+-- 1. SAFELY DROP EXISTING OBJECTS THAT MIGHT CONFLICT
+-- =============================================================================
+
+-- Drop triggers first (they depend on functions)
+DROP TRIGGER IF EXISTS before_user_delete ON public.user_profiles CASCADE;
+DROP TRIGGER IF EXISTS cleanup_before_user_delete ON public.user_profiles CASCADE;
+DROP TRIGGER IF EXISTS update_user_profiles_updated_at ON public.user_profiles CASCADE;
+DROP TRIGGER IF EXISTS update_projects_updated_at ON public.projects CASCADE;
+DROP TRIGGER IF EXISTS update_analyses_updated_at ON public.analyses CASCADE;
+DROP TRIGGER IF EXISTS update_analysis_summaries_updated_at ON public.analysis_summaries CASCADE;
+
+-- Drop functions that might have different signatures
+DROP FUNCTION IF EXISTS public.cleanup_user_data_before_delete() CASCADE;
+DROP FUNCTION IF EXISTS public.refresh_dashboard_stats() CASCADE;
+DROP FUNCTION IF EXISTS public.cleanup_anonymous_analyses() CASCADE;
+DROP FUNCTION IF EXISTS public.cleanup_orphaned_storage() CASCADE;
+DROP FUNCTION IF EXISTS public.daily_cleanup() CASCADE;
+DROP FUNCTION IF EXISTS public.update_updated_at_column() CASCADE;
+DROP FUNCTION IF EXISTS public.track_storage_upload() CASCADE;
+
+-- Drop materialized view (will be recreated)
+DROP MATERIALIZED VIEW IF EXISTS public.user_dashboard_stats CASCADE;
+
+-- =============================================================================
+-- 2. CREATE BASE TABLES (IF NOT EXISTS)
 -- =============================================================================
 
 -- User profiles table (extends Supabase auth.users)
@@ -59,7 +82,7 @@ CREATE TABLE IF NOT EXISTS public.usage_logs (
 );
 
 -- =============================================================================
--- 2. CREATE OPTIMIZED STORAGE TABLES
+-- 3. CREATE OPTIMIZED STORAGE TABLES
 -- =============================================================================
 
 -- Track all storage objects for proper cleanup
@@ -125,7 +148,46 @@ CREATE TABLE IF NOT EXISTS public.deletion_logs (
 );
 
 -- =============================================================================
--- 3. CREATE INDEXES FOR PERFORMANCE
+-- 4. UPDATE FOREIGN KEY CONSTRAINTS TO CASCADE
+-- =============================================================================
+
+-- Update analyses table foreign key to CASCADE (drop and recreate)
+DO $$
+BEGIN
+    -- Check if the constraint exists and update it
+    IF EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'analyses_user_id_fkey' 
+        AND table_name = 'analyses'
+    ) THEN
+        ALTER TABLE public.analyses 
+        DROP CONSTRAINT analyses_user_id_fkey,
+        ADD CONSTRAINT analyses_user_id_fkey 
+            FOREIGN KEY (user_id) 
+            REFERENCES public.user_profiles(id) 
+            ON DELETE CASCADE;
+    END IF;
+END $$;
+
+-- Update usage_logs table foreign key to CASCADE
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.table_constraints 
+        WHERE constraint_name = 'usage_logs_user_id_fkey' 
+        AND table_name = 'usage_logs'
+    ) THEN
+        ALTER TABLE public.usage_logs 
+        DROP CONSTRAINT usage_logs_user_id_fkey,
+        ADD CONSTRAINT usage_logs_user_id_fkey 
+            FOREIGN KEY (user_id) 
+            REFERENCES public.user_profiles(id) 
+            ON DELETE CASCADE;
+    END IF;
+END $$;
+
+-- =============================================================================
+-- 5. CREATE INDEXES FOR PERFORMANCE
 -- =============================================================================
 
 -- User profiles indexes
@@ -164,10 +226,10 @@ CREATE INDEX IF NOT EXISTS idx_usage_logs_user ON public.usage_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_usage_logs_created ON public.usage_logs(created_at DESC);
 
 -- =============================================================================
--- 4. CREATE MATERIALIZED VIEW FOR DASHBOARD STATS
+-- 6. CREATE MATERIALIZED VIEW FOR DASHBOARD STATS
 -- =============================================================================
 
-CREATE MATERIALIZED VIEW IF NOT EXISTS public.user_dashboard_stats AS
+CREATE MATERIALIZED VIEW public.user_dashboard_stats AS
 SELECT 
     u.id as user_id,
     COUNT(DISTINCT a.id) as total_analyses,
@@ -184,14 +246,14 @@ LEFT JOIN public.projects p ON p.user_id = u.id
 LEFT JOIN public.storage_objects so ON so.user_id = u.id
 GROUP BY u.id;
 
-CREATE UNIQUE INDEX IF NOT EXISTS idx_user_dashboard_stats_user ON public.user_dashboard_stats(user_id);
+CREATE UNIQUE INDEX idx_user_dashboard_stats_user ON public.user_dashboard_stats(user_id);
 
 -- =============================================================================
--- 5. CREATE CLEANUP AND UTILITY FUNCTIONS
+-- 7. CREATE CLEANUP AND UTILITY FUNCTIONS
 -- =============================================================================
 
 -- Function to refresh dashboard stats
-CREATE OR REPLACE FUNCTION public.refresh_dashboard_stats()
+CREATE FUNCTION public.refresh_dashboard_stats()
 RETURNS void AS $$
 BEGIN
     REFRESH MATERIALIZED VIEW CONCURRENTLY public.user_dashboard_stats;
@@ -199,7 +261,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to cleanup user data before deletion
-CREATE OR REPLACE FUNCTION public.cleanup_user_data_before_delete()
+CREATE FUNCTION public.cleanup_user_data_before_delete()
 RETURNS TRIGGER AS $$
 DECLARE
     deleted_analyses_count INTEGER;
@@ -230,7 +292,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to track storage uploads
-CREATE OR REPLACE FUNCTION public.track_storage_upload()
+CREATE FUNCTION public.track_storage_upload()
 RETURNS TRIGGER AS $$
 BEGIN
     -- This function needs to be called from storage triggers
@@ -240,7 +302,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to cleanup anonymous analyses older than 7 days
-CREATE OR REPLACE FUNCTION public.cleanup_anonymous_analyses()
+CREATE FUNCTION public.cleanup_anonymous_analyses()
 RETURNS INTEGER AS $$
 DECLARE
     deleted_count INTEGER;
@@ -261,7 +323,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to cleanup orphaned storage objects
-CREATE OR REPLACE FUNCTION public.cleanup_orphaned_storage()
+CREATE FUNCTION public.cleanup_orphaned_storage()
 RETURNS INTEGER AS $$
 DECLARE
     deleted_count INTEGER;
@@ -279,7 +341,7 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Main daily cleanup function
-CREATE OR REPLACE FUNCTION public.daily_cleanup()
+CREATE FUNCTION public.daily_cleanup()
 RETURNS JSONB AS $$
 DECLARE
     anonymous_deleted INTEGER;
@@ -309,25 +371,17 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =============================================================================
--- 6. CREATE TRIGGERS
+-- 8. CREATE TRIGGERS
 -- =============================================================================
 
 -- Trigger for user deletion cleanup
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_trigger 
-        WHERE tgname = 'before_user_delete' AND tgrelid = 'public.user_profiles'::regclass
-    ) THEN
-        CREATE TRIGGER before_user_delete
-            BEFORE DELETE ON public.user_profiles
-            FOR EACH ROW
-            EXECUTE FUNCTION public.cleanup_user_data_before_delete();
-    END IF;
-END $$;
+CREATE TRIGGER before_user_delete
+    BEFORE DELETE ON public.user_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION public.cleanup_user_data_before_delete();
 
 -- Trigger to update timestamps
-CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+CREATE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
     NEW.updated_at = NOW();
@@ -335,60 +389,28 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_trigger 
-        WHERE tgname = 'update_user_profiles_updated_at' AND tgrelid = 'public.user_profiles'::regclass
-    ) THEN
-        CREATE TRIGGER update_user_profiles_updated_at
-            BEFORE UPDATE ON public.user_profiles
-            FOR EACH ROW
-            EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+CREATE TRIGGER update_user_profiles_updated_at
+    BEFORE UPDATE ON public.user_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
 
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_trigger 
-        WHERE tgname = 'update_projects_updated_at' AND tgrelid = 'public.projects'::regclass
-    ) THEN
-        CREATE TRIGGER update_projects_updated_at
-            BEFORE UPDATE ON public.projects
-            FOR EACH ROW
-            EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+CREATE TRIGGER update_projects_updated_at
+    BEFORE UPDATE ON public.projects
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
 
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_trigger 
-        WHERE tgname = 'update_analyses_updated_at' AND tgrelid = 'public.analyses'::regclass
-    ) THEN
-        CREATE TRIGGER update_analyses_updated_at
-            BEFORE UPDATE ON public.analyses
-            FOR EACH ROW
-            EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+CREATE TRIGGER update_analyses_updated_at
+    BEFORE UPDATE ON public.analyses
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
 
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_trigger 
-        WHERE tgname = 'update_analysis_summaries_updated_at' AND tgrelid = 'public.analysis_summaries'::regclass
-    ) THEN
-        CREATE TRIGGER update_analysis_summaries_updated_at
-            BEFORE UPDATE ON public.analysis_summaries
-            FOR EACH ROW
-            EXECUTE FUNCTION public.update_updated_at_column();
-    END IF;
-END $$;
+CREATE TRIGGER update_analysis_summaries_updated_at
+    BEFORE UPDATE ON public.analysis_summaries
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
 
 -- =============================================================================
--- 7. CREATE RLS POLICIES
+-- 9. CREATE RLS POLICIES
 -- =============================================================================
 
 -- Enable RLS on all tables
@@ -401,27 +423,37 @@ ALTER TABLE public.analysis_violations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.analysis_screenshots ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.analysis_summaries ENABLE ROW LEVEL SECURITY;
 
+-- Drop existing policies to avoid conflicts
+DROP POLICY IF EXISTS "Users can view their own profile" ON public.user_profiles;
+DROP POLICY IF EXISTS "Users can update their own profile" ON public.user_profiles;
+DROP POLICY IF EXISTS "Users can view their own projects" ON public.projects;
+DROP POLICY IF EXISTS "Users can create their own projects" ON public.projects;
+DROP POLICY IF EXISTS "Users can update their own projects" ON public.projects;
+DROP POLICY IF EXISTS "Users can delete their own projects" ON public.projects;
+DROP POLICY IF EXISTS "Users can view their own analyses" ON public.analyses;
+DROP POLICY IF EXISTS "Users can create their own analyses" ON public.analyses;
+DROP POLICY IF EXISTS "Users can update their own analyses" ON public.analyses;
+DROP POLICY IF EXISTS "Users can delete their own analyses" ON public.analyses;
+DROP POLICY IF EXISTS "Users can view their own usage logs" ON public.usage_logs;
+DROP POLICY IF EXISTS "Users can create their own usage logs" ON public.usage_logs;
+DROP POLICY IF EXISTS "Users can view their own storage objects" ON public.storage_objects;
+DROP POLICY IF EXISTS "Users can create their own storage objects" ON public.storage_objects;
+DROP POLICY IF EXISTS "Users can delete their own storage objects" ON public.storage_objects;
+DROP POLICY IF EXISTS "Users can view violations for their analyses" ON public.analysis_violations;
+DROP POLICY IF EXISTS "Users can create violations for their analyses" ON public.analysis_violations;
+DROP POLICY IF EXISTS "Users can view screenshots for their analyses" ON public.analysis_screenshots;
+DROP POLICY IF EXISTS "Users can create screenshots for their analyses" ON public.analysis_screenshots;
+DROP POLICY IF EXISTS "Users can view summaries for their analyses" ON public.analysis_summaries;
+DROP POLICY IF EXISTS "Users can create summaries for their analyses" ON public.analysis_summaries;
+
 -- User profiles policies
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_policies 
-        WHERE schemaname = 'public' AND tablename = 'user_profiles' AND policyname = 'Users can view their own profile'
-    ) THEN
-        CREATE POLICY "Users can view their own profile"
-            ON public.user_profiles FOR SELECT
-            USING (auth.uid() = id);
-    END IF;
-    
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_policies 
-        WHERE schemaname = 'public' AND tablename = 'user_profiles' AND policyname = 'Users can update their own profile'
-    ) THEN
-        CREATE POLICY "Users can update their own profile"
-            ON public.user_profiles FOR UPDATE
-            USING (auth.uid() = id);
-    END IF;
-END $$;
+CREATE POLICY "Users can view their own profile"
+    ON public.user_profiles FOR SELECT
+    USING (auth.uid() = id);
+
+CREATE POLICY "Users can update their own profile"
+    ON public.user_profiles FOR UPDATE
+    USING (auth.uid() = id);
 
 -- Projects policies
 CREATE POLICY "Users can view their own projects"
@@ -531,7 +563,7 @@ CREATE POLICY "Users can create their own usage logs"
     WITH CHECK (auth.uid() = user_id);
 
 -- =============================================================================
--- 8. GRANT PERMISSIONS
+-- 10. GRANT PERMISSIONS
 -- =============================================================================
 
 -- Grant permissions to authenticated users
@@ -556,7 +588,7 @@ GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO anon;
 
 -- =============================================================================
--- 9. CREATE INITIAL TRIGGER FOR USER PROFILE CREATION
+-- 11. CREATE INITIAL TRIGGER FOR USER PROFILE CREATION
 -- =============================================================================
 
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -569,21 +601,14 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- Only create trigger if it doesn't exist
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_trigger 
-        WHERE tgname = 'on_auth_user_created'
-    ) THEN
-        CREATE TRIGGER on_auth_user_created
-            AFTER INSERT ON auth.users
-            FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
-    END IF;
-END $$;
+-- Drop existing trigger and recreate
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+    AFTER INSERT ON auth.users
+    FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- =============================================================================
--- 10. FINAL SETUP AND OPTIMIZATION
+-- 12. FINAL SETUP AND OPTIMIZATION
 -- =============================================================================
 
 -- Analyze tables for query optimization
@@ -599,25 +624,10 @@ ANALYZE public.usage_logs;
 -- Initial refresh of materialized view
 SELECT public.refresh_dashboard_stats();
 
--- =============================================================================
--- MIGRATION NOTES
--- =============================================================================
--- If migrating from an existing database:
--- 1. Run the migration script (001_optimize_database_structure.sql)
--- 2. Test all functionality
--- 3. Schedule daily_cleanup() function to run via pg_cron or external scheduler
---
--- For fresh installations:
--- 1. Run this complete setup script
--- 2. Configure storage bucket triggers if needed
--- 3. Schedule daily_cleanup() function
-
 -- Success message
 DO $$
 BEGIN
     RAISE NOTICE 'StreetWiseWeb database setup completed successfully!';
-    RAISE NOTICE 'Remember to:';
-    RAISE NOTICE '1. Configure storage bucket triggers in Supabase dashboard';
-    RAISE NOTICE '2. Schedule daily_cleanup() function to run daily';
-    RAISE NOTICE '3. Test all functionality before going to production';
+    RAISE NOTICE 'Your optimized database is ready to use.';
+    RAISE NOTICE 'Remember to restart your application containers.';
 END $$;

@@ -758,52 +758,13 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
           cacheExpiresAt: analysisDataForDb.cacheExpiresAt
         });
         
-        // Use direct Supabase insert to handle anonymous analyses
-        const { data: savedAnalysis, error } = await supabase
-          .from('analyses')
-          .insert({
-            id: analysisId,
-            user_id: analysisDataForDb.userId || null,
-            url: analysisDataForDb.url,
-            report_type: analysisDataForDb.reportType,
-            overall_score: analysisDataForDb.overallScore,
-            accessibility_score: analysisDataForDb.accessibilityScore,
-            seo_score: analysisDataForDb.seoScore,
-            performance_score: analysisDataForDb.performanceScore,
-            // Store complete analysis data for frontend compatibility
-            analysis_data: report,
-            // Keep these for backward compatibility and faster queries
-            violations: report.violations || null,
-            summary: report.summary || null,
-            metadata: analysisDataForDb.metadata,
-            screenshots: report.screenshot || null,
-            seo_analysis: report.seo || null,
-            ai_insights: report.aiInsights || null,
-            status: analysisDataForDb.status,
-            is_anonymous: analysisDataForDb.isAnonymous,
-            cache_expires_at: analysisDataForDb.cacheExpiresAt,
-            access_count: 1,
-            last_accessed_at: new Date().toISOString()
-          })
-          .select()
-          .single();
+        // Use Analysis model to save with optimized structure
+        const savedAnalysis = await Analysis.create({
+          ...analysisDataForDb,
+          analysisData: report
+        });
           
-        if (error) {
-          // Provide more specific error messages based on error type
-          if (error.code === '23505') {
-            logger.warn('Duplicate analysis detected, this may be a race condition:', error);
-            throw new Error('Analysis already exists for this URL');
-          } else if (error.code === '23503') {
-            logger.error('Foreign key constraint violation:', error);
-            throw new Error('Invalid user or project reference');
-          } else if (error.code === '23514') {
-            logger.error('Check constraint violation:', error);
-            throw new Error('Invalid data values provided');
-          } else {
-            logger.error('Database save error:', error);
-            throw error;
-          }
-        }
+        // Error handling is now done in the Analysis model
         
         // Update the report with the database ID for frontend reference
         report.databaseId = savedAnalysis.id;

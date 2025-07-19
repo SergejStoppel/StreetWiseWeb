@@ -1,27 +1,20 @@
 const supabase = require('../config/supabase');
+const AnalysisSummary = require('./AnalysisSummary');
+const StorageObject = require('./StorageObject');
+const AnalysisViolation = require('./AnalysisViolation');
+const AnalysisScreenshot = require('./AnalysisScreenshot');
 
 class Analysis {
   /**
-   * Create a new analysis
+   * Create a new analysis with optimized storage
    * @param {Object} analysisData - Analysis data
-   * @param {string} analysisData.userId - User ID
-   * @param {string} analysisData.projectId - Project ID (optional)
-   * @param {string} analysisData.url - URL analyzed
-   * @param {string} analysisData.reportType - Report type (overview, detailed, quick)
-   * @param {string} analysisData.language - Language (en, de, es)
-   * @param {number} analysisData.overallScore - Overall score
-   * @param {number} analysisData.accessibilityScore - Accessibility score
-   * @param {number} analysisData.seoScore - SEO score
-   * @param {number} analysisData.performanceScore - Performance score
-   * @param {Object} analysisData.analysisData - Full analysis data
-   * @param {Object} analysisData.metadata - Additional metadata
-   * @param {string} analysisData.status - Analysis status
-   * @returns {Promise<Object>} Created analysis
+   * @returns {Promise<Object>} Created analysis with related data
    */
   static async create(analysisData) {
-    const { data, error } = await supabase
-      .from('analyses')
-      .insert({
+    // Start a transaction-like operation
+    try {
+      // 1. Create the main analysis record (without violations, screenshots, etc.)
+      const mainAnalysisData = {
         user_id: analysisData.userId,
         project_id: analysisData.projectId,
         url: analysisData.url,
@@ -31,53 +24,121 @@ class Analysis {
         accessibility_score: analysisData.accessibilityScore,
         seo_score: analysisData.seoScore,
         performance_score: analysisData.performanceScore,
-        analysis_data: analysisData.analysisData,
+        // Store core analysis data without large fields
+        analysis_data: {
+          ...analysisData.analysisData,
+          violations: undefined, // Remove violations from main data
+          screenshot: undefined, // Remove screenshots from main data
+        },
         metadata: analysisData.metadata || {},
         status: analysisData.status || 'completed'
-      })
-      .select()
-      .single();
+      };
 
-    if (error) {
-      throw new Error(`Error creating analysis: ${error.message}`);
+      const { data: analysis, error: analysisError } = await supabase
+        .from('analyses')
+        .insert(mainAnalysisData)
+        .select()
+        .single();
+
+      if (analysisError) {
+        throw new Error(`Error creating analysis: ${analysisError.message}`);
+      }
+
+      // 2. Create violations record if violations exist
+      if (analysisData.analysisData?.violations && analysisData.analysisData.violations.length > 0) {
+        await AnalysisViolation.create(analysis.id, analysisData.analysisData.violations);
+      }
+
+      // 3. Create screenshot records if screenshots exist
+      const screenshots = [];
+      if (analysisData.analysisData?.screenshot) {
+        // Handle single screenshot or multiple screenshots
+        const screenshotData = analysisData.analysisData.screenshot;
+        if (typeof screenshotData === 'string') {
+          // Single screenshot URL
+          screenshots.push({
+            url: screenshotData,
+            type: 'main',
+            storageObjectId: null // Will be linked later if needed
+          });
+        } else if (screenshotData.url) {
+          // Screenshot object with URL
+          screenshots.push({
+            url: screenshotData.url,
+            type: 'main',
+            storageObjectId: screenshotData.storageObjectId || null,
+            metadata: screenshotData.metadata || {}
+          });
+        }
+      }
+
+      if (screenshots.length > 0) {
+        await AnalysisScreenshot.createMultiple(analysis.id, screenshots);
+      }
+
+      // 4. Create summary record for fast dashboard queries
+      if (analysisData.analysisData?.summary) {
+        try {
+          await AnalysisSummary.createOrUpdate(analysis.id, analysisData.analysisData.summary);
+        } catch (summaryError) {
+          console.warn('Failed to create analysis summary:', summaryError.message);
+        }
+      }
+
+      // Return the complete analysis object
+      return {
+        ...analysis,
+        violations: analysisData.analysisData?.violations || [],
+        screenshot: analysisData.analysisData?.screenshot || null
+      };
+
+    } catch (error) {
+      console.error('Error in Analysis.create:', error);
+      throw error;
     }
-
-    return data;
   }
 
   /**
-   * Get analysis by ID
+   * Get analysis by ID with all related data
    * @param {string} analysisId - Analysis ID
    * @param {string} userId - User ID (for authorization)
-   * @returns {Promise<Object|null>} Analysis or null if not found
+   * @returns {Promise<Object|null>} Complete analysis or null if not found
    */
   static async findById(analysisId, userId) {
-    const { data, error } = await supabase
-      .from('analyses')
-      .select('*')
-      .eq('id', analysisId)
-      .eq('user_id', userId)
-      .single();
+    try {
+      // Get main analysis record
+      const { data, error } = await supabase
+        .from('analyses')
+        .select('*')
+        .eq('id', analysisId)
+        .eq('user_id', userId)
+        .single();
 
-    if (error) {
-      if (error.code === 'PGRST116') {
-        return null; // Analysis not found
+      if (error) {
+        if (error.code === 'PGRST116') {
+          return null; // Analysis not found
+        }
+        throw new Error(`Error fetching analysis: ${error.message}`);
       }
-      throw new Error(`Error fetching analysis: ${error.message}`);
-    }
 
-    // Transform database record to expected frontend format
-    return this.transformDbRecord(data);
+      // Get violations
+      const violations = await AnalysisViolation.getByAnalysisId(analysisId);
+
+      // Get screenshots
+      const screenshots = await AnalysisScreenshot.getByAnalysisId(analysisId);
+
+      // Transform to expected format
+      return this.transformDbRecord(data, { violations, screenshots });
+    } catch (error) {
+      console.error('Error in Analysis.findById:', error);
+      throw error;
+    }
   }
 
   /**
    * Get all analyses for a user
    * @param {string} userId - User ID
    * @param {Object} options - Query options
-   * @param {string} options.projectId - Filter by project ID
-   * @param {number} options.limit - Limit results
-   * @param {number} options.offset - Offset for pagination
-   * @param {string} options.status - Filter by status
    * @returns {Promise<Array>} Array of analyses
    */
   static async findByUserId(userId, options = {}) {
@@ -109,49 +170,104 @@ class Analysis {
       throw new Error(`Error fetching analyses: ${error.message}`);
     }
 
-    // Transform database records to expected frontend format
-    return (data || []).map(record => this.transformDbRecord(record));
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Get violations and screenshots for all analyses in batch
+    const analysisIds = data.map(analysis => analysis.id);
+    const [violationsMap, screenshotsMap] = await Promise.all([
+      AnalysisViolation.getByAnalysisIds(analysisIds),
+      AnalysisScreenshot.getByAnalysisIds(analysisIds)
+    ]);
+
+    // Transform each record with its violations and screenshots
+    return data.map(record => 
+      this.transformDbRecord(record, {
+        violations: violationsMap[record.id] || [],
+        screenshots: screenshotsMap[record.id] || []
+      })
+    );
   }
 
   /**
-   * Get analyses by project ID
-   * @param {string} projectId - Project ID
-   * @param {string} userId - User ID (for authorization)
-   * @param {Object} options - Query options
-   * @returns {Promise<Array>} Array of analyses
+   * Get recent analyses with optimized query
+   * @param {string} userId - User ID
+   * @param {number} limit - Number of results
+   * @returns {Promise<Array>} Recent analyses
    */
-  static async findByProjectId(projectId, userId, options = {}) {
-    return this.findByUserId(userId, { ...options, projectId });
+  static async getRecent(userId, limit = 10) {
+    return this.findByUserId(userId, { limit, status: 'completed' });
   }
 
   /**
-   * Update analysis
-   * @param {string} analysisId - Analysis ID
-   * @param {string} userId - User ID (for authorization)
-   * @param {Object} updateData - Data to update
-   * @returns {Promise<Object>} Updated analysis
+   * Get cached analysis by URL (for deduplication)
+   * @param {string} url - URL to check
+   * @param {string} userId - User ID
+   * @param {number} cacheHours - Cache duration in hours
+   * @returns {Promise<Object|null>} Cached analysis or null
    */
-  static async update(analysisId, userId, updateData) {
+  static async getCachedAnalysis(url, userId, cacheHours = 24) {
+    const cutoffTime = new Date();
+    cutoffTime.setHours(cutoffTime.getHours() - cacheHours);
+
     const { data, error } = await supabase
       .from('analyses')
-      .update(updateData)
-      .eq('id', analysisId)
+      .select('*')
+      .eq('url', url)
       .eq('user_id', userId)
+      .eq('status', 'completed')
+      .gte('created_at', cutoffTime.toISOString())
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return null; // No cached analysis found
+      }
+      throw new Error(`Error checking cached analysis: ${error.message}`);
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    // Get related data
+    const [violations, screenshots] = await Promise.all([
+      AnalysisViolation.getByAnalysisId(data.id),
+      AnalysisScreenshot.getByAnalysisId(data.id)
+    ]);
+
+    return this.transformDbRecord(data, { violations, screenshots });
+  }
+
+  /**
+   * Update analysis status
+   * @param {string} analysisId - Analysis ID
+   * @param {string} status - New status
+   * @returns {Promise<Object>} Updated analysis
+   */
+  static async updateStatus(analysisId, status) {
+    const { data, error } = await supabase
+      .from('analyses')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', analysisId)
       .select()
       .single();
 
     if (error) {
-      throw new Error(`Error updating analysis: ${error.message}`);
+      throw new Error(`Error updating analysis status: ${error.message}`);
     }
 
     return data;
   }
 
   /**
-   * Delete analysis
+   * Delete analysis (cascade delete will handle related records)
    * @param {string} analysisId - Analysis ID
    * @param {string} userId - User ID (for authorization)
-   * @returns {Promise<boolean>} Success status
+   * @returns {Promise<void>}
    */
   static async delete(analysisId, userId) {
     const { error } = await supabase
@@ -163,150 +279,104 @@ class Analysis {
     if (error) {
       throw new Error(`Error deleting analysis: ${error.message}`);
     }
-
-    return true;
   }
 
   /**
-   * Get analysis count for user
+   * Get analysis statistics using materialized view
    * @param {string} userId - User ID
-   * @param {Object} options - Query options
-   * @returns {Promise<number>} Analysis count
+   * @returns {Promise<Object>} User statistics
    */
-  static async getCountByUserId(userId, options = {}) {
-    let query = supabase
-      .from('analyses')
-      .select('id', { count: 'exact' })
-      .eq('user_id', userId);
-
-    if (options.projectId) {
-      query = query.eq('project_id', options.projectId);
-    }
-
-    if (options.status) {
-      query = query.eq('status', options.status);
-    }
-
-    const { count, error } = await query;
-
-    if (error) {
-      throw new Error(`Error counting analyses: ${error.message}`);
-    }
-
-    return count || 0;
-  }
-
-  /**
-   * Search analyses by URL
-   * @param {string} userId - User ID
-   * @param {string} searchTerm - Search term
-   * @param {Object} options - Query options
-   * @returns {Promise<Array>} Array of matching analyses
-   */
-  static async searchByUrl(userId, searchTerm, options = {}) {
-    let query = supabase
-      .from('analyses')
-      .select('*')
-      .eq('user_id', userId)
-      .ilike('url', `%${searchTerm}%`)
-      .order('created_at', { ascending: false });
-
-    if (options.limit) {
-      query = query.limit(options.limit);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      throw new Error(`Error searching analyses: ${error.message}`);
-    }
-
-    // Transform database records to expected frontend format
-    return (data || []).map(record => this.transformDbRecord(record));
-  }
-
-  /**
-   * Get user's recent analyses
-   * @param {string} userId - User ID
-   * @param {number} limit - Number of recent analyses to fetch
-   * @returns {Promise<Array>} Array of recent analyses
-   */
-  static async getRecent(userId, limit = 10) {
-    const { data, error } = await supabase
-      .from('analyses')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .limit(limit);
-
-    if (error) {
-      throw new Error(`Error fetching recent analyses: ${error.message}`);
-    }
-
-    // Transform database records to expected frontend format
-    return (data || []).map(record => this.transformDbRecord(record));
-  }
-
-  /**
-   * Get analysis statistics for user
-   * @param {string} userId - User ID
-   * @param {Object} options - Query options
-   * @returns {Promise<Object>} Analysis statistics
-   */
-  static async getStats(userId, options = {}) {
+  static async getStats(userId) {
     try {
-      // Get all analyses for the user
-      const { data: analyses, error } = await supabase
-        .from('analyses')
-        .select('overall_score, accessibility_score, seo_score, performance_score, created_at')
+      // Try to get stats from materialized view first
+      const { data: viewData, error: viewError } = await supabase
+        .from('user_dashboard_stats')
+        .select('*')
         .eq('user_id', userId)
-        .order('created_at', { ascending: false });
+        .single();
 
-      if (error) {
-        throw new Error(`Error fetching analysis stats: ${error.message}`);
-      }
-
-      if (!analyses || analyses.length === 0) {
+      if (!viewError && viewData) {
         return {
-          totalAnalyses: 0,
-          recentAnalyses: 0,
-          avgOverallScore: 0,
-          avgAccessibilityScore: 0,
-          avgSeoScore: 0,
-          avgPerformanceScore: 0,
-          lastAnalysisDate: null
+          totalAnalyses: viewData.total_analyses,
+          totalProjects: viewData.total_projects,
+          avgOverallScore: parseFloat(viewData.avg_overall_score) || 0,
+          avgAccessibilityScore: parseFloat(viewData.avg_accessibility_score) || 0,
+          avgSeoScore: parseFloat(viewData.avg_seo_score) || 0,
+          avgPerformanceScore: parseFloat(viewData.avg_performance_score) || 0,
+          lastAnalysisDate: viewData.last_analysis_date,
+          totalStorageUsed: parseInt(viewData.total_storage_used) || 0
         };
       }
 
-      // Calculate statistics
-      const totalAnalyses = analyses.length;
-      const recentAnalyses = analyses.filter(a => {
-        const analysisDate = new Date(a.created_at);
-        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        return analysisDate >= thirtyDaysAgo;
-      }).length;
+      // Fallback to manual calculation if view is not available
+      return this.calculateStatsManually(userId);
+    } catch (error) {
+      console.error('Error getting stats from view, falling back to manual calculation:', error);
+      return this.calculateStatsManually(userId);
+    }
+  }
 
-      const avgOverallScore = Math.round(
-        analyses.reduce((sum, a) => sum + (a.overall_score || 0), 0) / totalAnalyses
-      );
-      const avgAccessibilityScore = Math.round(
-        analyses.reduce((sum, a) => sum + (a.accessibility_score || 0), 0) / totalAnalyses
-      );
-      const avgSeoScore = Math.round(
-        analyses.reduce((sum, a) => sum + (a.seo_score || 0), 0) / totalAnalyses
-      );
-      const avgPerformanceScore = Math.round(
-        analyses.reduce((sum, a) => sum + (a.performance_score || 0), 0) / totalAnalyses
-      );
+  /**
+   * Manually calculate statistics (fallback method)
+   * @param {string} userId - User ID
+   * @returns {Promise<Object>} User statistics
+   */
+  static async calculateStatsManually(userId) {
+    try {
+      // Get analyses
+      const { data: analyses, error: analysesError } = await supabase
+        .from('analyses')
+        .select('created_at, overall_score, accessibility_score, seo_score, performance_score')
+        .eq('user_id', userId)
+        .eq('status', 'completed');
+
+      if (analysesError) throw analysesError;
+
+      // Get projects count
+      const { count: projectCount, error: projectError } = await supabase
+        .from('projects')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+
+      if (projectError) throw projectError;
+
+      // Get storage usage
+      const { data: storageData, error: storageError } = await supabase
+        .from('storage_objects')
+        .select('file_size')
+        .eq('user_id', userId);
+
+      if (storageError) throw storageError;
+
+      // Calculate averages
+      const totalAnalyses = analyses?.length || 0;
+      const totalStorageUsed = storageData?.reduce((sum, obj) => sum + (obj.file_size || 0), 0) || 0;
+
+      let avgOverallScore = 0, avgAccessibilityScore = 0, avgSeoScore = 0, avgPerformanceScore = 0;
+
+      if (totalAnalyses > 0) {
+        const sums = analyses.reduce((acc, analysis) => ({
+          overall: acc.overall + (analysis.overall_score || 0),
+          accessibility: acc.accessibility + (analysis.accessibility_score || 0),
+          seo: acc.seo + (analysis.seo_score || 0),
+          performance: acc.performance + (analysis.performance_score || 0)
+        }), { overall: 0, accessibility: 0, seo: 0, performance: 0 });
+
+        avgOverallScore = Math.round(sums.overall / totalAnalyses);
+        avgAccessibilityScore = Math.round(sums.accessibility / totalAnalyses);
+        avgSeoScore = Math.round(sums.seo / totalAnalyses);
+        avgPerformanceScore = Math.round(sums.performance / totalAnalyses);
+      }
 
       return {
         totalAnalyses,
-        recentAnalyses,
+        totalProjects: projectCount || 0,
         avgOverallScore,
         avgAccessibilityScore,
         avgSeoScore,
         avgPerformanceScore,
-        lastAnalysisDate: analyses[0].created_at
+        lastAnalysisDate: analyses[0]?.created_at || null,
+        totalStorageUsed
       };
     } catch (error) {
       throw new Error(`Error calculating analysis stats: ${error.message}`);
@@ -316,17 +386,21 @@ class Analysis {
   /**
    * Transform database record to expected frontend format
    * @param {Object} dbRecord - Database record
+   * @param {Object} relatedData - Related data from other tables
    * @returns {Object} Transformed record
    */
-  static transformDbRecord(dbRecord) {
+  static transformDbRecord(dbRecord, relatedData = {}) {
     if (!dbRecord) return null;
 
-    // If analysis_data exists, use it as the base and add database metadata
+    const { violations = [], screenshots = [] } = relatedData;
+
+    // If analysis_data exists, merge it with related data
     if (dbRecord.analysis_data) {
       return {
         ...dbRecord.analysis_data,
-        // Ensure database-specific fields are included
+        // Add database-specific fields
         id: dbRecord.id,
+        analysisId: dbRecord.id,
         databaseId: dbRecord.id,
         createdAt: dbRecord.created_at,
         updatedAt: dbRecord.updated_at,
@@ -334,7 +408,11 @@ class Analysis {
         projectId: dbRecord.project_id,
         status: dbRecord.status,
         isAnonymous: dbRecord.is_anonymous,
-        // Override with database scores if present
+        // Add related data
+        violations: violations,
+        screenshot: screenshots.length > 0 ? 
+          (screenshots.length === 1 ? screenshots[0].screenshot_url : screenshots) : null,
+        // Override with database scores
         overallScore: dbRecord.overall_score ?? dbRecord.analysis_data.overallScore,
         accessibilityScore: dbRecord.accessibility_score ?? dbRecord.analysis_data.accessibilityScore,
         seoScore: dbRecord.seo_score ?? dbRecord.analysis_data.seoScore,
@@ -350,7 +428,7 @@ class Analysis {
       };
     }
 
-    // Fallback: construct from separate database fields (for backwards compatibility)
+    // Fallback: construct from separate database fields
     return {
       analysisId: dbRecord.id,
       id: dbRecord.id,
@@ -368,7 +446,7 @@ class Analysis {
       accessibilityScore: dbRecord.accessibility_score,
       seoScore: dbRecord.seo_score,
       performanceScore: dbRecord.performance_score,
-      violations: dbRecord.violations,
+      violations: violations,
       summary: {
         overallScore: dbRecord.overall_score,
         accessibilityScore: dbRecord.accessibility_score,
@@ -377,7 +455,8 @@ class Analysis {
         ...dbRecord.summary
       },
       metadata: dbRecord.metadata,
-      screenshot: dbRecord.screenshots,
+      screenshot: screenshots.length > 0 ? 
+        (screenshots.length === 1 ? screenshots[0].screenshot_url : screenshots) : null,
       seo: dbRecord.seo_analysis,
       aiInsights: dbRecord.ai_insights
     };

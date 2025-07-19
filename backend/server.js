@@ -73,6 +73,9 @@ logger.info('Analysis routes loaded successfully');
 if (process.env.NODE_ENV !== 'production') {
   const testPhase1Routes = require('./routes/test-phase1');
   app.use('/api/test-phase1', testPhase1Routes);
+  
+  const databaseTestRoutes = require('./routes/database-test');
+  app.use('/api/database-test', databaseTestRoutes);
 }
 
 // Health check endpoint
