@@ -25,7 +25,7 @@ import { AccessibilityIssue } from '../models/AccessibilityIssue';
 import CallToActionSection from '../components/CallToActionSection';
 
 const ResultsContainer = styled.div`
-  max-width: 1200px;
+  max-width: 75vw;
   margin: 0 auto;
   padding: 2rem;
   background: #f8fafc;

@@ -52,14 +52,15 @@ class Analysis {
       // 3. Create screenshot records if screenshots exist
       const screenshots = [];
       if (analysisData.analysisData?.screenshot) {
-        // Handle single screenshot or multiple screenshots
+        // Handle different screenshot data formats
         const screenshotData = analysisData.analysisData.screenshot;
+        
         if (typeof screenshotData === 'string') {
           // Single screenshot URL
           screenshots.push({
             url: screenshotData,
             type: 'main',
-            storageObjectId: null // Will be linked later if needed
+            storageObjectId: null
           });
         } else if (screenshotData.url) {
           // Screenshot object with URL
@@ -69,6 +70,24 @@ class Analysis {
             storageObjectId: screenshotData.storageObjectId || null,
             metadata: screenshotData.metadata || {}
           });
+        } else if (screenshotData.desktop || screenshotData.mobile) {
+          // Desktop/Mobile screenshot object
+          if (screenshotData.desktop) {
+            screenshots.push({
+              url: screenshotData.desktop,
+              type: 'desktop',
+              storageObjectId: null,
+              metadata: { timestamp: screenshotData.timestamp, originalUrl: screenshotData.url }
+            });
+          }
+          if (screenshotData.mobile) {
+            screenshots.push({
+              url: screenshotData.mobile,
+              type: 'mobile',
+              storageObjectId: null,
+              metadata: { timestamp: screenshotData.timestamp, originalUrl: screenshotData.url }
+            });
+          }
         }
       }
 
@@ -410,13 +429,17 @@ class Analysis {
         isAnonymous: dbRecord.is_anonymous,
         // Add related data
         violations: violations,
-        screenshot: screenshots.length > 0 ? 
-          (screenshots.length === 1 ? screenshots[0].screenshot_url : screenshots) : null,
-        // Override with database scores
+        screenshot: this.formatScreenshotsForFrontend(screenshots),
+        // Override with database scores (provide both camelCase and snake_case for compatibility)
         overallScore: dbRecord.overall_score ?? dbRecord.analysis_data.overallScore,
         accessibilityScore: dbRecord.accessibility_score ?? dbRecord.analysis_data.accessibilityScore,
         seoScore: dbRecord.seo_score ?? dbRecord.analysis_data.seoScore,
         performanceScore: dbRecord.performance_score ?? dbRecord.analysis_data.performanceScore,
+        // Add snake_case versions for dashboard compatibility
+        overall_score: dbRecord.overall_score ?? dbRecord.analysis_data.overallScore,
+        accessibility_score: dbRecord.accessibility_score ?? dbRecord.analysis_data.accessibilityScore,
+        seo_score: dbRecord.seo_score ?? dbRecord.analysis_data.seoScore,
+        performance_score: dbRecord.performance_score ?? dbRecord.analysis_data.performanceScore,
         // Ensure summary includes database scores
         summary: {
           ...dbRecord.analysis_data.summary,
@@ -446,6 +469,11 @@ class Analysis {
       accessibilityScore: dbRecord.accessibility_score,
       seoScore: dbRecord.seo_score,
       performanceScore: dbRecord.performance_score,
+      // Add snake_case versions for dashboard compatibility
+      overall_score: dbRecord.overall_score,
+      accessibility_score: dbRecord.accessibility_score,
+      seo_score: dbRecord.seo_score,
+      performance_score: dbRecord.performance_score,
       violations: violations,
       summary: {
         overallScore: dbRecord.overall_score,
@@ -455,11 +483,42 @@ class Analysis {
         ...dbRecord.summary
       },
       metadata: dbRecord.metadata,
-      screenshot: screenshots.length > 0 ? 
-        (screenshots.length === 1 ? screenshots[0].screenshot_url : screenshots) : null,
+      screenshot: this.formatScreenshotsForFrontend(screenshots),
       seo: dbRecord.seo_analysis,
       aiInsights: dbRecord.ai_insights
     };
+  }
+
+  /**
+   * Format screenshots for frontend compatibility
+   * @param {Array} screenshots - Array of screenshot records
+   * @returns {Object|string|null} Formatted screenshot data
+   */
+  static formatScreenshotsForFrontend(screenshots) {
+    if (!screenshots || screenshots.length === 0) {
+      return null;
+    }
+
+    // If we have desktop and mobile screenshots, return them as an object
+    const desktop = screenshots.find(s => s.screenshot_type === 'desktop');
+    const mobile = screenshots.find(s => s.screenshot_type === 'mobile');
+
+    if (desktop || mobile) {
+      const result = {};
+      if (desktop) result.desktop = desktop.screenshot_url;
+      if (mobile) result.mobile = mobile.screenshot_url;
+      if (desktop?.metadata?.timestamp) result.timestamp = desktop.metadata.timestamp;
+      if (desktop?.metadata?.originalUrl) result.url = desktop.metadata.originalUrl;
+      return result;
+    }
+
+    // For single screenshots or main type, return the URL directly
+    if (screenshots.length === 1) {
+      return screenshots[0].screenshot_url;
+    }
+
+    // Return array of URLs for multiple screenshots
+    return screenshots.map(s => s.screenshot_url);
   }
 }
 

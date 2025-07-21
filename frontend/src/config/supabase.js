@@ -1,10 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
+import envConfig from './environment';
 
-// Supabase configuration
-const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
-const supabaseAnonKey = process.env.REACT_APP_SUPABASE_ANON_KEY;
+// Use the environment configuration for Supabase
+const supabaseUrl = envConfig.SUPABASE_URL;
+const supabaseAnonKey = envConfig.SUPABASE_ANON_KEY;
 
 console.log('🔧 Supabase Configuration Check:', {
+  environment: envConfig.APP_ENV,
   hasUrl: !!supabaseUrl,
   hasKey: !!supabaseAnonKey,
   urlPreview: supabaseUrl ? supabaseUrl.substring(0, 30) + '...' : 'MISSING',
@@ -12,7 +14,7 @@ console.log('🔧 Supabase Configuration Check:', {
 });
 
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase configuration. Please check your environment variables.');
+  throw new Error(`Missing Supabase configuration for environment: ${envConfig.APP_ENV}. Please check your environment variables.`);
 }
 
 // Create Supabase client with anon key for frontend operations

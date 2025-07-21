@@ -10,13 +10,11 @@ services:
       - /app/node_modules
       - chrome-data:/app/chrome-user-data
     environment:
-      - NODE_ENV=development
+      - APP_ENV=${APP_ENV:-production}
       - PORT=3001
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
-      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      # Unified environment variables are loaded via env_file
     env_file:
-      - ./backend/.env
+      - .env
     networks:
       - streetwiseweb-network
     restart: unless-stopped
@@ -37,12 +35,17 @@ services:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - REACT_APP_API_URL=http://localhost:3005
+      - APP_ENV=${APP_ENV:-production}
       - CHOKIDAR_USEPOLLING=true
-      - REACT_APP_SUPABASE_URL=${REACT_APP_SUPABASE_URL}
-      - REACT_APP_SUPABASE_ANON_KEY=${REACT_APP_SUPABASE_ANON_KEY}
+      # React environment variables for production
+      - REACT_APP_API_URL=${PROD_API_URL:-http://localhost:3005}
+      - REACT_APP_SUPABASE_URL=${PROD_SUPABASE_URL}
+      - REACT_APP_SUPABASE_ANON_KEY=${PROD_SUPABASE_ANON_KEY}
+      - REACT_APP_ENV=${APP_ENV:-production}
+      - REACT_APP_ENVIRONMENT=production
+      - REACT_APP_DEBUG=false
     env_file:
-      - ./frontend/.env
+      - .env
     depends_on:
       - backend
     networks:

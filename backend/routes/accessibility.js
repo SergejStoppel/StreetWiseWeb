@@ -728,9 +728,9 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
           reportType: reportType,
           language: language,
           overallScore: report.summary?.overallScore || report.overallScore || 0,
-          accessibilityScore: report.summary?.accessibilityScore || report.overallScore || 0,
-          seoScore: report.summary?.seoScore || 0,
-          performanceScore: report.summary?.performanceScore || 0,
+          accessibilityScore: report.summary?.accessibilityScore || report.accessibilityScore || 0,
+          seoScore: report.summary?.seoScore || report.seoScore || 0,
+          performanceScore: report.summary?.performanceScore || report.performanceScore || 0,
           analysisData: report,
           metadata: {
             ...report.metadata,

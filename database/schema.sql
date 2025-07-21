@@ -1,63 +1,45 @@
--- ⚠️ DEPRECATED: Use COMPLETE_PRODUCTION_SETUP.sql instead
--- 
--- This file is deprecated and should not be used for new installations.
--- Use COMPLETE_PRODUCTION_SETUP.sql which includes:
--- - Smart caching system
--- - Anonymous user support  
--- - Screenshot storage
--- - Comprehensive error handling
--- - Production-ready setup
---
--- =============================================
--- STREETWISEWEB DATABASE SCHEMA (DEPRECATED)
--- =============================================
--- Run this SQL in your Supabase SQL Editor to create the database schema
--- Navigate to: Supabase Dashboard > SQL Editor > New Query
+-- =====================================================
+-- STREETWISEWEB DATABASE SCHEMA
+-- =====================================================
+-- Current Production Schema v3.0
+-- Compatible with Supabase PostgreSQL
+-- Last Updated: 2025-01-21
 
--- =============================================
+-- =====================================================
 -- EXTENSIONS
--- =============================================
--- Enable UUID extension for generating UUIDs
+-- =====================================================
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- =============================================
--- USERS TABLE
--- =============================================
--- Note: Supabase auth.users table already exists for authentication
--- This table extends the auth.users with additional user data
-CREATE TABLE IF NOT EXISTS public.user_profiles (
-    id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-    email TEXT NOT NULL,
-    first_name TEXT,
-    last_name TEXT,
-    company TEXT,
-    plan_type TEXT DEFAULT 'free' CHECK (plan_type IN ('free', 'basic', 'premium')),
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP WITH TIME ZONE,
-    is_active BOOLEAN DEFAULT TRUE,
-    email_verified BOOLEAN DEFAULT FALSE,
-    avatar_url TEXT,
+-- =====================================================
+-- CORE TABLES
+-- =====================================================
+
+-- User profiles (extends Supabase auth.users)
+CREATE TABLE public.user_profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    full_name VARCHAR(255),
+    company VARCHAR(255),
+    plan_type VARCHAR(20) DEFAULT 'free' CHECK (plan_type IN ('free', 'basic', 'premium')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     settings JSONB DEFAULT '{}'::jsonb,
     
     -- Constraints
     CONSTRAINT user_profiles_email_valid CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
 
--- =============================================
--- PROJECTS TABLE
--- =============================================
--- Projects organize multiple analyses for a website/client
-CREATE TABLE IF NOT EXISTS public.projects (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-    name TEXT NOT NULL,
+-- Projects for organizing analyses
+CREATE TABLE public.projects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.user_profiles(id) ON DELETE CASCADE,
+    name VARCHAR(255) NOT NULL,
     description TEXT,
     website_url TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     is_archived BOOLEAN DEFAULT FALSE,
     settings JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     
     -- Constraints
     CONSTRAINT projects_name_not_empty CHECK (LENGTH(TRIM(name)) > 0),
@@ -67,308 +49,277 @@ CREATE TABLE IF NOT EXISTS public.projects (
     )
 );
 
--- =============================================
--- ANALYSES TABLE
--- =============================================
--- Main table for storing analysis results
-CREATE TABLE IF NOT EXISTS public.analyses (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-    project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE,
+-- Main analyses table (optimized structure)
+CREATE TABLE public.analyses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE,
+    project_id UUID REFERENCES public.projects(id) ON DELETE SET NULL,
     url TEXT NOT NULL,
-    report_type TEXT DEFAULT 'overview' CHECK (report_type IN ('overview', 'detailed', 'quick')),
-    language TEXT DEFAULT 'en' CHECK (language IN ('en', 'de', 'es')),
+    report_type VARCHAR(50) DEFAULT 'overview' CHECK (report_type IN ('overview', 'detailed', 'quick')),
+    language VARCHAR(10) DEFAULT 'en' CHECK (language IN ('en', 'de', 'es')),
     
-    -- Analysis results
+    -- Scores (extracted for fast querying)
     overall_score INTEGER CHECK (overall_score >= 0 AND overall_score <= 100),
     accessibility_score INTEGER CHECK (accessibility_score >= 0 AND accessibility_score <= 100),
     seo_score INTEGER CHECK (seo_score >= 0 AND seo_score <= 100),
     performance_score INTEGER CHECK (performance_score >= 0 AND performance_score <= 100),
     
-    -- Raw data (JSON)
-    analysis_data JSONB NOT NULL,
+    -- Core analysis data (without large objects)
+    analysis_data JSONB,
     metadata JSONB DEFAULT '{}'::jsonb,
     
-    -- Timestamps
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    expires_at TIMESTAMP WITH TIME ZONE, -- For cache management
-    
-    -- Status
-    status TEXT DEFAULT 'completed' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
+    -- Status and lifecycle
+    status VARCHAR(50) DEFAULT 'completed' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
     error_message TEXT,
+    is_anonymous BOOLEAN DEFAULT FALSE,
+    expires_at TIMESTAMPTZ,
+    
+    -- Timestamps
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
     
     -- Constraints
     CONSTRAINT analyses_url_valid CHECK (url ~* '^https?://[^\s/$.?#].[^\s]*$'),
     CONSTRAINT analyses_url_not_empty CHECK (LENGTH(TRIM(url)) > 0)
 );
 
--- =============================================
--- ANALYSIS ISSUES TABLE
--- =============================================
--- Extracted accessibility issues for better querying and reporting
-CREATE TABLE IF NOT EXISTS public.analysis_issues (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    analysis_id UUID REFERENCES public.analyses(id) ON DELETE CASCADE NOT NULL,
-    issue_id TEXT NOT NULL, -- From axe-core or custom analyzers
-    title TEXT NOT NULL,
-    description TEXT,
-    severity TEXT CHECK (severity IN ('critical', 'serious', 'moderate', 'minor')),
-    category TEXT, -- forms, images, navigation, etc
-    wcag_criteria JSONB DEFAULT '[]'::jsonb,
-    elements JSONB DEFAULT '[]'::jsonb,
-    remediation JSONB DEFAULT '{}'::jsonb,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+-- =====================================================
+-- STORAGE AND MEDIA TABLES
+-- =====================================================
+
+-- Storage object tracking (for cleanup and management)
+CREATE TABLE public.storage_objects (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE,
+    analysis_id UUID REFERENCES public.analyses(id) ON DELETE CASCADE,
+    bucket_id TEXT NOT NULL DEFAULT 'analysis-screenshots',
+    object_path TEXT NOT NULL,
+    file_size BIGINT NOT NULL DEFAULT 0,
+    mime_type TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
     
-    -- Constraints
-    CONSTRAINT analysis_issues_title_not_empty CHECK (LENGTH(TRIM(title)) > 0),
-    CONSTRAINT analysis_issues_issue_id_not_empty CHECK (LENGTH(TRIM(issue_id)) > 0)
+    -- Ensure unique paths per bucket
+    UNIQUE(bucket_id, object_path)
 );
 
--- =============================================
--- USAGE LOGS TABLE
--- =============================================
--- Track usage for billing and rate limiting
-CREATE TABLE IF NOT EXISTS public.usage_logs (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-    action TEXT NOT NULL, -- analysis, report_generated, pdf_download, etc
-    resource_id UUID, -- analysis_id, project_id, etc
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+-- Screenshot management (with proper metadata support)
+CREATE TABLE public.analysis_screenshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID NOT NULL REFERENCES public.analyses(id) ON DELETE CASCADE,
+    screenshot_url TEXT NOT NULL,
+    screenshot_type VARCHAR(50) DEFAULT 'main' CHECK (screenshot_type IN ('main', 'desktop', 'mobile', 'full')),
+    storage_object_id UUID REFERENCES public.storage_objects(id) ON DELETE SET NULL,
     metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Violations storage (separate table for large JSONB data)
+CREATE TABLE public.analysis_violations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID NOT NULL REFERENCES public.analyses(id) ON DELETE CASCADE,
+    violations JSONB NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =====================================================
+-- SUMMARY AND ANALYTICS TABLES
+-- =====================================================
+
+-- Pre-computed analysis summaries (for fast dashboard queries)
+CREATE TABLE public.analysis_summaries (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID NOT NULL REFERENCES public.analyses(id) ON DELETE CASCADE,
+    
+    -- Issue counts
+    total_issues INTEGER DEFAULT 0,
+    critical_issues INTEGER DEFAULT 0,
+    serious_issues INTEGER DEFAULT 0,
+    moderate_issues INTEGER DEFAULT 0,
+    minor_issues INTEGER DEFAULT 0,
+    
+    -- Category-specific counts
+    contrast_errors INTEGER DEFAULT 0,
+    missing_alt_text INTEGER DEFAULT 0,
+    form_issues INTEGER DEFAULT 0,
+    aria_issues INTEGER DEFAULT 0,
+    keyboard_issues INTEGER DEFAULT 0,
+    heading_issues INTEGER DEFAULT 0,
+    landmark_issues INTEGER DEFAULT 0,
+    
+    -- WCAG compliance
+    wcag_level VARCHAR(3),
+    compliance_percentage NUMERIC(5,2),
+    
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    
+    -- Ensure one summary per analysis
+    UNIQUE(analysis_id)
+);
+
+-- Usage logging for billing and analytics
+CREATE TABLE public.usage_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE CASCADE,
+    action VARCHAR(255) NOT NULL,
+    resource_type VARCHAR(100),
+    resource_id UUID,
+    metadata JSONB DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
     
     -- Constraints
     CONSTRAINT usage_logs_action_not_empty CHECK (LENGTH(TRIM(action)) > 0)
 );
 
--- =============================================
--- TEAM MEMBERS TABLE (Future feature)
--- =============================================
--- For team collaboration features
-CREATE TABLE IF NOT EXISTS public.team_members (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    project_id UUID REFERENCES public.projects(id) ON DELETE CASCADE NOT NULL,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
-    role TEXT DEFAULT 'viewer' CHECK (role IN ('owner', 'editor', 'viewer')),
-    invited_by UUID REFERENCES auth.users(id),
-    invited_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    joined_at TIMESTAMP WITH TIME ZONE,
+-- =====================================================
+-- COLLABORATION TABLES (Future features)
+-- =====================================================
+
+-- Team members for project collaboration
+CREATE TABLE public.team_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.user_profiles(id) ON DELETE CASCADE,
+    role VARCHAR(20) DEFAULT 'viewer' CHECK (role IN ('owner', 'editor', 'viewer')),
+    invited_by UUID REFERENCES public.user_profiles(id),
+    invited_at TIMESTAMPTZ DEFAULT NOW(),
+    joined_at TIMESTAMPTZ,
     is_active BOOLEAN DEFAULT TRUE,
     
-    -- Constraints
+    -- One membership per user per project
     UNIQUE(project_id, user_id)
 );
 
--- =============================================
--- INDEXES
--- =============================================
--- Performance indexes for common queries
+-- =====================================================
+-- AUDIT AND CLEANUP TABLES
+-- =====================================================
+
+-- Deletion audit trail
+CREATE TABLE public.deletion_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID,
+    deleted_at TIMESTAMPTZ DEFAULT NOW(),
+    deletion_type VARCHAR(50) NOT NULL,
+    deleted_count INTEGER DEFAULT 0,
+    metadata JSONB DEFAULT '{}'::jsonb
+);
+
+-- =====================================================
+-- INDEXES FOR PERFORMANCE
+-- =====================================================
 
 -- User profiles indexes
-CREATE INDEX IF NOT EXISTS idx_user_profiles_email ON public.user_profiles(email);
-CREATE INDEX IF NOT EXISTS idx_user_profiles_plan_type ON public.user_profiles(plan_type);
+CREATE INDEX idx_user_profiles_email ON public.user_profiles(email);
+CREATE INDEX idx_user_profiles_plan ON public.user_profiles(plan_type);
+CREATE INDEX idx_user_profiles_created ON public.user_profiles(created_at DESC);
 
 -- Projects indexes
-CREATE INDEX IF NOT EXISTS idx_projects_user_id ON public.projects(user_id);
-CREATE INDEX IF NOT EXISTS idx_projects_created_at ON public.projects(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_projects_user_created ON public.projects(user_id, created_at DESC);
+CREATE INDEX idx_projects_user ON public.projects(user_id);
+CREATE INDEX idx_projects_created ON public.projects(created_at DESC);
+CREATE INDEX idx_projects_user_created ON public.projects(user_id, created_at DESC);
+CREATE INDEX idx_projects_archived ON public.projects(is_archived);
 
--- Analyses indexes
-CREATE INDEX IF NOT EXISTS idx_analyses_user_id ON public.analyses(user_id);
-CREATE INDEX IF NOT EXISTS idx_analyses_project_id ON public.analyses(project_id);
-CREATE INDEX IF NOT EXISTS idx_analyses_url ON public.analyses(url);
-CREATE INDEX IF NOT EXISTS idx_analyses_created_at ON public.analyses(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_analyses_user_created ON public.analyses(user_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_analyses_project_created ON public.analyses(project_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_analyses_status ON public.analyses(status);
+-- Analyses indexes (most critical for performance)
+CREATE INDEX idx_analyses_user ON public.analyses(user_id);
+CREATE INDEX idx_analyses_project ON public.analyses(project_id);
+CREATE INDEX idx_analyses_url ON public.analyses(url);
+CREATE INDEX idx_analyses_created ON public.analyses(created_at DESC);
+CREATE INDEX idx_analyses_status ON public.analyses(status);
+CREATE INDEX idx_analyses_anonymous ON public.analyses(is_anonymous, created_at DESC);
+CREATE INDEX idx_analyses_user_created ON public.analyses(user_id, created_at DESC);
+CREATE INDEX idx_analyses_project_created ON public.analyses(project_id, created_at DESC);
+CREATE INDEX idx_analyses_scores ON public.analyses(overall_score, accessibility_score, seo_score, performance_score);
+CREATE INDEX idx_analyses_expires ON public.analyses(expires_at) WHERE expires_at IS NOT NULL;
 
--- Analysis issues indexes
-CREATE INDEX IF NOT EXISTS idx_analysis_issues_analysis_id ON public.analysis_issues(analysis_id);
-CREATE INDEX IF NOT EXISTS idx_analysis_issues_severity ON public.analysis_issues(severity);
-CREATE INDEX IF NOT EXISTS idx_analysis_issues_category ON public.analysis_issues(category);
+-- Storage and media indexes
+CREATE INDEX idx_storage_objects_user ON public.storage_objects(user_id);
+CREATE INDEX idx_storage_objects_analysis ON public.storage_objects(analysis_id);
+CREATE INDEX idx_storage_objects_bucket_path ON public.storage_objects(bucket_id, object_path);
 
--- Usage logs indexes
-CREATE INDEX IF NOT EXISTS idx_usage_logs_user_id ON public.usage_logs(user_id);
-CREATE INDEX IF NOT EXISTS idx_usage_logs_action ON public.usage_logs(action);
-CREATE INDEX IF NOT EXISTS idx_usage_logs_created_at ON public.usage_logs(created_at DESC);
-CREATE INDEX IF NOT EXISTS idx_usage_logs_user_action_date ON public.usage_logs(user_id, action, created_at DESC);
+CREATE INDEX idx_analysis_screenshots_analysis ON public.analysis_screenshots(analysis_id);
+CREATE INDEX idx_analysis_screenshots_type ON public.analysis_screenshots(screenshot_type);
+CREATE INDEX idx_analysis_screenshots_storage ON public.analysis_screenshots(storage_object_id);
 
--- Team members indexes
-CREATE INDEX IF NOT EXISTS idx_team_members_project_id ON public.team_members(project_id);
-CREATE INDEX IF NOT EXISTS idx_team_members_user_id ON public.team_members(user_id);
+CREATE INDEX idx_analysis_violations_analysis ON public.analysis_violations(analysis_id);
+CREATE INDEX idx_analysis_violations_gin ON public.analysis_violations USING gin(violations);
 
--- =============================================
--- FUNCTIONS
--- =============================================
--- Function to update updated_at timestamp
-CREATE OR REPLACE FUNCTION public.update_updated_at_column()
-RETURNS TRIGGER AS $$
+-- Summary and analytics indexes
+CREATE INDEX idx_analysis_summaries_analysis ON public.analysis_summaries(analysis_id);
+CREATE INDEX idx_analysis_summaries_issues ON public.analysis_summaries(total_issues, critical_issues);
+CREATE INDEX idx_analysis_summaries_compliance ON public.analysis_summaries(compliance_percentage);
+
+CREATE INDEX idx_usage_logs_user ON public.usage_logs(user_id);
+CREATE INDEX idx_usage_logs_action ON public.usage_logs(action);
+CREATE INDEX idx_usage_logs_created ON public.usage_logs(created_at DESC);
+CREATE INDEX idx_usage_logs_user_action_date ON public.usage_logs(user_id, action, created_at DESC);
+
+-- Team and collaboration indexes
+CREATE INDEX idx_team_members_project ON public.team_members(project_id);
+CREATE INDEX idx_team_members_user ON public.team_members(user_id);
+CREATE INDEX idx_team_members_active ON public.team_members(is_active);
+
+-- Audit indexes
+CREATE INDEX idx_deletion_logs_user ON public.deletion_logs(user_id);
+CREATE INDEX idx_deletion_logs_type ON public.deletion_logs(deletion_type);
+CREATE INDEX idx_deletion_logs_deleted_at ON public.deletion_logs(deleted_at DESC);
+
+-- =====================================================
+-- MATERIALIZED VIEW FOR DASHBOARD
+-- =====================================================
+
+-- Fast dashboard statistics
+CREATE MATERIALIZED VIEW public.user_dashboard_stats AS
+SELECT 
+    u.id as user_id,
+    u.plan_type,
+    COUNT(DISTINCT a.id) as total_analyses,
+    COUNT(DISTINCT p.id) as total_projects,
+    COUNT(DISTINCT a.id) FILTER (WHERE a.created_at >= NOW() - INTERVAL '30 days') as recent_analyses,
+    COALESCE(AVG(a.overall_score), 0) as avg_overall_score,
+    COALESCE(AVG(a.accessibility_score), 0) as avg_accessibility_score,
+    COALESCE(AVG(a.seo_score), 0) as avg_seo_score,
+    COALESCE(AVG(a.performance_score), 0) as avg_performance_score,
+    MAX(a.created_at) as last_analysis_date,
+    COALESCE(SUM(so.file_size), 0) as total_storage_used,
+    COUNT(DISTINCT tm.id) as team_memberships
+FROM public.user_profiles u
+LEFT JOIN public.analyses a ON a.user_id = u.id AND a.status = 'completed'
+LEFT JOIN public.projects p ON p.user_id = u.id AND p.is_archived = FALSE
+LEFT JOIN public.storage_objects so ON so.user_id = u.id
+LEFT JOIN public.team_members tm ON tm.user_id = u.id AND tm.is_active = TRUE
+GROUP BY u.id, u.plan_type;
+
+-- Index for materialized view
+CREATE UNIQUE INDEX idx_user_dashboard_stats_user ON public.user_dashboard_stats(user_id);
+
+-- =====================================================
+-- SCHEMA VALIDATION
+-- =====================================================
+
+-- Ensure all expected tables exist
+DO $$
+DECLARE
+    expected_tables TEXT[] := ARRAY[
+        'user_profiles', 'projects', 'analyses', 'storage_objects',
+        'analysis_screenshots', 'analysis_violations', 'analysis_summaries',
+        'usage_logs', 'team_members', 'deletion_logs'
+    ];
+    table_name TEXT;
+    missing_tables TEXT[] := '{}';
 BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
--- =============================================
--- TRIGGERS
--- =============================================
--- Auto-update updated_at columns
-CREATE TRIGGER update_user_profiles_updated_at
-    BEFORE UPDATE ON public.user_profiles
-    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER update_projects_updated_at
-    BEFORE UPDATE ON public.projects
-    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
-CREATE TRIGGER update_analyses_updated_at
-    BEFORE UPDATE ON public.analyses
-    FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
-
--- =============================================
--- ROW LEVEL SECURITY (RLS)
--- =============================================
--- Enable RLS on all tables
-ALTER TABLE public.user_profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.analyses ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.analysis_issues ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.usage_logs ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.team_members ENABLE ROW LEVEL SECURITY;
-
--- =============================================
--- RLS POLICIES
--- =============================================
-
--- User profiles: Users can only see and modify their own profile
-CREATE POLICY "Users can view their own profile" ON public.user_profiles
-    FOR SELECT USING (auth.uid() = id);
-
-CREATE POLICY "Users can update their own profile" ON public.user_profiles
-    FOR UPDATE USING (auth.uid() = id);
-
-CREATE POLICY "Users can insert their own profile" ON public.user_profiles
-    FOR INSERT WITH CHECK (auth.uid() = id);
-
--- Projects: Users can only see their own projects
-CREATE POLICY "Users can view their own projects" ON public.projects
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert their own projects" ON public.projects
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update their own projects" ON public.projects
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete their own projects" ON public.projects
-    FOR DELETE USING (auth.uid() = user_id);
-
--- Analyses: Users can only see their own analyses
-CREATE POLICY "Users can view their own analyses" ON public.analyses
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert their own analyses" ON public.analyses
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
-CREATE POLICY "Users can update their own analyses" ON public.analyses
-    FOR UPDATE USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can delete their own analyses" ON public.analyses
-    FOR DELETE USING (auth.uid() = user_id);
-
--- Analysis issues: Users can only see issues from their own analyses
-CREATE POLICY "Users can view their own analysis issues" ON public.analysis_issues
-    FOR SELECT USING (
-        EXISTS (
-            SELECT 1 FROM public.analyses 
-            WHERE analyses.id = analysis_issues.analysis_id 
-            AND analyses.user_id = auth.uid()
-        )
-    );
-
-CREATE POLICY "Users can insert their own analysis issues" ON public.analysis_issues
-    FOR INSERT WITH CHECK (
-        EXISTS (
-            SELECT 1 FROM public.analyses 
-            WHERE analyses.id = analysis_issues.analysis_id 
-            AND analyses.user_id = auth.uid()
-        )
-    );
-
--- Usage logs: Users can only see their own usage logs
-CREATE POLICY "Users can view their own usage logs" ON public.usage_logs
-    FOR SELECT USING (auth.uid() = user_id);
-
-CREATE POLICY "Users can insert their own usage logs" ON public.usage_logs
-    FOR INSERT WITH CHECK (auth.uid() = user_id);
-
--- Team members: Users can see team members for projects they own or are part of
-CREATE POLICY "Users can view team members for their projects" ON public.team_members
-    FOR SELECT USING (
-        auth.uid() = user_id OR
-        EXISTS (
-            SELECT 1 FROM public.projects 
-            WHERE projects.id = team_members.project_id 
-            AND projects.user_id = auth.uid()
-        )
-    );
-
--- =============================================
--- INITIAL DATA
--- =============================================
--- Insert some sample data for testing (optional)
--- You can remove this section if you don't want sample data
-
--- Sample plan types can be added to a separate lookup table if needed
--- For now, plan_type is just a text field with CHECK constraint
-
--- =============================================
--- VIEWS (Optional - for easier querying)
--- =============================================
--- View for user analytics
-CREATE OR REPLACE VIEW public.user_analytics AS
-SELECT 
-    up.id,
-    up.email,
-    up.first_name,
-    up.last_name,
-    up.company,
-    up.plan_type,
-    up.created_at,
-    COUNT(DISTINCT p.id) as project_count,
-    COUNT(DISTINCT a.id) as analysis_count,
-    COUNT(DISTINCT CASE WHEN a.created_at >= CURRENT_DATE - INTERVAL '30 days' THEN a.id END) as recent_analyses,
-    MAX(a.created_at) as last_analysis_date
-FROM public.user_profiles up
-LEFT JOIN public.projects p ON up.id = p.user_id
-LEFT JOIN public.analyses a ON up.id = a.user_id
-GROUP BY up.id, up.email, up.first_name, up.last_name, up.company, up.plan_type, up.created_at;
-
--- View for project analytics
-CREATE OR REPLACE VIEW public.project_analytics AS
-SELECT 
-    p.id,
-    p.name,
-    p.user_id,
-    p.website_url,
-    p.created_at,
-    COUNT(DISTINCT a.id) as analysis_count,
-    AVG(a.overall_score) as avg_overall_score,
-    AVG(a.accessibility_score) as avg_accessibility_score,
-    MAX(a.created_at) as last_analysis_date
-FROM public.projects p
-LEFT JOIN public.analyses a ON p.id = a.project_id
-GROUP BY p.id, p.name, p.user_id, p.website_url, p.created_at;
-
--- =============================================
--- COMPLETION MESSAGE
--- =============================================
--- If you see this message, the schema was created successfully!
-DO $$ 
-BEGIN 
-    RAISE NOTICE 'StreetWiseWeb database schema created successfully!';
-    RAISE NOTICE 'Next steps:';
-    RAISE NOTICE '1. Test the schema by inserting sample data';
-    RAISE NOTICE '2. Configure your application to use Supabase client';
-    RAISE NOTICE '3. Set up authentication in your frontend';
+    FOREACH table_name IN ARRAY expected_tables
+    LOOP
+        IF NOT EXISTS (
+            SELECT 1 FROM information_schema.tables 
+            WHERE table_schema = 'public' AND table_name = table_name
+        ) THEN
+            missing_tables := array_append(missing_tables, table_name);
+        END IF;
+    END LOOP;
+    
+    IF array_length(missing_tables, 1) > 0 THEN
+        RAISE EXCEPTION 'Missing tables: %', array_to_string(missing_tables, ', ');
+    ELSE
+        RAISE NOTICE 'Schema validation passed - all tables exist';
+    END IF;
 END $$;

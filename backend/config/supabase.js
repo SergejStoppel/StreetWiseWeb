@@ -1,11 +1,12 @@
 const { createClient } = require('@supabase/supabase-js');
+const envConfig = require('./environment');
 
-// Supabase configuration
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Use the environment configuration for Supabase
+const supabaseUrl = envConfig.SUPABASE_URL;
+const supabaseServiceKey = envConfig.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !supabaseServiceKey) {
-  throw new Error('Missing Supabase configuration. Please check your environment variables.');
+  throw new Error(`Missing Supabase configuration for environment: ${envConfig.APP_ENV}. Please check your environment variables.`);
 }
 
 // Create Supabase client with service role key for backend operations

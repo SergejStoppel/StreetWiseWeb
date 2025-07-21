@@ -2,43 +2,51 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-require('dotenv').config();
+
+// Load unified environment configuration
+const envConfig = require('./config/environment');
 
 const accessibilityRoutes = require('./routes/accessibility');
 const analysisRoutes = require('./routes/analysis');
 const logger = require('./utils/logger');
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+const PORT = envConfig.PORT;
 
 // Trust proxy for rate limiting (required for development behind proxies)
 app.set('trust proxy', 1);
 
-// Security middleware
-app.use(helmet());
+// Security middleware (production only or when enabled)
+if (envConfig.ENABLE_HELMET) {
+  app.use(helmet());
+}
 
-// Rate limiting
+// Rate limiting with environment-specific settings
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
+  windowMs: envConfig.RATE_LIMIT_WINDOW,
+  max: envConfig.RATE_LIMIT_MAX,
+  message: {
+    error: 'Too many requests',
+    retryAfter: Math.ceil(envConfig.RATE_LIMIT_WINDOW / 1000)
+  }
 });
 app.use(limiter);
 
-// CORS configuration
+// CORS configuration with environment-specific settings
 const corsOptions = {
   origin: function (origin, callback) {
     // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    const allowedOrigins = process.env.NODE_ENV === 'production' 
-      ? [process.env.FRONTEND_URL || 'http://localhost:3000']
+    const allowedOrigins = envConfig.isProduction 
+      ? [envConfig.FRONTEND_URL, envConfig.CORS_ORIGIN].filter(Boolean)
       : ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:3001', 'http://localhost:3005'];
     
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
-      logger.info(`CORS: Blocked origin ${origin}`);
-      callback(null, true); // Allow in development for easier debugging
+      logger.info(`CORS: Blocked origin ${origin} (allowed: ${allowedOrigins.join(', ')})`);
+      callback(null, envConfig.isDevelopment); // Allow in development for easier debugging
     }
   },
   credentials: true,
@@ -69,8 +77,8 @@ logger.info('Loading analysis routes');
 app.use('/api/analysis', analysisRoutes);
 logger.info('Analysis routes loaded successfully');
 
-// Test route for Phase 1 services (development only)
-if (process.env.NODE_ENV !== 'production') {
+// Test routes (development only)
+if (envConfig.isDevelopment) {
   const testPhase1Routes = require('./routes/test-phase1');
   app.use('/api/test-phase1', testPhase1Routes);
   
@@ -80,7 +88,12 @@ if (process.env.NODE_ENV !== 'production') {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'OK', 
+    environment: envConfig.APP_ENV,
+    timestamp: new Date().toISOString(),
+    version: require('../package.json').version || '1.0.0'
+  });
 });
 
 // Error handling middleware
@@ -92,7 +105,7 @@ app.use((err, req, res, next) => {
   logger.error('Body:', req.body);
   res.status(500).json({ 
     error: 'Internal server error',
-    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+    message: envConfig.isDevelopment ? err.message : 'Something went wrong'
   });
 });
 
@@ -102,6 +115,11 @@ app.use('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  logger.info(`Server running on port ${PORT}`);
-  logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  // Log the configuration when server starts
+  envConfig.logConfiguration();
+  
+  logger.info(`🚀 StreetWiseWeb server started successfully!`);
+  logger.info(`📡 Server running on port ${PORT}`);
+  logger.info(`🌍 Frontend URL: ${envConfig.FRONTEND_URL}`);
+  logger.info(`🔗 API Health Check: ${envConfig.API_URL}/api/health`);
 });
