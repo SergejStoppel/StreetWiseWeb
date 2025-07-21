@@ -41,6 +41,7 @@ services:
       - /app/node_modules
     environment:
       - APP_ENV=${APP_ENV:-development}
+      - PORT=3000
       - CHOKIDAR_USEPOLLING=true
       # React environment variables set by build process
       - REACT_APP_API_URL=${DEV_API_URL:-http://localhost:3005}

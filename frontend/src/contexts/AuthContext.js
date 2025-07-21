@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import supabase from '../config/supabase';
 import { toast } from 'react-toastify';
 import sessionManager from '../utils/sessionManager';
+import { authStore } from '../utils/authStore';
 
 const AuthContext = createContext();
 
@@ -57,59 +58,14 @@ export function AuthProvider({ children }) {
       console.log('⏰ FORCE: Auth initialization timeout, completing anyway');
       setInitializing(false);
       setLoading(false);
-    }, 3000); // 3 second timeout
+    }, 5000); // 5 second timeout
 
     // Get initial session and validate it (with container restart recovery)
     const getInitialSession = async () => {
       try {
         console.log('🔄 Initializing auth state...');
-        console.log('🔍 DEBUG: About to check container restart');
-
-        // Check if we might be recovering from a container restart
-        if (sessionManager.isContainerRestart()) {
-          console.log('🔄 Detected potential container restart, attempting recovery...');
-          const recoveredSession = await sessionManager.recoverSessionAfterRestart();
-
-          if (recoveredSession) {
-            console.log('✅ Session recovered from container restart');
-
-            // TEMPORARY: Skip backend validation for session recovery too
-            console.log('⚠️ TEMPORARILY SKIPPING backend validation for session recovery');
-            console.log('✅ Setting user state from recovered session (validation bypassed)');
-            console.log('👤 Recovered user:', recoveredSession.user);
-
-            setUser(recoveredSession.user);
-            console.log('✅ User state set, fetching profile...');
-
-            // TEMPORARY: Skip profile fetch to test dashboard loading
-            console.log('⚠️ TEMPORARILY SKIPPING profile fetch for session recovery');
-            // await fetchUserProfile(recoveredSession.user.id);
-            console.log('✅ Profile fetch skipped, storing session metadata...');
-
-            sessionManager.storeSessionMetadata(recoveredSession);
-            console.log('✅ Session recovery complete, returning early');
-            console.log('🔍 DEBUG: About to return from session recovery');
-            return;
-
-            // TODO: Re-enable this after testing
-            // // Validate recovered session with backend
-            // const isValid = await validateSessionWithBackend(recoveredSession);
-            //
-            // if (isValid) {
-            //   setUser(recoveredSession.user);
-            //   await fetchUserProfile(recoveredSession.user.id);
-            //   sessionManager.storeSessionMetadata(recoveredSession);
-            //   return;
-            // } else {
-            //   console.log('❌ Recovered session is invalid');
-            //   sessionManager.clearSessionMetadata();
-            // }
-          } else {
-            console.log('❌ No session recovered from container restart');
-          }
-        } else {
-          console.log('ℹ️ No container restart detected, proceeding with normal initialization');
-        }
+        // Skip container restart recovery for now - it's causing issues
+        console.log('ℹ️ Proceeding with normal session initialization');
 
         console.log('🔍 DEBUG: About to call normal session initialization');
         // Normal session initialization
@@ -128,11 +84,10 @@ export function AuthProvider({ children }) {
 
           // TEMPORARY: Skip backend validation to test dashboard
           console.log('⚠️ TEMPORARILY SKIPPING backend validation for testing');
-          console.log('✅ Session found, setting user state (validation bypassed)');
+          console.log('✅ Session found, setting user state');
+          authStore.setSession(session);
           setUser(session.user);
-          // TEMPORARY: Skip profile fetch to test dashboard loading
-          console.log('⚠️ TEMPORARILY SKIPPING profile fetch for normal session');
-          // await fetchUserProfile(session.user.id);
+          await fetchUserProfile(session.user.id);
           // Store metadata for future container restart recovery
           sessionManager.storeSessionMetadata(session);
 
@@ -156,6 +111,7 @@ export function AuthProvider({ children }) {
           // }
         } else {
           console.log('ℹ️ No session found');
+          authStore.clearSession();
           sessionManager.clearSessionMetadata();
           setUser(null);
           setUserProfile(null);
@@ -163,6 +119,7 @@ export function AuthProvider({ children }) {
       } catch (error) {
         console.error('❌ Error initializing auth:', error);
         // On any error, clear auth state
+        authStore.clearSession();
         sessionManager.clearSessionMetadata();
         setUser(null);
         setUserProfile(null);
@@ -192,6 +149,7 @@ export function AuthProvider({ children }) {
         
         try {
           if (session) {
+            authStore.setSession(session);
             setUser(session.user);
 
             // Store session metadata for container restart recovery
@@ -204,9 +162,7 @@ export function AuthProvider({ children }) {
                 const userData = JSON.parse(pendingProfileUpdate);
                 console.log('Updating user profile with pending data:', userData);
                 
-                // TEMPORARY: Skip profile fetch to prevent hanging
-                console.log('⚠️ TEMPORARILY SKIPPING profile fetch in auth state change');
-                // await fetchUserProfile(session.user.id);
+                await fetchUserProfile(session.user.id);
                 
                 // Then update it with additional info if available
                 if (userData.firstName || userData.lastName || userData.company) {
@@ -227,28 +183,23 @@ export function AuthProvider({ children }) {
                 sessionStorage.removeItem('pendingProfileUpdate');
               } catch (error) {
                 console.error('Error handling pending profile update:', error);
-                // TEMPORARY: Skip profile fetch to prevent hanging
-                console.log('⚠️ TEMPORARILY SKIPPING profile fetch in error handler');
-                setUserProfile(null);
-                // try {
-                //   await fetchUserProfile(session.user.id);
-                // } catch (fetchError) {
-                //   console.error('Error fetching user profile:', fetchError);
-                //   setUserProfile(null);
-                // }
+                try {
+                  await fetchUserProfile(session.user.id);
+                } catch (fetchError) {
+                  console.error('Error fetching user profile:', fetchError);
+                  setUserProfile(null);
+                }
               }
             } else {
-              // TEMPORARY: Skip profile fetch to prevent hanging
-              console.log('⚠️ TEMPORARILY SKIPPING profile fetch in normal flow');
-              setUserProfile(null);
-              // try {
-              //   await fetchUserProfile(session.user.id);
-              // } catch (error) {
-              //   console.error('Error fetching user profile:', error);
-              //   setUserProfile(null); // Ensure we set profile to null on error
-              // }
+              try {
+                await fetchUserProfile(session.user.id);
+              } catch (error) {
+                console.error('Error fetching user profile:', error);
+                setUserProfile(null); // Ensure we set profile to null on error
+              }
             }
           } else {
+            authStore.clearSession();
             setUser(null);
             setUserProfile(null);
           }
@@ -382,13 +333,15 @@ export function AuthProvider({ children }) {
 
       if (data.user && data.session) {
         // User is immediately signed in
-        // Profile will be created automatically by database trigger
-        // But we'll update it with additional info if provided
-        toast.success('Account created successfully!');
-        
-        if (userData.firstName || userData.lastName || userData.company) {
-          // Store user data for profile update after auth state change
+        // Create profile manually (database trigger may not work in all Supabase configs)
+        try {
+          await createUserProfile(userData, data.user);
+          toast.success('Account created successfully!');
+        } catch (profileError) {
+          console.warn('Profile creation failed, will retry later:', profileError);
+          // Store user data for profile creation after auth state change
           sessionStorage.setItem('pendingProfileUpdate', JSON.stringify(userData));
+          toast.success('Account created successfully!');
         }
       } else if (data.user && !data.session) {
         // Email confirmation required
@@ -437,6 +390,9 @@ export function AuthProvider({ children }) {
   const clearSessionData = () => {
     console.log('🧹 Clearing all session data...');
 
+    // Clear auth store
+    authStore.clearSession();
+    
     // Clear React state
     setUser(null);
     setUserProfile(null);

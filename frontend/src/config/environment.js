@@ -24,7 +24,7 @@ const config = {
   SUPABASE_ANON_KEY: process.env.REACT_APP_SUPABASE_ANON_KEY,
 
   // API configuration
-  API_URL: process.env.REACT_APP_API_URL || 'http://localhost:3001',
+  API_URL: process.env.REACT_APP_API_URL || 'http://localhost:3005',
 
   // Environment indicator
   ENVIRONMENT: process.env.REACT_APP_ENVIRONMENT || 'development',

@@ -96,7 +96,8 @@ END $$;
 CREATE TABLE public.user_profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email VARCHAR(255) NOT NULL UNIQUE,
-    full_name VARCHAR(255),
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
     company VARCHAR(255),
     plan_type VARCHAR(20) DEFAULT 'free' CHECK (plan_type IN ('free', 'basic', 'premium')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -104,7 +105,7 @@ CREATE TABLE public.user_profiles (
     settings JSONB DEFAULT '{}'::jsonb,
     
     -- Constraints
-    CONSTRAINT user_profiles_email_valid CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$')
+    CONSTRAINT user_profiles_email_valid CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$')
 );
 
 -- Projects for organizing analyses
@@ -123,7 +124,7 @@ CREATE TABLE public.projects (
     CONSTRAINT projects_name_not_empty CHECK (LENGTH(TRIM(name)) > 0),
     CONSTRAINT projects_website_url_valid CHECK (
         website_url IS NULL OR 
-        website_url ~* '^https?://[^\\s/$.?#].[^\\s]*$'
+        website_url ~* '^https?://[^\s/$.?#].[^\s]*$'
     )
 );
 
@@ -157,7 +158,7 @@ CREATE TABLE public.analyses (
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     
     -- Constraints
-    CONSTRAINT analyses_url_valid CHECK (url ~* '^https?://[^\\s/$.?#].[^\\s]*$'),
+    CONSTRAINT analyses_url_valid CHECK (url ~* '^https?://[^\s/$.?#].[^\s]*$'),
     CONSTRAINT analyses_url_not_empty CHECK (LENGTH(TRIM(url)) > 0)
 );
 
@@ -215,6 +216,7 @@ CREATE TABLE public.analysis_summaries (
     keyboard_issues INTEGER DEFAULT 0,
     heading_issues INTEGER DEFAULT 0,
     landmark_issues INTEGER DEFAULT 0,
+    color_contrast_violations INTEGER DEFAULT 0,
     
     -- WCAG compliance
     wcag_level VARCHAR(3),
@@ -373,6 +375,8 @@ BEGIN
             'projects_count', deleted_projects_count,
             'storage_objects_count', deleted_storage_count,
             'email', OLD.email,
+            'first_name', OLD.first_name,
+            'last_name', OLD.last_name,
             'plan_type', OLD.plan_type
         )
     );

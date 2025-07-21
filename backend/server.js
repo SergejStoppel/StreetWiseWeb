@@ -88,11 +88,18 @@ if (envConfig.isDevelopment) {
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
+  let version = '1.0.0';
+  try {
+    version = require('./package.json').version || '1.0.0';
+  } catch (err) {
+    // Use default version if package.json is not found
+  }
+  
   res.json({ 
     status: 'OK', 
     environment: envConfig.APP_ENV,
     timestamp: new Date().toISOString(),
-    version: require('../package.json').version || '1.0.0'
+    version: version
   });
 });
 

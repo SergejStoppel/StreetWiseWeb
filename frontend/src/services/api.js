@@ -1,5 +1,6 @@
 import axios from 'axios';
 import supabase from '../config/supabase';
+import { authStore } from '../utils/authStore';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3005';
 
@@ -31,18 +32,13 @@ api.interceptors.request.use(
     console.log('🔧 Request interceptor called for:', config.url);
 
     try {
-      console.log('🔍 Getting Supabase session...');
+      console.log('🔍 Getting session from auth store...');
 
-      // Add timeout to prevent hanging
-      const sessionPromise = supabase.auth.getSession();
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Supabase session timeout')), 10000);
-      });
+      // Get session from the auth store (no async calls, no timeouts)
+      const session = authStore.getSession();
 
-      const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]);
-
-      if (error) {
-        console.warn('❌ Session retrieval error:', error.message);
+      if (!session) {
+        console.log('ℹ️ No session in auth store, proceeding without auth');
         return config;
       }
 
@@ -312,16 +308,6 @@ export const analysisAPI = {
       return response.data;
     } catch (error) {
       console.error('❌ API: getStats failed', error);
-      throw error;
-    }
-  },
-
-  // Get specific analysis by ID
-  getById: async (analysisId) => {
-    try {
-      const response = await api.get(`/api/analysis/${analysisId}`);
-      return response.data;
-    } catch (error) {
       throw error;
     }
   },

@@ -22,6 +22,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { accessibilityAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useAuth } from '../contexts/AuthContext';
 
 const HomeContainer = styled.div`
   min-height: calc(100vh - 160px);
@@ -691,6 +692,7 @@ const HomePage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
   const { t, i18n, ready } = useTranslation(['homepage', 'forms']);
+  const { initializing } = useAuth();
 
   // Debug environment variables on component mount
   console.log('🌍 Environment Variables Check:', {
@@ -819,8 +821,14 @@ const HomePage = () => {
     }
   };
 
-  if (!ready) {
-    return null; // Return nothing while translations are loading
+  if (!ready || initializing) {
+    return (
+      <HomeContainer>
+        <HeroSection>
+          <LoadingSpinner size="large" />
+        </HeroSection>
+      </HomeContainer>
+    ); // Show loading spinner while translations or auth are loading
   }
 
   return (

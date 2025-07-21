@@ -19,24 +19,21 @@ if not exist .env (
 echo Setting environment to DEVELOPMENT mode...
 set APP_ENV=development
 
-echo Checking if containers are already running...
-docker-compose -f docker-compose.dev.yml ps -q >nul 2>&1
+echo Checking for running containers...
+docker ps -q --filter "name=sitecraft" >nul 2>&1
+if %errorlevel% equ 0 (
+    echo Found running containers. Stopping them first...
+    docker-compose -f docker-compose.dev.yml down
+)
 
-echo Starting development containers...
-docker-compose -f docker-compose.dev.yml up -d
+echo Starting development containers with fresh build...
+docker-compose -f docker-compose.dev.yml up --build -d
 
 if %errorlevel% neq 0 (
     echo.
-    echo ❌ Failed to start containers. Trying to rebuild...
-    docker-compose -f docker-compose.dev.yml down
-    docker-compose -f docker-compose.dev.yml up --build -d
-    
-    if %errorlevel% neq 0 (
-        echo.
-        echo ❌ Still failed. Check error messages above.
-        pause
-        exit /b 1
-    )
+    echo ❌ Failed to start containers. Check error messages above.
+    pause
+    exit /b 1
 )
 
 echo.
