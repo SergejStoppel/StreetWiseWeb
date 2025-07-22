@@ -60,13 +60,11 @@ i18n
     // Load namespaces synchronously
     partialBundledLanguages: true,
     
-    // Disable debug logs
+    // Disable debug logs for production
     debug: false,
   });
 
-// Preload navigation namespace for all languages to avoid missing key errors
-i18n.loadNamespaces(['navigation', 'common'], () => {
-  console.log('✅ Critical namespaces loaded');
-});
+// Preload critical namespaces for instant loading
+i18n.loadNamespaces(['navigation', 'common', 'homepage', 'forms']);
 
 export default i18n;

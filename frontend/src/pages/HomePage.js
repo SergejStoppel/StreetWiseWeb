@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import styled from 'styled-components';
@@ -690,66 +690,9 @@ const CTAButton = styled.button`
 const HomePage = () => {
   const [url, setUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [forceReady, setForceReady] = useState(false);
   const navigate = useNavigate();
   const { t, i18n, ready } = useTranslation(['homepage', 'forms']);
   const { initializing } = useAuth();
-  
-  // Debug logging for loading states
-  useEffect(() => {
-    console.log('🏠 HomePage loading states:', { ready, initializing, i18nReady: i18n.isInitialized, forceReady });
-  }, [ready, initializing, i18n.isInitialized, forceReady]);
-  
-  // Force ready after timeout to prevent infinite loading
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (!ready && !forceReady) {
-        console.warn('⚠️ HomePage: Forcing ready state due to timeout');
-        setForceReady(true);
-      }
-    }, 5000); // 5 second timeout
-    
-    return () => clearTimeout(timeout);
-  }, [ready, forceReady]);
-
-  // Debug environment variables on component mount
-  console.log('🌍 Environment Variables Check:', {
-    NODE_ENV: process.env.NODE_ENV,
-    REACT_APP_API_URL: process.env.REACT_APP_API_URL,
-    REACT_APP_SUPABASE_URL: process.env.REACT_APP_SUPABASE_URL ? 'LOADED' : 'MISSING',
-    REACT_APP_SUPABASE_ANON_KEY: process.env.REACT_APP_SUPABASE_ANON_KEY ? 'LOADED' : 'MISSING'
-  });
-
-  // Test Supabase connectivity directly
-  const testSupabaseConnection = async () => {
-    try {
-      console.log('🔍 Testing direct Supabase connection...');
-      // First test direct API access
-      const response = await fetch(`${process.env.REACT_APP_SUPABASE_URL}/rest/v1/`, {
-        headers: {
-          'apikey': process.env.REACT_APP_SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${process.env.REACT_APP_SUPABASE_ANON_KEY}`
-        }
-      });
-      console.log('✅ Direct Supabase API response:', response.status, response.statusText);
-      
-      // Test Supabase Auth specifically
-      console.log('🔐 Testing Supabase Auth health...');
-      const authResponse = await fetch(`${process.env.REACT_APP_SUPABASE_URL}/auth/v1/health`, {
-        headers: {
-          'apikey': process.env.REACT_APP_SUPABASE_ANON_KEY
-        }
-      });
-      console.log('🔐 Auth health response:', authResponse.status, authResponse.statusText);
-    } catch (error) {
-      console.error('❌ Direct Supabase test failed:', error);
-    }
-  };
-
-  // Run test after component mounts
-  React.useEffect(() => {
-    testSupabaseConnection();
-  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -839,14 +782,15 @@ const HomePage = () => {
     }
   };
 
-  if ((!ready && !forceReady) || initializing) {
+  // Show loading only if translations are not ready (should be very fast)
+  if (!ready) {
     return (
       <HomeContainer>
         <HeroSection>
           <LoadingSpinner size="large" />
         </HeroSection>
       </HomeContainer>
-    ); // Show loading spinner while translations or auth are loading
+    );
   }
 
   return (
@@ -855,10 +799,10 @@ const HomePage = () => {
       <HomeContainer>
         <HeroSection>
           <HeroTitle>
-            {t('homepage:hero.title')}
+            {t('homepage:hero.title', 'Is Your Website Losing You Customers?')}
           </HeroTitle>
           <HeroSubtitle>
-            {t('homepage:hero.subtitle')}
+            {t('homepage:hero.subtitle', 'Find out for free. Get a simple, no-jargon report on your website\'s health, and see how you can attract more customers.')}
           </HeroSubtitle>
           
           <AnalysisForm onSubmit={handleSubmit}>

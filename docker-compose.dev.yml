@@ -46,13 +46,9 @@ services:
     environment:
       - APP_ENV=${APP_ENV:-development}
       - PORT=3000
-      - HOST=0.0.0.0
       - CHOKIDAR_USEPOLLING=true
-      - WDS_SOCKET_HOST=localhost
-      - WDS_SOCKET_PORT=3000
-      - FAST_REFRESH=false
-      # React environment variables set by build process  
-      - REACT_APP_API_URL=http://localhost:3005
+      # React environment variables set by build process
+      - REACT_APP_API_URL=${DEV_API_URL:-http://localhost:3005}
       - REACT_APP_SUPABASE_URL=${DEV_SUPABASE_URL}
       - REACT_APP_SUPABASE_ANON_KEY=${DEV_SUPABASE_ANON_KEY}
       - REACT_APP_ENV=${APP_ENV:-development}

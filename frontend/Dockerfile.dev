@@ -13,11 +13,8 @@ RUN npm install --legacy-peer-deps
 # Copy source code
 COPY . .
 
-# Ensure translation files are accessible
-RUN chmod -R 755 /app/public/locales
-
 # Expose port
 EXPOSE 3000
 
-# Start the development server with host binding for Docker
-CMD ["npm", "run", "start:docker"]
+# Start the development server
+CMD ["npm", "start"]

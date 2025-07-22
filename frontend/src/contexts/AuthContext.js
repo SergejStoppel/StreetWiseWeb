@@ -56,37 +56,25 @@ export function AuthProvider({ children }) {
     // Get initial session and validate it (with container restart recovery)
     const getInitialSession = async () => {
       try {
-        console.log('🔄 Initializing auth state...');
-        // Skip container restart recovery for now - it's causing issues
-        console.log('ℹ️ Proceeding with normal session initialization');
-
-        console.log('🔍 DEBUG: About to call normal session initialization');
-        // Normal session initialization
+        // Fast initialization for anonymous users
         const { data: { session }, error } = await supabase.auth.getSession();
-        console.log('🔍 DEBUG: Got session from Supabase:', !!session, !!error);
 
         if (error) {
-          console.error('❌ Error getting session:', error);
           // Clear any stale session data
           await supabase.auth.signOut();
           sessionManager.clearSessionMetadata();
           setUser(null);
           setUserProfile(null);
         } else if (session) {
-          console.log('📋 Found stored session, validating with backend...');
-
           // Validate the session with the backend
           const isValidSession = await validateSessionWithBackend(session);
 
           if (isValidSession) {
-            console.log('✅ Session is valid, setting user state');
             authStore.setSession(session);
             setUser(session.user);
             await fetchUserProfile(session.user.id);
-            // Store metadata for future container restart recovery
             sessionManager.storeSessionMetadata(session);
           } else {
-            console.log('❌ Session is invalid, clearing auth state');
             // Session is invalid, clear it
             await supabase.auth.signOut();
             authStore.clearSession();
@@ -95,7 +83,7 @@ export function AuthProvider({ children }) {
             setUserProfile(null);
           }
         } else {
-          console.log('ℹ️ No session found');
+          // No session found - anonymous user
           authStore.clearSession();
           sessionManager.clearSessionMetadata();
           setUser(null);
@@ -109,18 +97,8 @@ export function AuthProvider({ children }) {
         setUser(null);
         setUserProfile(null);
       } finally {
-        console.log('🏁 Auth initialization complete, setting states to false');
         setInitializing(false);
         setLoading(false);
-
-        // Log final auth state
-        setTimeout(() => {
-          console.log('🏁 Final auth state after initialization:', {
-            user: user ? { id: user.id, email: user.email } : null,
-            initializing: false,
-            loading: false
-          });
-        }, 100);
       }
     };
 
@@ -199,8 +177,9 @@ export function AuthProvider({ children }) {
           console.error('Error in auth state change handler:', error);
           // Always ensure loading state is cleared
         } finally {
-          // Always set loading to false, regardless of success or failure
+          // Always set loading and initializing to false, regardless of success or failure
           setLoading(false);
+          setInitializing(false);
         }
       }
     );
