@@ -80,10 +80,8 @@ class AccessibilityAnalyzer {
       logger.info(`Navigating to ${validUrl}`, { analysisId });
       
       try {
-        await page.goto(validUrl, { 
-          waitUntil: 'networkidle2',
-          timeout: 45000
-        });
+        // Enhanced navigation with frame detachment protection
+        await this.navigateWithRetry(page, validUrl, analysisId);
         
         // Wait for page to stabilize
         await this.waitForPageStability(page, analysisId);
@@ -230,15 +228,20 @@ class AccessibilityAnalyzer {
           logger.warn(`Page cleanup error: ${cleanupError.message}`, { analysisId });
         }
         
-        // Check if it's a connection closed error and suggest retry
-        if (navigationError.message.includes('Connection closed') || navigationError.message.includes('Protocol error')) {
+        // Enhanced error handling for different navigation failure types
+        const errorMessage = navigationError.message.toLowerCase();
+        if (errorMessage.includes('frame was detached') || errorMessage.includes('navigating frame was detached')) {
+          throw new Error(`The website's navigation structure caused a technical issue. This can happen with complex sites that use frames or heavy JavaScript. Please try again, or contact support if the issue persists.`);
+        } else if (errorMessage.includes('connection closed') || errorMessage.includes('protocol error')) {
           throw new Error(`The website connection was interrupted during analysis. This may be due to the website's security settings or heavy traffic. Please try again.`);
-        } else if (navigationError.message.includes('net::ERR_NAME_NOT_RESOLVED')) {
+        } else if (errorMessage.includes('net::err_name_not_resolved')) {
           throw new Error(`The website "${validUrl}" could not be found. Please check the URL and try again.`);
-        } else if (navigationError.message.includes('net::ERR_CONNECTION_REFUSED')) {
+        } else if (errorMessage.includes('net::err_connection_refused')) {
           throw new Error(`The website "${validUrl}" refused the connection. It may be down or blocking automated requests.`);
-        } else if (navigationError.message.includes('Timeout')) {
+        } else if (errorMessage.includes('timeout')) {
           throw new Error(`The website "${validUrl}" took too long to respond. Please try again later.`);
+        } else if (errorMessage.includes('is not valid json')) {
+          throw new Error(`The website returned invalid data during analysis. This may be due to server-side issues. Please try again later.`);
         } else {
           throw new Error(`Unable to load the website: ${navigationError.message}`);
         }
@@ -248,6 +251,54 @@ class AccessibilityAnalyzer {
       logger.error(`Analysis failed: ${error.message}`, { analysisId });
       throw error;
     }
+  }
+
+  async navigateWithRetry(page, url, analysisId, maxRetries = 2) {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        logger.info(`Navigation attempt ${attempt}/${maxRetries}`, { analysisId, url });
+        
+        // Use more conservative navigation options
+        await page.goto(url, { 
+          waitUntil: 'domcontentloaded', // Less strict than 'networkidle2'
+          timeout: 30000 // Shorter timeout to fail faster
+        });
+        
+        // Wait a bit for initial content to load
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Verify page is actually loaded
+        const title = await page.title().catch(() => '');
+        if (!title && attempt < maxRetries) {
+          throw new Error('Page appears not to have loaded properly');
+        }
+        
+        logger.info(`Navigation successful on attempt ${attempt}`, { analysisId, title });
+        return; // Success
+        
+      } catch (error) {
+        lastError = error;
+        logger.warn(`Navigation attempt ${attempt} failed: ${error.message}`, { analysisId });
+        
+        // Check if this is a non-retryable error
+        const errorMessage = error.message.toLowerCase();
+        if (errorMessage.includes('net::err_name_not_resolved') || 
+            errorMessage.includes('net::err_connection_refused')) {
+          throw error; // Don't retry DNS or connection refused errors
+        }
+        
+        // Wait before retry (except on last attempt)
+        if (attempt < maxRetries) {
+          logger.info(`Waiting before retry attempt ${attempt + 1}`, { analysisId });
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+    }
+    
+    // If we get here, all attempts failed
+    throw lastError;
   }
 
   async waitForPageStability(page, analysisId) {

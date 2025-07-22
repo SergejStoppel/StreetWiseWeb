@@ -250,8 +250,17 @@ const Dashboard = () => {
     };
 
     console.log('🏠 Dashboard: useEffect triggered, calling fetchDashboardData');
-    fetchDashboardData();
-  }, []);
+    
+    // Only fetch data if we have a user
+    if (user) {
+      fetchDashboardData();
+    } else {
+      console.log('🏠 Dashboard: No user found, clearing data');
+      setAnalyses([]);
+      setStats(null);
+      setLoading(false);
+    }
+  }, [user]);
 
   const handleViewAnalysis = (analysis) => {
     console.log('🔍 Dashboard: Viewing analysis:', {

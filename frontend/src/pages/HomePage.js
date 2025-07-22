@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import styled from 'styled-components';
@@ -690,9 +690,27 @@ const CTAButton = styled.button`
 const HomePage = () => {
   const [url, setUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [forceReady, setForceReady] = useState(false);
   const navigate = useNavigate();
   const { t, i18n, ready } = useTranslation(['homepage', 'forms']);
   const { initializing } = useAuth();
+  
+  // Debug logging for loading states
+  useEffect(() => {
+    console.log('🏠 HomePage loading states:', { ready, initializing, i18nReady: i18n.isInitialized, forceReady });
+  }, [ready, initializing, i18n.isInitialized, forceReady]);
+  
+  // Force ready after timeout to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!ready && !forceReady) {
+        console.warn('⚠️ HomePage: Forcing ready state due to timeout');
+        setForceReady(true);
+      }
+    }, 5000); // 5 second timeout
+    
+    return () => clearTimeout(timeout);
+  }, [ready, forceReady]);
 
   // Debug environment variables on component mount
   console.log('🌍 Environment Variables Check:', {
@@ -821,7 +839,7 @@ const HomePage = () => {
     }
   };
 
-  if (!ready || initializing) {
+  if ((!ready && !forceReady) || initializing) {
     return (
       <HomeContainer>
         <HeroSection>

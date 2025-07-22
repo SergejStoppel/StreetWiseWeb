@@ -220,6 +220,14 @@ const EnhancedReportHeader = ({ report }) => {
   const summary = report?.summary || {};
   const screenshot = report?.screenshot || {};
   const websiteContext = report?.aiInsights?.websiteContext || {};
+  
+  // Debug screenshot data
+  console.log('📸 EnhancedReportHeader screenshot data:', {
+    reportHasScreenshot: !!report?.screenshot,
+    screenshot: screenshot,
+    desktopUrl: screenshot.desktop,
+    mobileUrl: screenshot.mobile
+  });
 
   return (
     <HeaderContainer>

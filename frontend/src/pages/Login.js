@@ -72,7 +72,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary);
+    border-color: var(--color-border-focus);
   }
 
   &::placeholder {
@@ -183,9 +183,9 @@ const SignUpLink = styled.p`
 `;
 
 const ErrorMessage = styled.div`
-  background: rgba(220, 53, 69, 0.1);
-  border: 1px solid var(--color-error);
-  color: var(--color-error);
+  background: var(--color-error-light);
+  border: 1px solid var(--color-border-error);
+  color: var(--color-error-text);
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 20px;

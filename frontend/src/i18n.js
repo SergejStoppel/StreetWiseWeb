@@ -31,6 +31,9 @@ i18n
     // Backend configuration
     backend: {
       loadPath: '/locales/{{lng}}/{{ns}}.json',
+      requestOptions: {
+        cache: 'no-cache'
+      }
     },
     
     // Language detection configuration
@@ -44,6 +47,10 @@ i18n
     react: {
       useSuspense: false,
     },
+    
+    // Retry failed loads
+    load: 'languageOnly',
+    cleanCode: true,
     
     // Interpolation configuration
     interpolation: {

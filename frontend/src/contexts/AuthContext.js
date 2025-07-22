@@ -53,13 +53,6 @@ export function AuthProvider({ children }) {
 
   // Initialize auth state with proper validation
   useEffect(() => {
-    // FORCE: Add timeout to prevent infinite loading
-    const forceComplete = setTimeout(() => {
-      console.log('⏰ FORCE: Auth initialization timeout, completing anyway');
-      setInitializing(false);
-      setLoading(false);
-    }, 5000); // 5 second timeout
-
     // Get initial session and validate it (with container restart recovery)
     const getInitialSession = async () => {
       try {
@@ -82,33 +75,25 @@ export function AuthProvider({ children }) {
         } else if (session) {
           console.log('📋 Found stored session, validating with backend...');
 
-          // TEMPORARY: Skip backend validation to test dashboard
-          console.log('⚠️ TEMPORARILY SKIPPING backend validation for testing');
-          console.log('✅ Session found, setting user state');
-          authStore.setSession(session);
-          setUser(session.user);
-          await fetchUserProfile(session.user.id);
-          // Store metadata for future container restart recovery
-          sessionManager.storeSessionMetadata(session);
+          // Validate the session with the backend
+          const isValidSession = await validateSessionWithBackend(session);
 
-          // TODO: Re-enable this after testing
-          // // Validate the session with the backend
-          // const isValidSession = await validateSessionWithBackend(session);
-          //
-          // if (isValidSession) {
-          //   console.log('✅ Session is valid, setting user state');
-          //   setUser(session.user);
-          //   await fetchUserProfile(session.user.id);
-          //   // Store metadata for future container restart recovery
-          //   sessionManager.storeSessionMetadata(session);
-          // } else {
-          //   console.log('❌ Session is invalid, clearing auth state');
-          //   // Session is invalid, clear it
-          //   await supabase.auth.signOut();
-          //   sessionManager.clearSessionMetadata();
-          //   setUser(null);
-          //   setUserProfile(null);
-          // }
+          if (isValidSession) {
+            console.log('✅ Session is valid, setting user state');
+            authStore.setSession(session);
+            setUser(session.user);
+            await fetchUserProfile(session.user.id);
+            // Store metadata for future container restart recovery
+            sessionManager.storeSessionMetadata(session);
+          } else {
+            console.log('❌ Session is invalid, clearing auth state');
+            // Session is invalid, clear it
+            await supabase.auth.signOut();
+            authStore.clearSession();
+            sessionManager.clearSessionMetadata();
+            setUser(null);
+            setUserProfile(null);
+          }
         } else {
           console.log('ℹ️ No session found');
           authStore.clearSession();
@@ -125,7 +110,6 @@ export function AuthProvider({ children }) {
         setUserProfile(null);
       } finally {
         console.log('🏁 Auth initialization complete, setting states to false');
-        clearTimeout(forceComplete);
         setInitializing(false);
         setLoading(false);
 
@@ -146,6 +130,14 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log('Auth state changed:', event, session?.user?.email);
+        
+        // Handle sign out event
+        if (event === 'SIGNED_OUT') {
+          console.log('🔓 User signed out event received, clearing all state');
+          clearSessionData();
+          setLoading(false); // Ensure loading is cleared
+          return;
+        }
         
         try {
           if (session) {
@@ -214,7 +206,6 @@ export function AuthProvider({ children }) {
     );
 
     return () => {
-      clearTimeout(forceComplete);
       subscription.unsubscribe();
     };
   }, []);
@@ -409,10 +400,13 @@ export function AuthProvider({ children }) {
 
       console.log('📡 AuthContext signOut: Calling supabase.auth.signOut()...');
 
-      // Try to sign out with timeout
+      // Clear local state first to provide immediate feedback
+      clearSessionData();
+      
+      // Try to sign out from Supabase with shorter timeout
       const signOutPromise = supabase.auth.signOut();
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Sign out timeout after 10 seconds')), 10000);
+        setTimeout(() => reject(new Error('Sign out timeout after 3 seconds')), 3000);
       });
 
       try {
@@ -421,20 +415,22 @@ export function AuthProvider({ children }) {
 
         if (error) {
           console.error('❌ AuthContext signOut: Supabase error:', error);
-          // Don't throw - continue with cleanup
+          // Don't throw - cleanup already done
         } else {
           console.log('✅ AuthContext signOut: Supabase sign out successful');
         }
       } catch (timeoutError) {
-        console.warn('⚠️ AuthContext signOut: Timeout occurred, proceeding with local signout');
-        // Don't throw - continue with local signout
+        console.warn('⚠️ AuthContext signOut: Timeout occurred, but local cleanup already complete');
+        // Don't throw - cleanup already done
       }
 
-      // Always clear all session data regardless of API response
-      clearSessionData();
       toast.success('Signed out successfully');
-
       console.log('✅ AuthContext signOut: Complete cleanup finished');
+      
+      // Redirect to home page after successful logout
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
     } catch (error) {
       console.error('❌ AuthContext signOut: Error:', error);
 

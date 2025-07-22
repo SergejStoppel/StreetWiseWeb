@@ -108,22 +108,16 @@ class BrowserConfig {
       '--disable-background-timer-throttling',
       '--disable-renderer-backgrounding',
       '--disable-features=VizDisplayCompositor',
-      '--disable-ipc-flooding-protection',
       '--disable-backgrounding-occluded-windows',
       '--disable-background-media-strategy',
-      '--disable-web-security',
       '--window-size=1920,1080',
       `--user-data-dir=${userDataDir}`,
       '--disable-extensions',
       '--disable-default-apps',
       '--disable-background-networking',
       '--disable-sync',
-      // Anti-detection measures
+      // Anti-detection measures (removed problematic flags)
       '--disable-blink-features=AutomationControlled',
-      '--disable-features=site-per-process',
-      '--disable-features=VizDisplayCompositor',
-      '--disable-site-isolation-trials',
-      '--disable-web-security',
       '--disable-features=TranslateUI',
       '--disable-component-extensions-with-background-pages',
       '--disable-client-side-phishing-detection',
@@ -141,7 +135,15 @@ class BrowserConfig {
       '--no-default-browser-check',
       '--no-pings',
       '--password-store=basic',
-      '--use-mock-keychain'
+      '--use-mock-keychain',
+      // Improved stability flags
+      '--disable-features=VizServiceDisplayCompositor',
+      '--disable-partial-raster',
+      '--disable-skia-runtime-opts',
+      '--disable-smooth-scrolling',
+      '--disable-threaded-animation',
+      '--disable-threaded-scrolling',
+      '--disable-checker-imaging'
     ];
 
     const options = {
@@ -161,10 +163,81 @@ class BrowserConfig {
 
     // Add platform-specific configurations
     if (this.isDocker) {
-      // Docker-specific configuration - most restrictive for container environment
+      // Docker-specific configuration - optimized for container stability
       options.args.push(
         '--no-zygote',
         '--single-process',
+        '--disable-gpu-sandbox',
+        '--disable-software-rasterizer',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-renderer-backgrounding',
+        '--disable-features=TranslateUI',
+        '--disable-component-extensions-with-background-pages',
+        '--disable-client-side-phishing-detection',
+        '--disable-component-update',
+        '--disable-default-apps',
+        '--disable-domain-reliability',
+        '--disable-features=AudioServiceOutOfProcess',
+        '--disable-hang-monitor',
+        '--disable-ipc-flooding-protection',
+        '--disable-notifications',
+        '--disable-offer-store-unmasked-wallet-cards',
+        '--disable-popup-blocking',
+        '--disable-print-preview',
+        '--disable-prompt-on-repost',
+        '--disable-speech-api',
+        '--disable-translate',
+        '--hide-scrollbars',
+        '--ignore-gpu-blacklist',
+        '--metrics-recording-only',
+        '--mute-audio',
+        '--no-default-browser-check',
+        '--no-first-run',
+        '--no-pings',
+        '--password-store=basic',
+        '--use-mock-keychain',
+        '--disable-blink-features=AutomationControlled',
+        '--disable-features=VizDisplayCompositor',
+        '--disable-features=TranslateUI,BlinkGenPropertyTrees',
+        '--disable-features=Viz',
+        '--disable-crash-reporter',
+        '--disable-extensions-file-access-check',
+        '--disable-extensions-https-enforcement',
+        '--disable-extensions-except=',
+        '--disable-sync',
+        '--disable-translate-new-ux',
+        '--disable-features=VizServiceDisplayCompositor',
+        '--max_old_space_size=4096',
+        // Additional Docker stability flags for frame detachment issues
+        '--disable-web-security',
+        '--disable-site-isolation-trials',
+        '--ignore-certificate-errors',
+        '--ignore-ssl-errors',
+        '--ignore-certificate-errors-spki-list',
+        '--disable-plugins',
+        '--disable-plugins-discovery',
+        '--disable-preconnect',
+        '--disable-background-networking',
+        '--disable-breakpad',
+        '--disable-field-trial-config',
+        '--disable-back-forward-cache',
+        '--disable-backing-store-limit',
+        '--disable-logging',
+        '--force-color-profile=srgb',
+        '--disable-partial-raster',
+        '--disable-skia-runtime-opts',
+        '--run-all-compositor-stages-before-draw',
+        '--disable-new-content-rendering-timeout'
+      );
+      
+      // Increase timeouts for Docker environment
+      options.timeout = 180000; // 3 minutes
+      options.protocolTimeout = 180000;
+    } else if (this.isWSL && !this.isDocker) {
+      // WSL-specific configuration to prevent popups and frame detachment errors
+      options.args.push(
+        '--no-zygote',
         '--disable-gpu-sandbox',
         '--disable-software-rasterizer',
         '--disable-background-timer-throttling',
@@ -197,59 +270,13 @@ class BrowserConfig {
         '--password-store=basic',
         '--use-mock-keychain',
         '--disable-blink-features=AutomationControlled',
-        '--disable-features=VizDisplayCompositor',
-        '--disable-site-isolation-trials',
-        '--disable-features=site-per-process',
-        '--disable-features=TranslateUI,BlinkGenPropertyTrees',
-        '--disable-features=Viz',
-        '--disable-crash-reporter',
-        '--disable-extensions-file-access-check',
-        '--disable-extensions-https-enforcement',
-        '--disable-extensions-except=',
-        '--disable-sync',
-        '--disable-default-apps',
-        '--disable-translate-new-ux',
-        '--disable-features=VizDisplayCompositor',
+        // Additional stability flags for WSL
         '--disable-features=VizServiceDisplayCompositor',
-        '--max_old_space_size=4096'
-      );
-    } else if (this.isWSL && !this.isDocker) {
-      // WSL-specific configuration to prevent popups and errors
-      options.args.push(
-        '--no-zygote',
-        '--single-process',
-        '--disable-gpu-sandbox',
-        '--disable-software-rasterizer',
-        '--disable-background-timer-throttling',
-        '--disable-backgrounding-occluded-windows',
-        '--disable-renderer-backgrounding',
-        '--disable-features=TranslateUI',
-        '--disable-component-extensions-with-background-pages',
-        '--disable-client-side-phishing-detection',
-        '--disable-component-update',
-        '--disable-default-apps',
-        '--disable-domain-reliability',
-        '--disable-features=AudioServiceOutOfProcess',
-        '--disable-hang-monitor',
-        '--disable-ipc-flooding-protection',
-        '--disable-notifications',
-        '--disable-offer-store-unmasked-wallet-cards',
-        '--disable-popup-blocking',
-        '--disable-print-preview',
-        '--disable-prompt-on-repost',
-        '--disable-renderer-backgrounding',
-        '--disable-speech-api',
-        '--disable-translate',
-        '--hide-scrollbars',
-        '--ignore-gpu-blacklist',
-        '--metrics-recording-only',
-        '--mute-audio',
-        '--no-default-browser-check',
-        '--no-first-run',
-        '--no-pings',
-        '--password-store=basic',
-        '--use-mock-keychain',
-        '--disable-blink-features=AutomationControlled'
+        '--disable-partial-raster',
+        '--disable-skia-runtime-opts',
+        '--process-per-site',
+        '--disable-logging',
+        '--disable-login-animations'
       );
     }
 

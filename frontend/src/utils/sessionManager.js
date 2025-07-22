@@ -169,13 +169,27 @@ export const performCompleteSessionCleanup = () => {
   try {
     const keys = Object.keys(localStorage);
     keys.forEach(key => {
-      if (key.startsWith('sb-') || key.includes('supabase')) {
+      if (key.startsWith('sb-') || key.includes('supabase') || key.includes('auth-token')) {
         localStorage.removeItem(key);
         console.log(`🗑️ Removed localStorage key: ${key}`);
       }
     });
   } catch (error) {
     console.warn('Failed to clear localStorage:', error);
+  }
+  
+  // Also clear cookies that might contain auth data
+  try {
+    document.cookie.split(";").forEach(cookie => {
+      const eqPos = cookie.indexOf("=");
+      const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+      if (name.includes('sb-') || name.includes('supabase')) {
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+        console.log(`🍪 Cleared cookie: ${name}`);
+      }
+    });
+  } catch (error) {
+    console.warn('Failed to clear cookies:', error);
   }
   
   // Clear sessionStorage

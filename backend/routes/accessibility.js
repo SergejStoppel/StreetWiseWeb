@@ -751,6 +751,9 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
           analysisDataForDb.userId = req.user.id;
         }
         
+        // Add the analysis ID to match the screenshot storage path
+        analysisDataForDb.analysisId = analysisId;
+        
         logger.info('Saving analysis to database', { 
           analysisId: analysisId,
           isAnonymous: analysisDataForDb.isAnonymous,

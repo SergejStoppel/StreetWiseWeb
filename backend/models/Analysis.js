@@ -15,6 +15,7 @@ class Analysis {
     try {
       // 1. Create the main analysis record (without violations, screenshots, etc.)
       const mainAnalysisData = {
+        id: analysisData.analysisId, // Use the provided analysis ID to match screenshot storage paths
         user_id: analysisData.userId,
         project_id: analysisData.projectId,
         url: analysisData.url,
@@ -415,8 +416,11 @@ class Analysis {
 
     // If analysis_data exists, merge it with related data
     if (dbRecord.analysis_data) {
+      // Remove screenshot from analysis_data to prevent conflicts
+      const { screenshot: _, ...analysisDataWithoutScreenshot } = dbRecord.analysis_data;
+      
       return {
-        ...dbRecord.analysis_data,
+        ...analysisDataWithoutScreenshot,
         // Add database-specific fields
         id: dbRecord.id,
         analysisId: dbRecord.id,
@@ -495,7 +499,14 @@ class Analysis {
    * @returns {Object|string|null} Formatted screenshot data
    */
   static formatScreenshotsForFrontend(screenshots) {
+    console.log('📸 formatScreenshotsForFrontend called with:', {
+      screenshots: screenshots,
+      length: screenshots?.length,
+      types: screenshots?.map(s => s.screenshot_type)
+    });
+    
     if (!screenshots || screenshots.length === 0) {
+      console.log('📸 No screenshots found, returning null');
       return null;
     }
 
@@ -509,6 +520,8 @@ class Analysis {
       if (mobile) result.mobile = mobile.screenshot_url;
       if (desktop?.metadata?.timestamp) result.timestamp = desktop.metadata.timestamp;
       if (desktop?.metadata?.originalUrl) result.url = desktop.metadata.originalUrl;
+      
+      console.log('📸 Returning formatted screenshots:', result);
       return result;
     }
 

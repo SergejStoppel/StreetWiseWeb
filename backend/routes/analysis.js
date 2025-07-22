@@ -83,6 +83,13 @@ router.get('/:id', extractUser, requireAuth, async (req, res) => {
     
     const analysis = await Analysis.findById(id, req.user.id);
     
+    console.log('📸 API: Retrieved analysis with screenshot data:', {
+      analysisId: id,
+      hasScreenshot: !!analysis?.screenshot,
+      screenshot: analysis?.screenshot,
+      screenshotType: typeof analysis?.screenshot
+    });
+    
     if (!analysis) {
       return res.status(404).json({
         error: 'Analysis not found',

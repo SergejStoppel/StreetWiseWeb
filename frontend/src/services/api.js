@@ -2,6 +2,8 @@ import axios from 'axios';
 import supabase from '../config/supabase';
 import { authStore } from '../utils/authStore';
 
+// API Base URL Configuration
+// In Docker development, we need to use the full URL since proxy may not work reliably
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3005';
 
 const api = axios.create({
@@ -20,10 +22,24 @@ const api = axios.create({
 //   cacheDuration: 5 * 60 * 1000 // 5 minutes
 // };
 
-// Helper function to check if session is expired
+// Helper function to check if session is expired (with 5 minute buffer)
 const isSessionExpired = (session) => {
   if (!session?.expires_at) return false;
-  return new Date(session.expires_at * 1000) <= new Date();
+  const expiryTime = new Date(session.expires_at * 1000);
+  const now = new Date();
+  const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
+  const expired = expiryTime <= new Date(now.getTime() + bufferTime);
+  
+  if (expired) {
+    console.log('🕐 Session expiry check:', {
+      expiryTime: expiryTime.toISOString(),
+      now: now.toISOString(),
+      expired,
+      minutesToExpiry: Math.floor((expiryTime.getTime() - now.getTime()) / (1000 * 60))
+    });
+  }
+  
+  return expired;
 };
 
 // Request interceptor with enhanced session handling
@@ -49,15 +65,21 @@ api.interceptors.request.use(
           try {
             const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
             if (refreshError || !refreshData.session) {
-              console.warn('❌ Session refresh failed, clearing auth');
+              console.warn('❌ Session refresh failed, clearing auth:', refreshError?.message || 'No session returned');
               await supabase.auth.signOut();
+              authStore.clearSession();
               return config;
             }
+            // Update auth store with refreshed session
+            authStore.setSession(refreshData.session);
             // Use refreshed session
             config.headers.Authorization = `Bearer ${refreshData.session.access_token}`;
-            console.log('🔄 Used refreshed auth token');
+            console.log('🔄 Session refreshed successfully, using new auth token');
           } catch (refreshErr) {
             console.warn('❌ Session refresh error:', refreshErr.message);
+            // Clear session on refresh failure
+            await supabase.auth.signOut();
+            authStore.clearSession();
             return config;
           }
         } else {

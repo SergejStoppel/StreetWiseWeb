@@ -79,7 +79,7 @@ const Input = styled.input`
 
   &:focus {
     outline: none;
-    border-color: var(--color-primary);
+    border-color: var(--color-border-focus);
   }
 
   &::placeholder {
@@ -118,9 +118,9 @@ const PasswordStrength = styled.div`
   font-size: 12px;
   color: ${props => {
     switch (props.strength) {
-      case 'strong': return 'var(--color-success)';
-      case 'medium': return 'var(--color-warning)';
-      case 'weak': return 'var(--color-error)';
+      case 'strong': return 'var(--color-success-text)';
+      case 'medium': return 'var(--color-warning-text)';
+      case 'weak': return 'var(--color-error-text)';
       default: return 'var(--color-text-secondary)';
     }
   }};
@@ -206,9 +206,9 @@ const SignInLink = styled.p`
 `;
 
 const ErrorMessage = styled.div`
-  background: rgba(220, 53, 69, 0.1);
-  border: 1px solid var(--color-error);
-  color: var(--color-error);
+  background: var(--color-error-light);
+  border: 1px solid var(--color-border-error);
+  color: var(--color-error-text);
   padding: 12px;
   border-radius: 8px;
   margin-bottom: 20px;

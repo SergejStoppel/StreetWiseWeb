@@ -35,6 +35,11 @@
   --color-interactive-secondary-hover: #5a6268;
   --color-interactive-secondary-active: #494f54;
   
+  /* Legacy compatibility aliases */
+  --color-primary: var(--color-interactive-primary);
+  --color-primary-hover: var(--color-interactive-primary-hover);
+  --color-disabled: #6c757d;
+  
   /* Border Colors */
   --color-border-primary: #dee2e6;
   --color-border-secondary: #e9ecef;
@@ -189,6 +194,11 @@
   --color-interactive-secondary-hover: #5c636a;
   --color-interactive-secondary-active: #565e64;
   
+  /* Legacy compatibility aliases - Dark Mode */
+  --color-primary: var(--color-interactive-primary);
+  --color-primary-hover: var(--color-interactive-primary-hover);
+  --color-disabled: #565e64;
+  
   /* Border Colors - Dark Mode */
   --color-border-primary: #495057;
   --color-border-secondary: #404040;
@@ -255,6 +265,11 @@
     --color-interactive-secondary: #6c757d;
     --color-interactive-secondary-hover: #5c636a;
     --color-interactive-secondary-active: #565e64;
+    
+    /* Legacy compatibility aliases - Auto Dark Mode */
+    --color-primary: var(--color-interactive-primary);
+    --color-primary-hover: var(--color-interactive-primary-hover);
+    --color-disabled: #565e64;
     
     --color-border-primary: #495057;
     --color-border-secondary: #404040;

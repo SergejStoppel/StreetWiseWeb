@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { accessibilityAPI, analysisAPI } from '../services/api';
+import { useAuth } from '../contexts/AuthContext';
 
 // Import Phase 2 components
 import EnhancedReportHeader from '../components/EnhancedReportHeader';
@@ -215,9 +216,16 @@ const EnhancedResultsPage = () => {
   const navigate = useNavigate();
   const { analysisId } = useParams();
   const { i18n } = useTranslation();
+  const { initializing: authInitializing } = useAuth();
 
   useEffect(() => {
-    console.log('📊 Results page useEffect triggered', { analysisId });
+    console.log('📊 Results page useEffect triggered', { analysisId, authInitializing });
+
+    // Don't load data while auth is still initializing (for authenticated routes)
+    if (authInitializing && analysisId) {
+      console.log('⏳ Waiting for auth to initialize before loading results');
+      return;
+    }
 
     const loadResults = async () => {
       try {
@@ -306,7 +314,7 @@ const EnhancedResultsPage = () => {
     };
 
     loadResults();
-  }, [analysisId]);
+  }, [analysisId, authInitializing]);
 
   const handleBack = () => {
     navigate('/');
@@ -422,6 +430,14 @@ const EnhancedResultsPage = () => {
   }
 
   const accessibilityIssues = convertViolationsToIssues(results.violations || []);
+  
+  // Debug screenshot data
+  console.log('📸 DEBUG: Screenshot data being passed to header:', {
+    hasScreenshot: !!results.screenshot,
+    screenshot: results.screenshot,
+    resultsKeys: Object.keys(results),
+    screenshotType: typeof results.screenshot
+  });
 
   return (
     <ResultsContainer>
