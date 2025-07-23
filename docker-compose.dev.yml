@@ -8,14 +8,14 @@ services:
     env_file:
       - .env
     ports:
-      - "3005:3001"
+      - "3005:3005"
     volumes:
       - ./backend:/app
       - /app/node_modules
       - chrome-data:/app/chrome-user-data
     environment:
       - APP_ENV=${APP_ENV:-development}
-      - PORT=3001
+      - PORT=3005
       # Unified environment variables are loaded via env_file
       # The backend/config/environment.js will handle the selection
     networks:
@@ -26,7 +26,7 @@ services:
     security_opt:
       - seccomp:unconfined
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3005/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -48,7 +48,7 @@ services:
       - PORT=3000
       - CHOKIDAR_USEPOLLING=true
       # React environment variables set by build process
-      - REACT_APP_API_URL=${DEV_API_URL:-http://localhost:3005}
+      - REACT_APP_API_URL=http://localhost:3005
       - REACT_APP_SUPABASE_URL=${DEV_SUPABASE_URL}
       - REACT_APP_SUPABASE_ANON_KEY=${DEV_SUPABASE_ANON_KEY}
       - REACT_APP_ENV=${APP_ENV:-development}

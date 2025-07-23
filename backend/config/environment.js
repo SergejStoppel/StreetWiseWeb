@@ -31,9 +31,9 @@ const config = {
   isProduction,
 
   // Server configuration
-  PORT: process.env.PORT || 3001,
+  PORT: process.env.PORT || 3005,
   FRONTEND_URL: getEnvValue('DEV_FRONTEND_URL', 'PROD_FRONTEND_URL', 'http://localhost:3000'),
-  API_URL: getEnvValue('DEV_API_URL', 'PROD_API_URL', 'http://localhost:3001'),
+  API_URL: getEnvValue('DEV_API_URL', 'PROD_API_URL', 'http://localhost:3005'),
   CORS_ORIGIN: getEnvValue('DEV_CORS_ORIGIN', 'PROD_CORS_ORIGIN', 'http://localhost:3000'),
 
   // Supabase configuration

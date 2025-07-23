@@ -4,14 +4,14 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     ports:
-      - "3005:3001"
+      - "3005:3005"
     volumes:
       - ./backend:/app
       - /app/node_modules
       - chrome-data:/app/chrome-user-data
     environment:
       - APP_ENV=${APP_ENV:-production}
-      - PORT=3001
+      - PORT=3005
       # Unified environment variables are loaded via env_file
     env_file:
       - .env
@@ -19,7 +19,7 @@ services:
       - streetwiseweb-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3001/api/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:3005/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -28,7 +28,7 @@ services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     volumes:

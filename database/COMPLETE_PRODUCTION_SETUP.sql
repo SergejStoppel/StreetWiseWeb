@@ -218,6 +218,10 @@ CREATE TABLE public.analysis_summaries (
     landmark_issues INTEGER DEFAULT 0,
     color_contrast_violations INTEGER DEFAULT 0,
     
+    -- Backend-expected columns (mapping to specific issues)
+    images_without_alt INTEGER DEFAULT 0,
+    forms_without_labels INTEGER DEFAULT 0,
+    
     -- WCAG compliance
     wcag_level VARCHAR(3),
     compliance_percentage NUMERIC(5,2),

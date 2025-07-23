@@ -569,16 +569,25 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
             // Run screenshot service with the same browser instance
             try {
               logger.info('Running screenshot capture with existing browser');
-              screenshotData = await captureScreenshotsWithBrowser(browser, url, {
+              
+              // Add timeout to prevent hanging
+              const screenshotPromise = captureScreenshotsWithBrowser(browser, url, {
                 desktopWidth: 1920,
                 desktopHeight: 1080,
                 mobileWidth: 375,
                 mobileHeight: 667,
                 quality: 85
               });
+              
+              const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Screenshot capture timeout after 30 seconds')), 30000)
+              );
+              
+              screenshotData = await Promise.race([screenshotPromise, timeoutPromise]);
               logger.info('Screenshot capture completed');
             } catch (err) {
               logger.warn('Screenshot service failed:', err.message);
+              // Continue without screenshots rather than hanging
             }
             
           } catch (err) {

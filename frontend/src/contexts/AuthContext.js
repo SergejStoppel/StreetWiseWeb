@@ -200,9 +200,26 @@ export function AuthProvider({ children }) {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // Profile doesn't exist, create it
-          console.log('User profile not found, will create on next login');
-          setUserProfile(null);
+          // Profile doesn't exist, try to create it
+          console.log('User profile not found, attempting to create...');
+          
+          // Get user info from auth
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            try {
+              const newProfile = await createUserProfile({
+                firstName: authUser.user_metadata?.first_name || '',
+                lastName: authUser.user_metadata?.last_name || '',
+                company: authUser.user_metadata?.company || ''
+              }, authUser);
+              console.log('Profile created successfully');
+            } catch (createError) {
+              console.error('Failed to auto-create profile:', createError);
+              setUserProfile(null);
+            }
+          } else {
+            setUserProfile(null);
+          }
         } else {
           console.error('Error fetching user profile:', error);
           toast.error('Error loading user profile');
@@ -230,10 +247,11 @@ export function AuthProvider({ children }) {
         .insert({
           id: currentUser.id,
           email: currentUser.email,
-          first_name: userData.firstName,
-          last_name: userData.lastName,
-          company: userData.company,
-          plan_type: 'free'
+          first_name: userData.firstName || '',
+          last_name: userData.lastName || '',
+          company: userData.company || null,
+          plan_type: 'free',
+          settings: {}
         })
         .select()
         .single();

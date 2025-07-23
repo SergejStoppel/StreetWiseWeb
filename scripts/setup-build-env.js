@@ -27,7 +27,7 @@ if (isDevelopment) {
   reactEnvVars.REACT_APP_ENV = 'development';
   reactEnvVars.REACT_APP_SUPABASE_URL = process.env.DEV_SUPABASE_URL;
   reactEnvVars.REACT_APP_SUPABASE_ANON_KEY = process.env.DEV_SUPABASE_ANON_KEY;
-  reactEnvVars.REACT_APP_API_URL = process.env.DEV_API_URL || 'http://localhost:3001';
+  reactEnvVars.REACT_APP_API_URL = process.env.DEV_API_URL || 'http://localhost:3005';
   reactEnvVars.REACT_APP_ENVIRONMENT = 'development';
   reactEnvVars.REACT_APP_DEBUG = 'true';
   reactEnvVars.REACT_APP_ENABLE_ANALYTICS = process.env.DEV_ENABLE_ANALYTICS || 'false';

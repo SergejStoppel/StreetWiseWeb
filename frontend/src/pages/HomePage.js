@@ -490,15 +490,15 @@ const StatContent = styled.div`
 `;
 
 const StatNumber = styled.div`
-  font-size: ${props => props.isBreaking ? 'var(--font-size-2xl)' : 'var(--font-size-4xl)'};
+  font-size: ${props => props.$isBreaking ? 'var(--font-size-2xl)' : 'var(--font-size-4xl)'};
   font-weight: var(--font-weight-extrabold);
   font-family: var(--font-family-primary);
   color: var(--color-interactive-primary);
   margin-bottom: var(--spacing-md);
-  text-transform: ${props => props.isBreaking ? 'uppercase' : 'none'};
-  letter-spacing: ${props => props.isBreaking ? '0.05em' : 'normal'};
+  text-transform: ${props => props.$isBreaking ? 'uppercase' : 'none'};
+  letter-spacing: ${props => props.$isBreaking ? '0.05em' : 'normal'};
   line-height: 1.1;
-  min-height: ${props => props.isBreaking ? '60px' : '80px'};
+  min-height: ${props => props.$isBreaking ? '60px' : '80px'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -799,10 +799,10 @@ const HomePage = () => {
       <HomeContainer>
         <HeroSection>
           <HeroTitle>
-            {t('homepage:hero.title', 'Is Your Website Losing You Customers?')}
+            {t('homepage:hero.title')}
           </HeroTitle>
           <HeroSubtitle>
-            {t('homepage:hero.subtitle', 'Find out for free. Get a simple, no-jargon report on your website\'s health, and see how you can attract more customers.')}
+            {t('homepage:hero.subtitle')}
           </HeroSubtitle>
           
           <AnalysisForm onSubmit={handleSubmit}>
@@ -850,7 +850,7 @@ const HomePage = () => {
           </SectionSubtitle>
           
           <QuestionsGrid>
-            {t('homepage:problem.questions', { returnObjects: true }).map((question, index) => (
+            {(Array.isArray(t('homepage:problem.questions', { returnObjects: true })) ? t('homepage:problem.questions', { returnObjects: true }) : []).map((question, index) => (
               <QuestionCard key={index}>
                 <QuestionTitle>"{question.title}"</QuestionTitle>
                 <QuestionDescription>{question.description}</QuestionDescription>
@@ -873,7 +873,7 @@ const HomePage = () => {
           </SectionTitle>
           
           <PromiseGrid>
-            {t('homepage:solution.promise.points', { returnObjects: true }).map((point, index) => (
+            {(Array.isArray(t('homepage:solution.promise.points', { returnObjects: true })) ? t('homepage:solution.promise.points', { returnObjects: true }) : []).map((point, index) => (
               <PromiseCard key={index}>
                 <ServiceIcon>
                   {index === 0 && <FaCheckCircle />}
@@ -894,7 +894,7 @@ const HomePage = () => {
           <SectionTitle>{t('homepage:howItWorks.title')}</SectionTitle>
           
           <StepsGrid>
-            {t('homepage:howItWorks.steps', { returnObjects: true }).map((step, index) => (
+            {(Array.isArray(t('homepage:howItWorks.steps', { returnObjects: true })) ? t('homepage:howItWorks.steps', { returnObjects: true }) : []).map((step, index) => (
               <StepCard key={index}>
                 <StepNumber>{step.number}</StepNumber>
                 <StepTitle>{step.title}</StepTitle>
@@ -911,7 +911,7 @@ const HomePage = () => {
           <SectionTitle>{t('homepage:services.title')}</SectionTitle>
           
           <ServicesGrid>
-            {t('homepage:services.items', { returnObjects: true }).map((service, index) => (
+            {(Array.isArray(t('homepage:services.items', { returnObjects: true })) ? t('homepage:services.items', { returnObjects: true }) : []).map((service, index) => (
               <ServiceCard key={index}>
                 <ServiceIcon>
                   {index === 0 && <FaAccessibleIcon />}
@@ -940,10 +940,10 @@ const HomePage = () => {
           </AIDescription>
           
           <StatsGrid>
-            {t('homepage:aiStats.stats', { returnObjects: true }).map((stat, index) => (
+            {(Array.isArray(t('homepage:aiStats.stats', { returnObjects: true })) ? t('homepage:aiStats.stats', { returnObjects: true }) : []).map((stat, index) => (
               <StatCard key={index}>
                 <StatContent>
-                  <StatNumber isBreaking={stat.number === "Breaking"}>{stat.number}</StatNumber>
+                  <StatNumber $isBreaking={stat.number === "Breaking"}>{stat.number}</StatNumber>
                   <StatLabel>{stat.label}</StatLabel>
                 </StatContent>
                 {stat.detail && <StatDetail>{stat.detail}</StatDetail>}

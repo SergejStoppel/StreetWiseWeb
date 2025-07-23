@@ -116,7 +116,7 @@ const MobileNavContent = styled.div`
 `;
 
 const NavLink = styled(Link)`
-  color: ${props => props.isActive ? 'var(--color-interactive-primary)' : 'var(--color-text-secondary)'};
+  color: ${props => props.$isActive ? 'var(--color-interactive-primary)' : 'var(--color-text-secondary)'};
   font-weight: var(--font-weight-medium);
   text-decoration: none;
   padding: var(--spacing-sm) 0;
@@ -136,13 +136,13 @@ const NavLink = styled(Link)`
     border-radius: var(--border-radius-sm);
   }
   
-  ${props => props.isActive && `
+  ${props => props.$isActive && `
     border-bottom-color: var(--color-interactive-primary);
   `}
 `;
 
 const MobileNavLink = styled(Link)`
-  color: ${props => props.isActive ? 'var(--color-interactive-primary)' : 'var(--color-text-primary)'};
+  color: ${props => props.$isActive ? 'var(--color-interactive-primary)' : 'var(--color-text-primary)'};
   font-weight: var(--font-weight-medium);
   text-decoration: none;
   padding: var(--spacing-sm);
@@ -157,7 +157,7 @@ const MobileNavLink = styled(Link)`
     text-decoration: none;
   }
   
-  ${props => props.isActive && `
+  ${props => props.$isActive && `
     background-color: var(--color-interactive-primary);
     color: var(--color-text-inverse);
     
@@ -179,7 +179,7 @@ const DropdownContainer = styled.div`
 const DropdownTrigger = styled.button`
   background: none;
   border: none;
-  color: ${props => props.isActive ? 'var(--color-interactive-primary)' : 'var(--color-text-secondary)'};
+  color: ${props => props.$isActive ? 'var(--color-interactive-primary)' : 'var(--color-text-secondary)'};
   font-weight: var(--font-weight-medium);
   padding: var(--spacing-sm) 0;
   cursor: pointer;
@@ -202,7 +202,7 @@ const DropdownTrigger = styled.button`
     border-radius: var(--border-radius-sm);
   }
   
-  ${props => props.isActive && `
+  ${props => props.$isActive && `
     border-bottom-color: var(--color-interactive-primary);
   `}
   
@@ -210,7 +210,7 @@ const DropdownTrigger = styled.button`
     content: '▼';
     font-size: 0.75rem;
     transition: transform var(--transition-fast);
-    transform: ${props => props.isOpen ? 'rotate(180deg)' : 'rotate(0deg)'};
+    transform: ${props => props.$isOpen ? 'rotate(180deg)' : 'rotate(0deg)'};
   }
 `;
 
@@ -224,9 +224,9 @@ const DropdownMenu = styled.div`
   border: 1px solid var(--color-border-primary);
   padding: var(--spacing-sm);
   min-width: 200px;
-  transform: ${props => props.isOpen ? 'translateY(0)' : 'translateY(-8px)'};
-  opacity: ${props => props.isOpen ? '1' : '0'};
-  visibility: ${props => props.isOpen ? 'visible' : 'hidden'};
+  transform: ${props => props.$isOpen ? 'translateY(0)' : 'translateY(-8px)'};
+  opacity: ${props => props.$isOpen ? '1' : '0'};
+  visibility: ${props => props.$isOpen ? 'visible' : 'hidden'};
   transition: all var(--transition-fast);
   z-index: var(--z-index-dropdown);
   
@@ -484,7 +484,7 @@ const Header = () => {
         </Logo>
         
         <DesktopNavigation>
-          <NavLink to="/" isActive={isActive('/')}>
+          <NavLink to="/" $isActive={isActive('/')}>
             {t('home', 'Home')}
           </NavLink>
           
@@ -493,13 +493,13 @@ const Header = () => {
             onMouseLeave={() => setIsServicesDropdownOpen(false)}
           >
             <DropdownTrigger 
-              isActive={isServicesActive()} 
-              isOpen={isServicesDropdownOpen}
+              $isActive={isServicesActive()} 
+              $isOpen={isServicesDropdownOpen}
               onClick={() => setIsServicesDropdownOpen(!isServicesDropdownOpen)}
             >
               {t('services', 'Services')}
             </DropdownTrigger>
-            <DropdownMenu isOpen={isServicesDropdownOpen}>
+            <DropdownMenu $isOpen={isServicesDropdownOpen}>
               <DropdownLink to="/services">{t('allServices', 'All Services')}</DropdownLink>
               <DropdownLink to="/services/accessibility">{t('accessibility', 'Accessibility')}</DropdownLink>
               <DropdownLink to="/services/seo-content">{t('seoContent', 'SEO & Content')}</DropdownLink>
@@ -507,19 +507,19 @@ const Header = () => {
             </DropdownMenu>
           </DropdownContainer>
           
-          <NavLink to="/pricing" isActive={isActive('/pricing')}>
+          <NavLink to="/pricing" $isActive={isActive('/pricing')}>
             {t('pricing', 'Pricing')}
           </NavLink>
           
-          <NavLink to="/about" isActive={isActive('/about')}>
+          <NavLink to="/about" $isActive={isActive('/about')}>
             {t('about', 'About')}
           </NavLink>
           
-          {/* <NavLink to="/blog" isActive={isActive('/blog')}>
+          {/* <NavLink to="/blog" $isActive={isActive('/blog')}>
             {t('blog', 'Blog')}
           </NavLink> */}
           
-          <NavLink to="/contact" isActive={isActive('/contact')}>
+          <NavLink to="/contact" $isActive={isActive('/contact')}>
             {t('contact', 'Contact')}
           </NavLink>
           
@@ -568,31 +568,31 @@ const Header = () => {
       
       <MobileNavigation isOpen={isMobileMenuOpen}>
         <MobileNavContent>
-          <MobileNavLink to="/" isActive={isActive('/')} onClick={closeMobileMenu}>
+          <MobileNavLink to="/" $isActive={isActive('/')} onClick={closeMobileMenu}>
             {t('home', 'Home')}
           </MobileNavLink>
-          <MobileNavLink to="/services" isActive={isActive('/services')} onClick={closeMobileMenu}>
+          <MobileNavLink to="/services" $isActive={isActive('/services')} onClick={closeMobileMenu}>
             {t('services', 'Services')}
           </MobileNavLink>
-          <MobileNavLink to="/services/accessibility" isActive={isActive('/services/accessibility')} onClick={closeMobileMenu}>
+          <MobileNavLink to="/services/accessibility" $isActive={isActive('/services/accessibility')} onClick={closeMobileMenu}>
             {t('accessibility', 'Accessibility')}
           </MobileNavLink>
-          <MobileNavLink to="/services/seo-content" isActive={isActive('/services/seo-content')} onClick={closeMobileMenu}>
+          <MobileNavLink to="/services/seo-content" $isActive={isActive('/services/seo-content')} onClick={closeMobileMenu}>
             {t('seoContent', 'SEO & Content')}
           </MobileNavLink>
-          <MobileNavLink to="/services/website-overhaul" isActive={isActive('/services/website-overhaul')} onClick={closeMobileMenu}>
+          <MobileNavLink to="/services/website-overhaul" $isActive={isActive('/services/website-overhaul')} onClick={closeMobileMenu}>
             {t('websiteOverhaul', 'Website Overhaul')}
           </MobileNavLink>
-          <MobileNavLink to="/pricing" isActive={isActive('/pricing')} onClick={closeMobileMenu}>
+          <MobileNavLink to="/pricing" $isActive={isActive('/pricing')} onClick={closeMobileMenu}>
             {t('pricing', 'Pricing')}
           </MobileNavLink>
-          <MobileNavLink to="/about" isActive={isActive('/about')} onClick={closeMobileMenu}>
+          <MobileNavLink to="/about" $isActive={isActive('/about')} onClick={closeMobileMenu}>
             {t('about', 'About')}
           </MobileNavLink>
-          {/* <MobileNavLink to="/blog" isActive={isActive('/blog')} onClick={closeMobileMenu}>
+          {/* <MobileNavLink to="/blog" $isActive={isActive('/blog')} onClick={closeMobileMenu}>
             {t('blog', 'Blog')}
           </MobileNavLink> */}
-          <MobileNavLink to="/contact" isActive={isActive('/contact')} onClick={closeMobileMenu}>
+          <MobileNavLink to="/contact" $isActive={isActive('/contact')} onClick={closeMobileMenu}>
             {t('contact', 'Contact')}
           </MobileNavLink>
           

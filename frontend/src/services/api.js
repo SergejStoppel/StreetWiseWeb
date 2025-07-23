@@ -68,6 +68,12 @@ api.interceptors.request.use(
               console.warn('❌ Session refresh failed, clearing auth:', refreshError?.message || 'No session returned');
               await supabase.auth.signOut();
               authStore.clearSession();
+              
+              // Force redirect to login after failed refresh
+              if (window.location.pathname !== '/login') {
+                console.log('🔄 Redirecting to login due to failed session refresh');
+                window.location.href = '/login';
+              }
               return config;
             }
             // Update auth store with refreshed session
@@ -80,6 +86,12 @@ api.interceptors.request.use(
             // Clear session on refresh failure
             await supabase.auth.signOut();
             authStore.clearSession();
+            
+            // Force redirect to login after refresh error
+            if (window.location.pathname !== '/login') {
+              console.log('🔄 Redirecting to login due to session refresh error');
+              window.location.href = '/login';
+            }
             return config;
           }
         } else {

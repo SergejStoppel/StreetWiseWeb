@@ -94,11 +94,11 @@ RUN groupadd -r appuser && useradd -r -g appuser -G audio,video appuser \
 USER appuser
 
 # Expose port
-EXPOSE 3001
+EXPOSE 3005
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:3001/api/health || exit 1
+    CMD curl -f http://localhost:3005/api/health || exit 1
 
 # Start the application
 CMD ["npm", "run", "dev"]
