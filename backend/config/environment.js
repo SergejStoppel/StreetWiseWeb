@@ -6,20 +6,45 @@
  */
 
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 
 // Get the current environment (defaults to development)
 const APP_ENV = process.env.APP_ENV || 'development';
 const isDevelopment = APP_ENV === 'development';
 const isProduction = APP_ENV === 'production';
 
-// Helper function to get environment-specific value
-const getEnvValue = (devKey, prodKey, fallback = null) => {
-  if (isDevelopment) {
-    return process.env[devKey] || fallback;
-  } else if (isProduction) {
-    return process.env[prodKey] || fallback;
+// Helper function to read secret from file (for Docker secrets support)
+const readSecretFromFile = (filePath) => {
+  try {
+    if (fs.existsSync(filePath)) {
+      return fs.readFileSync(filePath, 'utf8').trim();
+    }
+  } catch (error) {
+    // Silently fail - not all deployments use file-based secrets
   }
-  return fallback;
+  return null;
+};
+
+// Enhanced helper function to get environment-specific value with secrets support
+const getEnvValue = (devKey, prodKey, fallback = null) => {
+  let value;
+  
+  if (isDevelopment) {
+    value = process.env[devKey];
+    // Check for file-based secret in development (for testing)
+    if (!value && process.env[devKey + '_FILE']) {
+      value = readSecretFromFile(process.env[devKey + '_FILE']);
+    }
+  } else if (isProduction) {
+    value = process.env[prodKey];
+    // Check for file-based secret (Docker secrets, Kubernetes secrets)
+    if (!value && process.env[prodKey + '_FILE']) {
+      value = readSecretFromFile(process.env[prodKey + '_FILE']);
+    }
+  }
+  
+  return value || fallback;
 };
 
 // Environment configuration object

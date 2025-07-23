@@ -40,7 +40,7 @@ const corsOptions = {
     
     const allowedOrigins = envConfig.isProduction 
       ? [envConfig.FRONTEND_URL, envConfig.CORS_ORIGIN].filter(Boolean)
-      : ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:3001', 'http://localhost:3005'];
+      : ['http://localhost:3000', 'http://localhost:3002', 'http://localhost:3005'];
     
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);

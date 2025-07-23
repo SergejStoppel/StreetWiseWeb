@@ -48,8 +48,14 @@ const validateConfig = () => {
   }
 
   if (errors.length > 0) {
-    console.error('❌ Frontend Environment Configuration Errors:');
-    errors.forEach(error => console.error(`   • ${error}`));
+    // Only log detailed errors in development
+    if (isDevelopment) {
+      console.error('❌ Frontend Environment Configuration Errors:');
+      errors.forEach(error => console.error(`   • ${error}`));
+    } else {
+      // In production, log minimal error information
+      console.error('Frontend configuration error: Missing required environment variables');
+    }
     throw new Error('Invalid frontend environment configuration');
   }
 };

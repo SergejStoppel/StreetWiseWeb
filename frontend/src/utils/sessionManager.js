@@ -3,6 +3,25 @@
 
 import supabase from '../config/supabase';
 
+// Development-only logging utilities
+const devLog = (...args) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(...args);
+  }
+};
+
+const devWarn = (...args) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(...args);
+  }
+};
+
+const devError = (...args) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.error(...args);
+  }
+};
+
 // Session metadata storage key
 const SESSION_METADATA_KEY = 'sitecraft_session_metadata';
 
@@ -21,9 +40,9 @@ export const storeSessionMetadata = (session) => {
     };
     
     localStorage.setItem(SESSION_METADATA_KEY, JSON.stringify(metadata));
-    console.log('📦 Session metadata stored for container restart recovery');
+    devLog('📦 Session metadata stored for container restart recovery');
   } catch (error) {
-    console.warn('Failed to store session metadata:', error);
+    devWarn('Failed to store session metadata:', error);
   }
 };
 
@@ -38,14 +57,14 @@ export const getSessionMetadata = () => {
     // Check if metadata is too old (more than 30 days)
     const maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
     if (Date.now() - metadata.storedAt > maxAge) {
-      console.log('🗑️ Session metadata expired, removing');
+      devLog('🗑️ Session metadata expired, removing');
       clearSessionMetadata();
       return null;
     }
     
     return metadata;
   } catch (error) {
-    console.warn('Failed to retrieve session metadata:', error);
+    devWarn('Failed to retrieve session metadata:', error);
     return null;
   }
 };
@@ -54,9 +73,9 @@ export const getSessionMetadata = () => {
 export const clearSessionMetadata = () => {
   try {
     localStorage.removeItem(SESSION_METADATA_KEY);
-    console.log('🗑️ Session metadata cleared');
+    devLog('🗑️ Session metadata cleared');
   } catch (error) {
-    console.warn('Failed to clear session metadata:', error);
+    devWarn('Failed to clear session metadata:', error);
   }
 };
 
@@ -75,17 +94,17 @@ export const isContainerRestart = () => {
 // Attempt to recover session after container restart
 export const recoverSessionAfterRestart = async () => {
   try {
-    console.log('🔄 Attempting session recovery after container restart...');
+    devLog('🔄 Attempting session recovery after container restart...');
     
     const metadata = getSessionMetadata();
     if (!metadata) {
-      console.log('ℹ️ No session metadata found for recovery');
+      devLog('ℹ️ No session metadata found for recovery');
       return null;
     }
     
     // Check if the stored session is expired
     if (metadata.expiresAt && new Date(metadata.expiresAt * 1000) <= new Date()) {
-      console.log('⏰ Stored session is expired, attempting refresh...');
+      devLog('⏰ Stored session is expired, attempting refresh...');
       
       try {
         // Attempt to refresh using the stored refresh token
@@ -94,16 +113,16 @@ export const recoverSessionAfterRestart = async () => {
         });
         
         if (error || !data.session) {
-          console.log('❌ Session refresh failed during recovery');
+          devLog('❌ Session refresh failed during recovery');
           clearSessionMetadata();
           return null;
         }
         
-        console.log('✅ Session refreshed successfully during recovery');
+        devLog('✅ Session refreshed successfully during recovery');
         storeSessionMetadata(data.session);
         return data.session;
       } catch (refreshError) {
-        console.warn('❌ Session refresh error during recovery:', refreshError);
+        devWarn('❌ Session refresh error during recovery:', refreshError);
         clearSessionMetadata();
         return null;
       }
@@ -113,15 +132,15 @@ export const recoverSessionAfterRestart = async () => {
     const { data: { session }, error } = await supabase.auth.getSession();
     
     if (error || !session) {
-      console.log('❌ Session recovery failed, clearing metadata');
+      devLog('❌ Session recovery failed, clearing metadata');
       clearSessionMetadata();
       return null;
     }
     
-    console.log('✅ Session recovered successfully');
+    devLog('✅ Session recovered successfully');
     return session;
   } catch (error) {
-    console.error('❌ Session recovery error:', error);
+    devError('❌ Session recovery error:', error);
     clearSessionMetadata();
     return null;
   }
@@ -146,21 +165,21 @@ export const validateSessionWithBackend = async (session, apiUrl) => {
     });
 
     const isValid = response.status !== 401;
-    console.log(`${isValid ? '✅' : '❌'} Backend validation result:`, { 
+    devLog(`${isValid ? '✅' : '❌'} Backend validation result:`, { 
       status: response.status, 
       isValid 
     });
     
     return isValid;
   } catch (error) {
-    console.warn('❌ Backend validation failed:', error.message);
+    devWarn('❌ Backend validation failed:', error.message);
     return false;
   }
 };
 
 // Complete session cleanup (for logout or invalid sessions)
 export const performCompleteSessionCleanup = () => {
-  console.log('🧹 Performing complete session cleanup...');
+  devLog('🧹 Performing complete session cleanup...');
   
   // Clear session metadata
   clearSessionMetadata();
@@ -171,11 +190,11 @@ export const performCompleteSessionCleanup = () => {
     keys.forEach(key => {
       if (key.startsWith('sb-') || key.includes('supabase') || key.includes('auth-token')) {
         localStorage.removeItem(key);
-        console.log(`🗑️ Removed localStorage key: ${key}`);
+        devLog(`🗑️ Removed localStorage key: ${key}`);
       }
     });
   } catch (error) {
-    console.warn('Failed to clear localStorage:', error);
+    devWarn('Failed to clear localStorage:', error);
   }
   
   // Also clear cookies that might contain auth data
@@ -185,11 +204,11 @@ export const performCompleteSessionCleanup = () => {
       const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
       if (name.includes('sb-') || name.includes('supabase')) {
         document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
-        console.log(`🍪 Cleared cookie: ${name}`);
+        devLog(`🍪 Cleared cookie: ${name}`);
       }
     });
   } catch (error) {
-    console.warn('Failed to clear cookies:', error);
+    devWarn('Failed to clear cookies:', error);
   }
   
   // Clear sessionStorage
@@ -198,14 +217,14 @@ export const performCompleteSessionCleanup = () => {
     keys.forEach(key => {
       if (key.startsWith('sb-') || key.includes('supabase') || key === 'pendingProfileUpdate') {
         sessionStorage.removeItem(key);
-        console.log(`🗑️ Removed sessionStorage key: ${key}`);
+        devLog(`🗑️ Removed sessionStorage key: ${key}`);
       }
     });
   } catch (error) {
-    console.warn('Failed to clear sessionStorage:', error);
+    devWarn('Failed to clear sessionStorage:', error);
   }
   
-  console.log('✅ Complete session cleanup finished');
+  devLog('✅ Complete session cleanup finished');
 };
 
 const sessionManager = {

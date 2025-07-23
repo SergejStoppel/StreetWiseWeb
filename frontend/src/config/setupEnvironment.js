@@ -20,7 +20,7 @@ const setupEnvironmentForReact = () => {
     // Development environment
     process.env.REACT_APP_SUPABASE_URL = process.env.DEV_SUPABASE_URL;
     process.env.REACT_APP_SUPABASE_ANON_KEY = process.env.DEV_SUPABASE_ANON_KEY;
-    process.env.REACT_APP_API_URL = process.env.DEV_API_URL || 'http://localhost:3001';
+    process.env.REACT_APP_API_URL = process.env.DEV_API_URL || 'http://localhost:3005';
     process.env.REACT_APP_ENVIRONMENT = 'development';
     process.env.REACT_APP_DEBUG = 'true';
   } else {

@@ -2,6 +2,30 @@ import axios from 'axios';
 import supabase from '../config/supabase';
 import { authStore } from '../utils/authStore';
 
+// Debug logging helper - only logs in development
+const debugLog = (...args) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(...args);
+  }
+};
+
+const debugWarn = (...args) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(...args);
+  }
+};
+
+const debugError = (...args) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.error(...args);
+  }
+};
+
+// Production-safe error logging for critical errors
+const prodError = (...args) => {
+  console.error(...args);
+};
+
 // API Base URL Configuration
 // In Docker development, we need to use the full URL since proxy may not work reliably
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3005';
@@ -31,7 +55,7 @@ const isSessionExpired = (session) => {
   const expired = expiryTime <= new Date(now.getTime() + bufferTime);
   
   if (expired) {
-    console.log('🕐 Session expiry check:', {
+    debugLog('🕐 Session expiry check:', {
       expiryTime: expiryTime.toISOString(),
       now: now.toISOString(),
       expired,
@@ -45,33 +69,33 @@ const isSessionExpired = (session) => {
 // Request interceptor with enhanced session handling
 api.interceptors.request.use(
   async (config) => {
-    console.log('🔧 Request interceptor called for:', config.url);
+    debugLog('🔧 Request interceptor called for:', config.url);
 
     try {
-      console.log('🔍 Getting session from auth store...');
+      debugLog('🔍 Getting session from auth store...');
 
       // Get session from the auth store (no async calls, no timeouts)
       const session = authStore.getSession();
 
       if (!session) {
-        console.log('ℹ️ No session in auth store, proceeding without auth');
+        debugLog('ℹ️ No session in auth store, proceeding without auth');
         return config;
       }
 
       if (session?.access_token) {
         // Check if session is expired
         if (isSessionExpired(session)) {
-          console.warn('⏰ Session is expired, attempting refresh...');
+          debugWarn('⏰ Session is expired, attempting refresh...');
           try {
             const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
             if (refreshError || !refreshData.session) {
-              console.warn('❌ Session refresh failed, clearing auth:', refreshError?.message || 'No session returned');
+              debugWarn('❌ Session refresh failed, clearing auth:', refreshError?.message || 'No session returned');
               await supabase.auth.signOut();
               authStore.clearSession();
               
               // Force redirect to login after failed refresh
               if (window.location.pathname !== '/login') {
-                console.log('🔄 Redirecting to login due to failed session refresh');
+                debugLog('🔄 Redirecting to login due to failed session refresh');
                 window.location.href = '/login';
               }
               return config;
@@ -80,16 +104,16 @@ api.interceptors.request.use(
             authStore.setSession(refreshData.session);
             // Use refreshed session
             config.headers.Authorization = `Bearer ${refreshData.session.access_token}`;
-            console.log('🔄 Session refreshed successfully, using new auth token');
+            debugLog('🔄 Session refreshed successfully, using new auth token');
           } catch (refreshErr) {
-            console.warn('❌ Session refresh error:', refreshErr.message);
+            debugWarn('❌ Session refresh error:', refreshErr.message);
             // Clear session on refresh failure
             await supabase.auth.signOut();
             authStore.clearSession();
             
             // Force redirect to login after refresh error
             if (window.location.pathname !== '/login') {
-              console.log('🔄 Redirecting to login due to session refresh error');
+              debugLog('🔄 Redirecting to login due to session refresh error');
               window.location.href = '/login';
             }
             return config;
@@ -97,19 +121,19 @@ api.interceptors.request.use(
         } else {
           // Use existing valid session
           config.headers.Authorization = `Bearer ${session.access_token}`;
-          console.log('🔑 Added auth token to request');
+          debugLog('🔑 Added auth token to request');
         }
       } else {
-        console.log('ℹ️ No auth session found, proceeding without token');
+        debugLog('ℹ️ No auth session found, proceeding without token');
       }
     } catch (error) {
-      console.warn('❌ Failed to get auth session, proceeding without auth:', error.message);
+      debugWarn('❌ Failed to get auth session, proceeding without auth:', error.message);
     }
 
     return config;
   },
   (error) => {
-    console.error('❌ Request interceptor error:', error);
+    debugError('❌ Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -117,11 +141,11 @@ api.interceptors.request.use(
 // Response interceptor
 api.interceptors.response.use(
   (response) => {
-    console.log('📥 Response interceptor - Success:', response.status, response.statusText);
+    debugLog('📥 Response interceptor - Success:', response.status, response.statusText);
     return response;
   },
   async (error) => {
-    console.error('📥 Response interceptor - Error:', {
+    debugError('📥 Response interceptor - Error:', {
       message: error.message,
       response: error.response,
       request: error.request,
@@ -134,7 +158,7 @@ api.interceptors.response.use(
       
       if (status === 401) {
         // Authentication error - token may be expired
-        console.warn('🔐 Authentication error detected, clearing session');
+        debugWarn('🔐 Authentication error detected, clearing session');
 
         // Clear the session and redirect to login if needed
         try {
@@ -142,12 +166,12 @@ api.interceptors.response.use(
 
           // Force a page reload to clear any stale state
           if (window.location.pathname !== '/login' && window.location.pathname !== '/') {
-            console.log('🔄 Redirecting to login due to auth error');
+            debugLog('🔄 Redirecting to login due to auth error');
             window.location.href = '/login';
             return;
           }
         } catch (signOutError) {
-          console.warn('Failed to sign out after auth error:', signOutError);
+          prodError('Failed to sign out after auth error:', signOutError);
         }
         throw new Error('Your session has expired. Please sign in again.');
       } else if (status === 429) {
@@ -163,7 +187,7 @@ api.interceptors.response.use(
       }
     } else if (error.request) {
       // Network error
-      console.error('📡 Network error details:', error.request);
+      debugError('📡 Network error details:', error.request);
       throw new Error('Network error. Please check your connection and try again.');
     } else {
       // Other error
@@ -175,32 +199,31 @@ api.interceptors.response.use(
 export const accessibilityAPI = {
   analyzeWebsite: async (url, reportType = 'overview', language = 'en') => {
     try {
-      console.log('🚀 API Call Starting:', {
+      debugLog('🚀 API Call Starting:', {
         baseURL: API_BASE_URL,
         endpoint: '/api/accessibility/analyze',
         payload: { url, reportType, language },
         timestamp: new Date().toISOString()
       });
       
-      console.log('📡 Making POST request to /api/accessibility/analyze...');
+      debugLog('📡 Making POST request to /api/accessibility/analyze...');
       const response = await api.post('/api/accessibility/analyze', { url, reportType, language });
       
-      console.log('✅ API Response Received:', {
+      debugLog('✅ API Response Received:', {
         status: response.status,
         statusText: response.statusText,
         dataKeys: Object.keys(response.data || {}),
         dataSize: JSON.stringify(response.data || {}).length
       });
       
-      console.log('📦 Response data:', response.data);
+      debugLog('📦 Response data:', response.data);
       
       return response.data;
     } catch (error) {
-      console.error('❌ API Error:', {
+      prodError('❌ API Error:', {
         message: error.message,
         response: error.response?.data,
-        status: error.response?.status,
-        stack: error.stack
+        status: error.response?.status
       });
       throw error;
     }
@@ -310,12 +333,12 @@ export const analysisAPI = {
   // Get recent analyses
   getRecent: async (limit = 5) => {
     try {
-      console.log(`📊 API: Making request to /api/analysis/recent?limit=${limit}`);
+      debugLog(`📊 API: Making request to /api/analysis/recent?limit=${limit}`);
       const response = await api.get(`/api/analysis/recent?limit=${limit}`);
-      console.log('✅ API: getRecent response received', response.data);
+      debugLog('✅ API: getRecent response received', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ API: getRecent failed', error);
+      prodError('❌ API: getRecent failed', error);
       throw error;
     }
   },
@@ -323,12 +346,12 @@ export const analysisAPI = {
   // Get specific analysis by ID
   getById: async (analysisId) => {
     try {
-      console.log(`📊 API: Making request to /api/analysis/${analysisId}`);
+      debugLog(`📊 API: Making request to /api/analysis/${analysisId}`);
       const response = await api.get(`/api/analysis/${analysisId}`);
-      console.log('✅ API: getById response received', response.data);
+      debugLog('✅ API: getById response received', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ API: getById failed', error);
+      prodError('❌ API: getById failed', error);
       throw error;
     }
   },
@@ -336,12 +359,12 @@ export const analysisAPI = {
   // Get analysis statistics
   getStats: async () => {
     try {
-      console.log('📊 API: Making request to /api/analysis/stats');
+      debugLog('📊 API: Making request to /api/analysis/stats');
       const response = await api.get('/api/analysis/stats');
-      console.log('✅ API: getStats response received', response.data);
+      debugLog('✅ API: getStats response received', response.data);
       return response.data;
     } catch (error) {
-      console.error('❌ API: getStats failed', error);
+      prodError('❌ API: getStats failed', error);
       throw error;
     }
   },

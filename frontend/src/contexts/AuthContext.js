@@ -4,6 +4,35 @@ import { toast } from 'react-toastify';
 import sessionManager from '../utils/sessionManager';
 import { authStore } from '../utils/authStore';
 
+// Development-only logging utility
+const devLog = (...args) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log(...args);
+  }
+};
+
+const devWarn = (...args) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.warn(...args);
+  }
+};
+
+const devError = (...args) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.error(...args);
+  }
+};
+
+// Production-safe error logging
+const logError = (message, error) => {
+  if (process.env.NODE_ENV === 'development') {
+    console.error(message, error);
+  } else {
+    // In production, only log essential error information without sensitive data
+    console.error(message, error?.message || 'Unknown error');
+  }
+};
+
 const AuthContext = createContext();
 
 export function useAuth() {
@@ -27,7 +56,7 @@ export function AuthProvider({ children }) {
     }
 
     try {
-      console.log('🔍 Validating session with backend...');
+      devLog('🔍 Validating session with backend...');
 
       // Make a simple authenticated request to validate the token
       const response = await fetch(`${process.env.REACT_APP_API_URL}/api/analysis/stats`, {
@@ -39,14 +68,14 @@ export function AuthProvider({ children }) {
       });
 
       const isValid = response.status !== 401;
-      console.log(`${isValid ? '✅' : '❌'} Session validation result:`, {
+      devLog(`${isValid ? '✅' : '❌'} Session validation result:`, {
         status: response.status,
         isValid
       });
 
       return isValid;
     } catch (error) {
-      console.warn('❌ Session validation failed:', error.message);
+      devWarn('❌ Session validation failed:', error.message);
       return false;
     }
   };
@@ -90,7 +119,7 @@ export function AuthProvider({ children }) {
           setUserProfile(null);
         }
       } catch (error) {
-        console.error('❌ Error initializing auth:', error);
+        logError('❌ Error initializing auth:', error);
         // On any error, clear auth state
         authStore.clearSession();
         sessionManager.clearSessionMetadata();
@@ -107,11 +136,11 @@ export function AuthProvider({ children }) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        devLog('Auth state changed:', event, session?.user?.email);
         
         // Handle sign out event
         if (event === 'SIGNED_OUT') {
-          console.log('🔓 User signed out event received, clearing all state');
+          devLog('🔓 User signed out event received, clearing all state');
           clearSessionData();
           setLoading(false); // Ensure loading is cleared
           return;
@@ -130,7 +159,7 @@ export function AuthProvider({ children }) {
             if (pendingProfileUpdate && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
               try {
                 const userData = JSON.parse(pendingProfileUpdate);
-                console.log('Updating user profile with pending data:', userData);
+                devLog('Updating user profile with pending data:', userData);
                 
                 await fetchUserProfile(session.user.id);
                 
@@ -144,7 +173,7 @@ export function AuthProvider({ children }) {
                         company: userData.company
                       });
                     } catch (updateError) {
-                      console.error('Error updating profile:', updateError);
+                      logError('Error updating profile:', updateError);
                     }
                   }, 1000); // Small delay to ensure profile exists
                 }
@@ -152,11 +181,11 @@ export function AuthProvider({ children }) {
                 // Clear the pending data after successful fetch
                 sessionStorage.removeItem('pendingProfileUpdate');
               } catch (error) {
-                console.error('Error handling pending profile update:', error);
+                logError('Error handling pending profile update:', error);
                 try {
                   await fetchUserProfile(session.user.id);
                 } catch (fetchError) {
-                  console.error('Error fetching user profile:', fetchError);
+                  logError('Error fetching user profile:', fetchError);
                   setUserProfile(null);
                 }
               }
@@ -164,7 +193,7 @@ export function AuthProvider({ children }) {
               try {
                 await fetchUserProfile(session.user.id);
               } catch (error) {
-                console.error('Error fetching user profile:', error);
+                logError('Error fetching user profile:', error);
                 setUserProfile(null); // Ensure we set profile to null on error
               }
             }
@@ -174,7 +203,7 @@ export function AuthProvider({ children }) {
             setUserProfile(null);
           }
         } catch (error) {
-          console.error('Error in auth state change handler:', error);
+          logError('Error in auth state change handler:', error);
           // Always ensure loading state is cleared
         } finally {
           // Always set loading and initializing to false, regardless of success or failure
@@ -201,7 +230,7 @@ export function AuthProvider({ children }) {
       if (error) {
         if (error.code === 'PGRST116') {
           // Profile doesn't exist, try to create it
-          console.log('User profile not found, attempting to create...');
+          devLog('User profile not found, attempting to create...');
           
           // Get user info from auth
           const { data: { user: authUser } } = await supabase.auth.getUser();
@@ -212,23 +241,23 @@ export function AuthProvider({ children }) {
                 lastName: authUser.user_metadata?.last_name || '',
                 company: authUser.user_metadata?.company || ''
               }, authUser);
-              console.log('Profile created successfully');
+              devLog('Profile created successfully');
             } catch (createError) {
-              console.error('Failed to auto-create profile:', createError);
+              logError('Failed to auto-create profile:', createError);
               setUserProfile(null);
             }
           } else {
             setUserProfile(null);
           }
         } else {
-          console.error('Error fetching user profile:', error);
+          logError('Error fetching user profile:', error);
           toast.error('Error loading user profile');
         }
       } else {
         setUserProfile(data);
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      logError('Error fetching user profile:', error);
     }
   };
 
@@ -264,7 +293,7 @@ export function AuthProvider({ children }) {
       toast.success('Profile created successfully');
       return data;
     } catch (error) {
-      console.error('Error creating user profile:', error);
+      logError('Error creating user profile:', error);
       toast.error('Error creating profile');
       throw error;
     }
@@ -292,7 +321,7 @@ export function AuthProvider({ children }) {
       toast.success('Profile updated successfully');
       return data;
     } catch (error) {
-      console.error('Error updating user profile:', error);
+      logError('Error updating user profile:', error);
       toast.error('Error updating profile');
       throw error;
     }
@@ -326,7 +355,7 @@ export function AuthProvider({ children }) {
           await createUserProfile(userData, data.user);
           toast.success('Account created successfully!');
         } catch (profileError) {
-          console.warn('Profile creation failed, will retry later:', profileError);
+          devWarn('Profile creation failed, will retry later:', profileError);
           // Store user data for profile creation after auth state change
           sessionStorage.setItem('pendingProfileUpdate', JSON.stringify(userData));
           toast.success('Account created successfully!');
@@ -341,7 +370,7 @@ export function AuthProvider({ children }) {
 
       return data;
     } catch (error) {
-      console.error('Error signing up:', error);
+      logError('Error signing up:', error);
       toast.error(error.message || 'Error creating account');
       throw error;
     } finally {
@@ -366,7 +395,7 @@ export function AuthProvider({ children }) {
       toast.success('Signed in successfully');
       return data;
     } catch (error) {
-      console.error('Error signing in:', error);
+      logError('Error signing in:', error);
       toast.error(error.message || 'Error signing in');
       throw error;
     } finally {
@@ -376,7 +405,7 @@ export function AuthProvider({ children }) {
 
   // Clear all session data
   const clearSessionData = () => {
-    console.log('🧹 Clearing all session data...');
+    devLog('🧹 Clearing all session data...');
 
     // Clear auth store
     authStore.clearSession();
@@ -392,10 +421,10 @@ export function AuthProvider({ children }) {
   // Sign out with comprehensive cleanup
   const signOut = async () => {
     try {
-      console.log('🔓 AuthContext signOut: Starting sign out process...');
+      devLog('🔓 AuthContext signOut: Starting sign out process...');
       setLoading(true);
 
-      console.log('📡 AuthContext signOut: Calling supabase.auth.signOut()...');
+      devLog('📡 AuthContext signOut: Calling supabase.auth.signOut()...');
 
       // Clear local state first to provide immediate feedback
       clearSessionData();
@@ -411,33 +440,33 @@ export function AuthProvider({ children }) {
         const { error } = result;
 
         if (error) {
-          console.error('❌ AuthContext signOut: Supabase error:', error);
+          logError('❌ AuthContext signOut: Supabase error:', error);
           // Don't throw - cleanup already done
         } else {
-          console.log('✅ AuthContext signOut: Supabase sign out successful');
+          devLog('✅ AuthContext signOut: Supabase sign out successful');
         }
       } catch (timeoutError) {
-        console.warn('⚠️ AuthContext signOut: Timeout occurred, but local cleanup already complete');
+        devWarn('⚠️ AuthContext signOut: Timeout occurred, but local cleanup already complete');
         // Don't throw - cleanup already done
       }
 
       toast.success('Signed out successfully');
-      console.log('✅ AuthContext signOut: Complete cleanup finished');
+      devLog('✅ AuthContext signOut: Complete cleanup finished');
       
       // Redirect to home page after successful logout
       if (window.location.pathname !== '/') {
         window.location.href = '/';
       }
     } catch (error) {
-      console.error('❌ AuthContext signOut: Error:', error);
+      logError('❌ AuthContext signOut: Error:', error);
 
       // Even if there's an error, clear all session data
       clearSessionData();
       toast.success('Signed out successfully');
 
-      console.log('✅ AuthContext signOut: Cleanup completed despite error');
+      devLog('✅ AuthContext signOut: Cleanup completed despite error');
     } finally {
-      console.log('🔄 AuthContext signOut: Setting loading to false');
+      devLog('🔄 AuthContext signOut: Setting loading to false');
       setLoading(false);
     }
   };
@@ -455,7 +484,7 @@ export function AuthProvider({ children }) {
 
       toast.success('Password reset email sent! Check your inbox and click the link to reset your password.');
     } catch (error) {
-      console.error('Error resetting password:', error);
+      logError('Error resetting password:', error);
       toast.error(error.message || 'Error sending reset email');
       throw error;
     }
@@ -474,7 +503,7 @@ export function AuthProvider({ children }) {
 
       toast.success('Password updated successfully');
     } catch (error) {
-      console.error('Error updating password:', error);
+      logError('Error updating password:', error);
       toast.error(error.message || 'Error updating password');
       throw error;
     }
@@ -502,7 +531,7 @@ export function AuthProvider({ children }) {
 
       return data ? data.length : 0;
     } catch (error) {
-      console.error('Error fetching usage:', error);
+      logError('Error fetching usage:', error);
       return 0;
     }
   };
@@ -522,10 +551,10 @@ export function AuthProvider({ children }) {
         });
 
       if (error) {
-        console.error('Error logging action:', error);
+        logError('Error logging action:', error);
       }
     } catch (error) {
-      console.error('Error logging action:', error);
+      logError('Error logging action:', error);
     }
   };
 
@@ -563,14 +592,14 @@ export function AuthProvider({ children }) {
   // Session health check - can be called to verify session is still valid
   const checkSessionHealth = async () => {
     try {
-      console.log('🏥 Performing session health check...');
+      devLog('🏥 Performing session health check...');
 
       const { data: { session }, error } = await supabase.auth.getSession();
 
       if (error || !session) {
-        console.log('❌ Session health check failed: No valid session');
+        devLog('❌ Session health check failed: No valid session');
         if (user) {
-          console.log('🧹 Clearing stale user state');
+          devLog('🧹 Clearing stale user state');
           clearSessionData();
         }
         return false;
@@ -580,17 +609,17 @@ export function AuthProvider({ children }) {
       const isValid = await validateSessionWithBackend(session);
 
       if (!isValid && user) {
-        console.log('❌ Session health check failed: Backend validation failed');
-        console.log('🧹 Clearing invalid session');
+        devLog('❌ Session health check failed: Backend validation failed');
+        devLog('🧹 Clearing invalid session');
         await supabase.auth.signOut();
         clearSessionData();
         return false;
       }
 
-      console.log('✅ Session health check passed');
+      devLog('✅ Session health check passed');
       return true;
     } catch (error) {
-      console.error('❌ Session health check error:', error);
+      logError('❌ Session health check error:', error);
       if (user) {
         clearSessionData();
       }
@@ -598,7 +627,8 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // TEMPORARY: Disable periodic session health check for testing
+  // Periodic session health check - disabled by default to prevent unnecessary API calls
+  // Uncomment if you need automatic session validation
   // useEffect(() => {
   //   if (!user) return;
   //
