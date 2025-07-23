@@ -1,9 +1,10 @@
 -- =====================================================
 -- STREETWISEWEB DATABASE SCHEMA
 -- =====================================================
--- Current Production Schema v3.0
+-- Current Production Schema v4.0
 -- Compatible with Supabase PostgreSQL
--- Last Updated: 2025-01-21
+-- Last Updated: 2025-07-22
+-- Synchronized with COMPLETE_PRODUCTION_SETUP.sql
 
 -- =====================================================
 -- EXTENSIONS
@@ -18,7 +19,8 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE TABLE public.user_profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email VARCHAR(255) NOT NULL UNIQUE,
-    full_name VARCHAR(255),
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
     company VARCHAR(255),
     plan_type VARCHAR(20) DEFAULT 'free' CHECK (plan_type IN ('free', 'basic', 'premium')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -296,6 +298,166 @@ GROUP BY u.id, u.plan_type;
 
 -- Index for materialized view
 CREATE UNIQUE INDEX idx_user_dashboard_stats_user ON public.user_dashboard_stats(user_id);
+
+-- Team collaboration table
+CREATE TABLE public.team_members (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    project_id UUID NOT NULL REFERENCES public.projects(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES public.user_profiles(id) ON DELETE CASCADE,
+    role VARCHAR(20) DEFAULT 'member' CHECK (role IN ('owner', 'admin', 'member', 'viewer')),
+    is_active BOOLEAN DEFAULT TRUE,
+    invited_by UUID REFERENCES public.user_profiles(id),
+    joined_at TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    
+    -- Constraints
+    UNIQUE(project_id, user_id)
+);
+
+-- Deletion logs for audit trail
+CREATE TABLE public.deletion_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.user_profiles(id) ON DELETE CASCADE,
+    entity_type VARCHAR(50) NOT NULL,
+    entity_id UUID NOT NULL,
+    deleted_data JSONB,
+    reason TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =====================================================
+-- FUNCTIONS
+-- =====================================================
+
+-- Function to update updated_at columns
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Function to handle new user creation (for database trigger)
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO public.user_profiles (id, email, created_at, updated_at)
+    VALUES (NEW.id, NEW.email, NOW(), NOW())
+    ON CONFLICT (id) DO NOTHING;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Function to cleanup user data before deletion
+CREATE OR REPLACE FUNCTION public.cleanup_user_data_before_delete()
+RETURNS TRIGGER AS $$
+DECLARE
+    deleted_analyses_count INTEGER;
+    deleted_projects_count INTEGER;
+BEGIN
+    -- Log the deletion
+    INSERT INTO public.deletion_logs (user_id, entity_type, entity_id, deleted_data, reason)
+    VALUES (
+        OLD.id,
+        'user_profile',
+        OLD.id,
+        to_jsonb(OLD),
+        'User account deletion'
+    );
+    
+    -- Count what will be deleted for logging
+    SELECT COUNT(*) INTO deleted_analyses_count FROM public.analyses WHERE user_id = OLD.id;
+    SELECT COUNT(*) INTO deleted_projects_count FROM public.projects WHERE user_id = OLD.id;
+    
+    -- The actual deletions will be handled by CASCADE constraints
+    
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =====================================================
+-- MATERIALIZED VIEW
+-- =====================================================
+
+-- Fast dashboard statistics
+CREATE MATERIALIZED VIEW public.user_dashboard_stats AS
+SELECT 
+    u.id as user_id,
+    u.plan_type,
+    COUNT(DISTINCT a.id) as total_analyses,
+    COUNT(DISTINCT p.id) as total_projects,
+    COUNT(DISTINCT a.id) FILTER (WHERE a.created_at >= NOW() - INTERVAL '30 days') as recent_analyses,
+    COALESCE(AVG(a.overall_score), 0) as avg_overall_score,
+    COALESCE(AVG(a.accessibility_score), 0) as avg_accessibility_score,
+    COALESCE(AVG(a.seo_score), 0) as avg_seo_score,
+    COALESCE(AVG(a.performance_score), 0) as avg_performance_score,
+    MAX(a.created_at) as last_analysis_date,
+    COALESCE(SUM(so.file_size), 0) as total_storage_used,
+    COUNT(DISTINCT tm.id) as team_memberships
+FROM public.user_profiles u
+LEFT JOIN public.analyses a ON a.user_id = u.id AND a.status = 'completed'
+LEFT JOIN public.projects p ON p.user_id = u.id AND p.is_archived = FALSE
+LEFT JOIN public.storage_objects so ON so.user_id = u.id
+LEFT JOIN public.team_members tm ON tm.user_id = u.id AND tm.is_active = TRUE
+GROUP BY u.id, u.plan_type;
+
+-- Index for materialized view
+CREATE UNIQUE INDEX idx_user_dashboard_stats_user ON public.user_dashboard_stats(user_id);
+
+-- Function to refresh dashboard stats materialized view
+CREATE OR REPLACE FUNCTION public.refresh_dashboard_stats()
+RETURNS void AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY public.user_dashboard_stats;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- =====================================================
+-- TRIGGERS
+-- =====================================================
+
+-- Triggers to update updated_at timestamps
+CREATE TRIGGER update_user_profiles_updated_at
+    BEFORE UPDATE ON public.user_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_projects_updated_at
+    BEFORE UPDATE ON public.projects
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_analyses_updated_at
+    BEFORE UPDATE ON public.analyses
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_analysis_summaries_updated_at
+    BEFORE UPDATE ON public.analysis_summaries
+    FOR EACH ROW
+    EXECUTE FUNCTION public.update_updated_at_column();
+
+-- Trigger for user deletion cleanup
+CREATE TRIGGER before_user_delete
+    BEFORE DELETE ON public.user_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION public.cleanup_user_data_before_delete();
+
+-- Try to create auth trigger (may fail in some Supabase configurations)
+DO $$
+BEGIN
+    CREATE TRIGGER on_auth_user_created
+        AFTER INSERT ON auth.users
+        FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+    
+    RAISE NOTICE '✅ Auth trigger created successfully';
+EXCEPTION
+    WHEN OTHERS THEN
+        RAISE NOTICE '⚠️  Auth trigger creation failed (this is OK): %', SQLERRM;
+        RAISE NOTICE '⚠️  User profiles will need to be created manually or via application code';
+END $$;
 
 -- =====================================================
 -- SCHEMA VALIDATION
