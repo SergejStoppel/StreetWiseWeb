@@ -125,7 +125,7 @@ async function uploadScreenshotToStorage(screenshotData, analysisId, userId, typ
     const buffer = Buffer.from(base64Data, 'base64');
 
     // Create user-specific file path: {userId}/{analysisId}/screenshots/{type}.jpg
-    const fileName = `${type}_${Date.now()}.jpg`;
+    const fileName = `${type}.jpg`;
     const filePath = userId ?
       `${userId}/${analysisId}/screenshots/${fileName}` :
       `anonymous/${analysisId}/screenshots/${fileName}`;
@@ -181,8 +181,7 @@ async function processScreenshots(screenshotData, analysisId, userId = null) {
     return {
       desktop: desktopUrl,
       mobile: mobileUrl,
-      timestamp: screenshotData.timestamp,
-      url: screenshotData.url
+      timestamp: screenshotData.timestamp
     };
   } catch (error) {
     logger.error('Failed to process screenshots:', error);

@@ -56,6 +56,14 @@ class Analysis {
         // Handle different screenshot data formats
         const screenshotData = analysisData.analysisData.screenshot;
         
+        console.log('📸 Analysis.create: Processing screenshot data:', {
+          screenshotData,
+          type: typeof screenshotData,
+          hasDesktop: !!screenshotData.desktop,
+          hasMobile: !!screenshotData.mobile,
+          hasUrl: !!screenshotData.url
+        });
+        
         if (typeof screenshotData === 'string') {
           // Single screenshot URL
           screenshots.push({
@@ -78,7 +86,7 @@ class Analysis {
               url: screenshotData.desktop,
               type: 'desktop',
               storageObjectId: null,
-              metadata: { timestamp: screenshotData.timestamp, originalUrl: screenshotData.url }
+              metadata: { timestamp: screenshotData.timestamp }
             });
           }
           if (screenshotData.mobile) {
@@ -86,7 +94,7 @@ class Analysis {
               url: screenshotData.mobile,
               type: 'mobile',
               storageObjectId: null,
-              metadata: { timestamp: screenshotData.timestamp, originalUrl: screenshotData.url }
+              metadata: { timestamp: screenshotData.timestamp }
             });
           }
         }
@@ -146,6 +154,14 @@ class Analysis {
 
       // Get screenshots
       const screenshots = await AnalysisScreenshot.getByAnalysisId(analysisId);
+      
+      console.log('📸 Analysis.findById: Retrieved screenshots from database:', {
+        analysisId,
+        userId,
+        screenshotCount: screenshots?.length || 0,
+        screenshots: screenshots,
+        screenshotTypes: screenshots?.map(s => s.screenshot_type) || []
+      });
 
       // Transform to expected format
       return this.transformDbRecord(data, { violations, screenshots });
@@ -433,7 +449,7 @@ class Analysis {
         isAnonymous: dbRecord.is_anonymous,
         // Add related data
         violations: violations,
-        screenshot: this.formatScreenshotsForFrontend(screenshots),
+        screenshot: this.formatScreenshotsForFrontend(screenshots, dbRecord.user_id, dbRecord.id),
         // Override with database scores (provide both camelCase and snake_case for compatibility)
         overallScore: dbRecord.overall_score ?? dbRecord.analysis_data.overallScore,
         accessibilityScore: dbRecord.accessibility_score ?? dbRecord.analysis_data.accessibilityScore,
@@ -487,22 +503,39 @@ class Analysis {
         ...dbRecord.summary
       },
       metadata: dbRecord.metadata,
-      screenshot: this.formatScreenshotsForFrontend(screenshots),
+      screenshot: this.formatScreenshotsForFrontend(screenshots, dbRecord.user_id, dbRecord.id),
       seo: dbRecord.seo_analysis,
       aiInsights: dbRecord.ai_insights
     };
   }
 
   /**
+   * Construct screenshot URL from analysis data
+   * @param {string} userId - User ID
+   * @param {string} analysisId - Analysis ID
+   * @param {string} type - Screenshot type (desktop/mobile)
+   * @param {number} timestamp - Timestamp for the screenshot
+   * @returns {string} Constructed screenshot URL
+   */
+  static constructScreenshotUrl(userId, analysisId, type) {
+    const supabaseUrl = process.env.SUPABASE_URL || require('../config/environment').SUPABASE_URL;
+    return `${supabaseUrl}/storage/v1/object/public/analysis-screenshots/${userId}/${analysisId}/screenshots/${type}.jpg`;
+  }
+
+  /**
    * Format screenshots for frontend compatibility
    * @param {Array} screenshots - Array of screenshot records
+   * @param {string} userId - User ID for URL construction
+   * @param {string} analysisId - Analysis ID for URL construction
    * @returns {Object|string|null} Formatted screenshot data
    */
-  static formatScreenshotsForFrontend(screenshots) {
+  static formatScreenshotsForFrontend(screenshots, userId, analysisId) {
     console.log('📸 formatScreenshotsForFrontend called with:', {
       screenshots: screenshots,
       length: screenshots?.length,
-      types: screenshots?.map(s => s.screenshot_type)
+      types: screenshots?.map(s => s.screenshot_type),
+      userId,
+      analysisId
     });
     
     if (!screenshots || screenshots.length === 0) {
@@ -510,28 +543,39 @@ class Analysis {
       return null;
     }
 
-    // If we have desktop and mobile screenshots, return them as an object
+    // If we have desktop and mobile screenshots, construct their URLs
     const desktop = screenshots.find(s => s.screenshot_type === 'desktop');
     const mobile = screenshots.find(s => s.screenshot_type === 'mobile');
 
     if (desktop || mobile) {
       const result = {};
-      if (desktop) result.desktop = desktop.screenshot_url;
-      if (mobile) result.mobile = mobile.screenshot_url;
-      if (desktop?.metadata?.timestamp) result.timestamp = desktop.metadata.timestamp;
-      if (desktop?.metadata?.originalUrl) result.url = desktop.metadata.originalUrl;
       
-      console.log('📸 Returning formatted screenshots:', result);
+      if (desktop) {
+        result.desktop = this.constructScreenshotUrl(userId, analysisId, 'desktop');
+      }
+      
+      if (mobile) {
+        result.mobile = this.constructScreenshotUrl(userId, analysisId, 'mobile');
+      }
+      
+      if (desktop?.metadata?.timestamp) result.timestamp = desktop.metadata.timestamp;
+      
+      console.log('📸 Returning constructed screenshots:', result);
       return result;
     }
 
-    // For single screenshots or main type, return the URL directly
+    // For single screenshots or main type, construct URL
     if (screenshots.length === 1) {
-      return screenshots[0].screenshot_url;
+      const screenshot = screenshots[0];
+      const type = screenshot.screenshot_type === 'main' ? 'desktop' : screenshot.screenshot_type;
+      return this.constructScreenshotUrl(userId, analysisId, type);
     }
 
-    // Return array of URLs for multiple screenshots
-    return screenshots.map(s => s.screenshot_url);
+    // Return array of constructed URLs for multiple screenshots
+    return screenshots.map(s => {
+      const type = s.screenshot_type === 'main' ? 'desktop' : s.screenshot_type;
+      return this.constructScreenshotUrl(userId, analysisId, type);
+    });
   }
 }
 

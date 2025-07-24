@@ -87,7 +87,9 @@ router.get('/:id', extractUser, requireAuth, async (req, res) => {
       analysisId: id,
       hasScreenshot: !!analysis?.screenshot,
       screenshot: analysis?.screenshot,
-      screenshotType: typeof analysis?.screenshot
+      screenshotType: typeof analysis?.screenshot,
+      userId: analysis?.userId,
+      analysisKeys: analysis ? Object.keys(analysis) : 'null'
     });
     
     if (!analysis) {
