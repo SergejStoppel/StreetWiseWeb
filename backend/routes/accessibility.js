@@ -522,12 +522,12 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
         }
         
         if (browserAvailable) {
-          // Reuse the browser instance from the accessibility analyzer
+          // Run additional services with separate browser instances for better isolation
           let browser = null;
           let page = null;
           
           try {
-            // Get the browser instance from the accessibility analyzer
+            // Get the browser instance from the accessibility analyzer for SEO and AI analysis
             browser = accessibilityAnalyzer.browserUtils.getBrowser();
             
             if (!browser) {
@@ -536,15 +536,15 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
               browser = await puppeteer.launch(launchOptions);
             }
             
-            logger.info('Using browser instance for comprehensive analysis');
+            logger.info('Using browser instance for SEO and AI analysis');
             page = await browser.newPage();
             
-            // Set up page for comprehensive analysis
+            // Set up page for analysis
             await page.setViewport({ width: 1920, height: 1080 });
             await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
             await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
             
-            // Run SEO analysis first
+            // Run SEO analysis
             try {
               logger.info('Running SEO analysis');
               seoData = await seoAnalyzer.analyze(page, url);
@@ -565,40 +565,78 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
               logger.warn('AI analysis failed:', err.message);
             }
             
-            // Run screenshot service with the same browser instance
+            // Capture screenshots using the already loaded page
             try {
-              logger.info('Running screenshot capture with existing browser');
+              logger.info('Running screenshot capture with already loaded page');
               
-              // Add timeout to prevent hanging
-              const screenshotPromise = captureScreenshotsWithBrowser(browser, url, {
-                desktopWidth: 1920,
-                desktopHeight: 1080,
-                mobileWidth: 375,
-                mobileHeight: 667,
-                quality: 85
+              const screenshots = {};
+              
+              // Desktop screenshot
+              await page.setViewport({
+                width: 1920,
+                height: 1080,
+                deviceScaleFactor: 1
               });
               
-              const timeoutPromise = new Promise((_, reject) => 
-                setTimeout(() => reject(new Error('Screenshot capture timeout after 30 seconds')), 30000)
-              );
+              screenshots.desktop = await page.screenshot({
+                encoding: 'base64',
+                fullPage: false,
+                type: 'jpeg',
+                quality: 85,
+                clip: {
+                  x: 0,
+                  y: 0,
+                  width: 1920,
+                  height: 1080
+                }
+              });
               
-              screenshotData = await Promise.race([screenshotPromise, timeoutPromise]);
-              logger.info('Screenshot capture completed');
+              // Mobile screenshot
+              await page.setViewport({
+                width: 375,
+                height: 667,
+                deviceScaleFactor: 2
+              });
+              
+              screenshots.mobile = await page.screenshot({
+                encoding: 'base64',
+                fullPage: false,
+                type: 'jpeg',
+                quality: 85,
+                clip: {
+                  x: 0,
+                  y: 0,
+                  width: 375,
+                  height: 667
+                }
+              });
+              
+              // Format screenshot data
+              screenshotData = {
+                desktop: `data:image/jpeg;base64,${screenshots.desktop}`,
+                mobile: `data:image/jpeg;base64,${screenshots.mobile}`,
+                timestamp: new Date().toISOString(),
+                url: url
+              };
+              
+              logger.info('Screenshot capture completed successfully');
             } catch (err) {
-              logger.warn('Screenshot service failed:', err.message);
-              // Continue without screenshots rather than hanging
+              logger.error('Screenshot capture failed:', {
+                error: err.message,
+                stack: err.stack
+              });
+              screenshotData = null;
             }
             
           } catch (err) {
-            logger.warn('Browser operations failed:', err.message);
-            logger.warn('Browser operations stack:', err.stack);
+            logger.warn('SEO/AI analysis failed:', err.message);
+            logger.warn('SEO/AI analysis stack:', err.stack);
           } finally {
             if (page) {
               try { await page.close(); } catch (e) { logger.warn('Page close error:', e.message); }
             }
-            // Don't close the browser here since it belongs to the accessibility analyzer
-            // The accessibility analyzer will handle browser cleanup
           }
+          
         } else {
           // No browser available - throw error instead of using fallback data
           logger.error('Browser not available, cannot perform comprehensive analysis');
@@ -715,6 +753,12 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
         }
 
         // Process and upload screenshots to Supabase Storage
+        logger.info('Screenshot processing check', { 
+          hasScreenshotData: !!screenshotData, 
+          screenshotDataType: typeof screenshotData,
+          analysisId 
+        });
+        
         let processedScreenshots = null;
         if (screenshotData) {
           logger.info('Processing screenshots for storage', { analysisId, userId: req.user?.id });
@@ -818,6 +862,16 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
         performanceScore: report.summary?.performanceScore
       });
 
+      // Clean up accessibility analyzer browser before sending response
+      try {
+        logger.info('Cleaning up accessibility analyzer browser');
+        await accessibilityAnalyzer.cleanup();
+        logger.info('Accessibility analyzer cleanup completed');
+      } catch (cleanupError) {
+        logger.warn('Accessibility analyzer cleanup failed:', cleanupError.message);
+        // Don't fail the request if cleanup fails
+      }
+
       res.json({
         success: true,
         data: {
@@ -842,6 +896,15 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
         stack: analysisError.stack,
         analysisTime: Date.now() - startTime
       });
+
+      // Clean up accessibility analyzer browser on error
+      try {
+        logger.info('Cleaning up accessibility analyzer browser after error');
+        await accessibilityAnalyzer.cleanup();
+        logger.info('Accessibility analyzer cleanup completed after error');
+      } catch (cleanupError) {
+        logger.warn('Accessibility analyzer cleanup failed after error:', cleanupError.message);
+      }
 
       // Return user-friendly error message
       let errorMessage = 'DEBUGGING: Unable to analyze the website. ';
@@ -869,6 +932,16 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
 
   } catch (error) {
     logger.error('Unexpected error in analysis endpoint:', error);
+    
+    // Clean up accessibility analyzer browser on unexpected error
+    try {
+      logger.info('Cleaning up accessibility analyzer browser after unexpected error');
+      await accessibilityAnalyzer.cleanup();
+      logger.info('Accessibility analyzer cleanup completed after unexpected error');
+    } catch (cleanupError) {
+      logger.warn('Accessibility analyzer cleanup failed after unexpected error:', cleanupError.message);
+    }
+    
     res.status(500).json({
       error: 'Internal server error',
       message: 'An unexpected error occurred. Please try again later.',

@@ -300,20 +300,89 @@ class Analysis {
   }
 
   /**
-   * Delete analysis (cascade delete will handle related records)
+   * Delete analysis and cleanup associated storage files
    * @param {string} analysisId - Analysis ID
    * @param {string} userId - User ID (for authorization)
-   * @returns {Promise<void>}
+   * @returns {Promise<boolean>} True if deleted, false if not found
    */
   static async delete(analysisId, userId) {
-    const { error } = await supabase
-      .from('analyses')
-      .delete()
-      .eq('id', analysisId)
-      .eq('user_id', userId);
+    try {
+      // First, check if the analysis exists and belongs to the user
+      const { data: existingAnalysis, error: checkError } = await supabase
+        .from('analyses')
+        .select('id, user_id')
+        .eq('id', analysisId)
+        .eq('user_id', userId)
+        .single();
 
-    if (error) {
-      throw new Error(`Error deleting analysis: ${error.message}`);
+      if (checkError) {
+        if (checkError.code === 'PGRST116') {
+          // Analysis not found
+          return false;
+        }
+        throw new Error(`Error checking analysis: ${checkError.message}`);
+      }
+
+      // Get screenshot records before deletion (for cleanup)
+      const screenshots = await AnalysisScreenshot.getByAnalysisId(analysisId);
+
+      // Delete screenshot files from Supabase storage
+      if (screenshots && screenshots.length > 0) {
+        console.log(`🗑️ Deleting ${screenshots.length} screenshot files for analysis ${analysisId}`);
+        
+        // Construct file paths for deletion
+        const filePaths = [];
+        
+        // Add both desktop.jpg and mobile.jpg (our new naming convention)
+        filePaths.push(`${userId}/${analysisId}/screenshots/desktop.jpg`);
+        filePaths.push(`${userId}/${analysisId}/screenshots/mobile.jpg`);
+        
+        // Also try to delete old timestamp-based files if they exist
+        screenshots.forEach(screenshot => {
+          if (screenshot.screenshot_url && screenshot.screenshot_url.includes('supabase.co')) {
+            // Extract filename from URL
+            const urlParts = screenshot.screenshot_url.split('/');
+            const filename = urlParts[urlParts.length - 1];
+            if (filename && filename.endsWith('.jpg')) {
+              filePaths.push(`${userId}/${analysisId}/screenshots/${filename}`);
+            }
+          }
+        });
+
+        // Remove duplicates
+        const uniqueFilePaths = [...new Set(filePaths)];
+        
+        // Delete files from storage
+        const { error: storageError } = await supabase.storage
+          .from('analysis-screenshots')
+          .remove(uniqueFilePaths);
+
+        if (storageError) {
+          console.warn(`⚠️ Some screenshot files could not be deleted:`, storageError.message);
+          // Don't fail the entire deletion if storage cleanup fails
+        } else {
+          console.log(`✅ Successfully deleted screenshot files for analysis ${analysisId}`);
+        }
+      }
+
+      // Delete the analysis record (cascade will handle related records)
+      const { data, error } = await supabase
+        .from('analyses')
+        .delete()
+        .eq('id', analysisId)
+        .eq('user_id', userId)
+        .select();
+
+      if (error) {
+        throw new Error(`Error deleting analysis: ${error.message}`);
+      }
+
+      console.log(`✅ Successfully deleted analysis ${analysisId} and associated data`);
+      return data && data.length > 0;
+
+    } catch (error) {
+      console.error(`❌ Error deleting analysis ${analysisId}:`, error);
+      throw error;
     }
   }
 
@@ -518,7 +587,8 @@ class Analysis {
    * @returns {string} Constructed screenshot URL
    */
   static constructScreenshotUrl(userId, analysisId, type) {
-    const supabaseUrl = process.env.SUPABASE_URL || require('../config/environment').SUPABASE_URL;
+    const envConfig = require('../config/environment');
+    const supabaseUrl = envConfig.SUPABASE_URL;
     return `${supabaseUrl}/storage/v1/object/public/analysis-screenshots/${userId}/${analysisId}/screenshots/${type}.jpg`;
   }
 
