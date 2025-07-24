@@ -103,8 +103,8 @@ CREATE TABLE public.analysis_violations (
 CREATE TABLE public.analysis_screenshots (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     analysis_id UUID NOT NULL REFERENCES public.analyses(id) ON DELETE CASCADE,
-    url TEXT NOT NULL,
-    type VARCHAR(20) DEFAULT 'desktop' CHECK (type IN ('desktop', 'mobile', 'tablet', 'main')),
+    screenshot_url TEXT NOT NULL,
+    screenshot_type VARCHAR(50) DEFAULT 'main' CHECK (screenshot_type IN ('main', 'desktop', 'mobile', 'tablet', 'full')),
     storage_object_id UUID REFERENCES public.storage_objects(id) ON DELETE SET NULL,
     metadata JSONB DEFAULT '{}'::jsonb,
     created_at TIMESTAMPTZ DEFAULT NOW()

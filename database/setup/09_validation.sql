@@ -15,16 +15,16 @@ DECLARE
         'analysis_screenshots', 'analysis_violations', 'analysis_summaries',
         'usage_logs', 'team_members', 'deletion_logs'
     ];
-    table_name TEXT;
+    current_table TEXT;
     missing_tables TEXT[] := '{}';
 BEGIN
-    FOREACH table_name IN ARRAY expected_tables
+    FOREACH current_table IN ARRAY expected_tables
     LOOP
         IF NOT EXISTS (
             SELECT 1 FROM information_schema.tables 
-            WHERE table_schema = 'public' AND table_name = table_name
+            WHERE table_schema = 'public' AND table_name = current_table
         ) THEN
-            missing_tables := array_append(missing_tables, table_name);
+            missing_tables := array_append(missing_tables, current_table);
         END IF;
     END LOOP;
     
@@ -43,16 +43,16 @@ DECLARE
         'cleanup_anonymous_analyses', 'cleanup_orphaned_storage', 'cleanup_expired_analyses',
         'refresh_dashboard_stats', 'daily_cleanup'
     ];
-    function_name TEXT;
+    current_function TEXT;
     missing_functions TEXT[] := '{}';
 BEGIN
-    FOREACH function_name IN ARRAY expected_functions
+    FOREACH current_function IN ARRAY expected_functions
     LOOP
         IF NOT EXISTS (
             SELECT 1 FROM information_schema.routines 
-            WHERE routine_schema = 'public' AND routine_name = function_name
+            WHERE routine_schema = 'public' AND routine_name = current_function
         ) THEN
-            missing_functions := array_append(missing_functions, function_name);
+            missing_functions := array_append(missing_functions, current_function);
         END IF;
     END LOOP;
     
@@ -67,8 +67,8 @@ END $$;
 DO $$
 BEGIN
     IF NOT EXISTS (
-        SELECT 1 FROM information_schema.tables 
-        WHERE table_schema = 'public' AND table_name = 'user_dashboard_stats' AND table_type = 'VIEW'
+        SELECT 1 FROM pg_matviews 
+        WHERE schemaname = 'public' AND matviewname = 'user_dashboard_stats'
     ) THEN
         RAISE EXCEPTION 'Missing materialized view: user_dashboard_stats';
     ELSE

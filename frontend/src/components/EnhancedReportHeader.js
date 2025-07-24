@@ -225,8 +225,12 @@ const EnhancedReportHeader = ({ report }) => {
   console.log('📸 EnhancedReportHeader screenshot data:', {
     reportHasScreenshot: !!report?.screenshot,
     screenshot: screenshot,
-    desktopUrl: screenshot.desktop,
-    mobileUrl: screenshot.mobile
+    screenshotType: typeof screenshot,
+    screenshotKeys: screenshot ? Object.keys(screenshot) : 'no screenshot',
+    desktopUrl: screenshot?.desktop,
+    mobileUrl: screenshot?.mobile,
+    isDataUrl: screenshot?.desktop?.startsWith('data:') || screenshot?.mobile?.startsWith('data:'),
+    isSupabaseUrl: screenshot?.desktop?.includes('supabase.co') || screenshot?.mobile?.includes('supabase.co')
   });
 
   return (
@@ -281,6 +285,11 @@ const EnhancedReportHeader = ({ report }) => {
                   src={screenshot.desktop} 
                   alt="Desktop screenshot" 
                   width="200px"
+                  onLoad={() => console.log('🖼️ Desktop screenshot loaded successfully:', screenshot.desktop)}
+                  onError={(e) => {
+                    console.error('❌ Desktop screenshot failed to load:', screenshot.desktop);
+                    console.error('Error details:', e);
+                  }}
                 />
               ) : (
                 <ScreenshotPlaceholder width="200px" height="110px">
@@ -295,6 +304,11 @@ const EnhancedReportHeader = ({ report }) => {
                   src={screenshot.mobile} 
                   alt="Mobile screenshot" 
                   width="80px"
+                  onLoad={() => console.log('🖼️ Mobile screenshot loaded successfully:', screenshot.mobile)}
+                  onError={(e) => {
+                    console.error('❌ Mobile screenshot failed to load:', screenshot.mobile);
+                    console.error('Error details:', e);
+                  }}
                 />
               ) : (
                 <ScreenshotPlaceholder width="80px" height="85px">

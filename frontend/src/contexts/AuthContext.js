@@ -52,31 +52,76 @@ export function AuthProvider({ children }) {
   // Validate session with backend
   const validateSessionWithBackend = async (session) => {
     if (!session?.access_token) {
+      devWarn('❌ No access token in session');
       return false;
     }
 
     try {
-      devLog('🔍 Validating session with backend...');
+      const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3005';
+      devLog('🔍 Validating session with backend...', {
+        apiUrl,
+        hasToken: !!session.access_token,
+        tokenLength: session.access_token?.length
+      });
 
-      // Make a simple authenticated request to validate the token
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/analysis/stats`, {
+      // Create timeout with fallback for older browsers
+      let signal;
+      if (typeof AbortSignal !== 'undefined' && AbortSignal.timeout) {
+        signal = AbortSignal.timeout(5000); // 5 second timeout
+      }
+      
+      const fetchStart = Date.now();
+      const response = await fetch(`${apiUrl}/api/health`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${session.access_token}`,
           'Content-Type': 'application/json'
-        }
+        },
+        ...(signal && { signal })
       });
-
-      const isValid = response.status !== 401;
+      
+      const fetchTime = Date.now() - fetchStart;
+      const isValid = response.status === 200;
+      
       devLog(`${isValid ? '✅' : '❌'} Session validation result:`, {
         status: response.status,
-        isValid
+        statusText: response.statusText,
+        isValid,
+        fetchTimeMs: fetchTime,
+        url: `${apiUrl}/api/health`
       });
 
       return isValid;
     } catch (error) {
-      devWarn('❌ Session validation failed:', error.message);
+      devError('❌ Session validation failed:', {
+        message: error.message,
+        name: error.name,
+        apiUrl: process.env.REACT_APP_API_URL || 'http://localhost:3005'
+      });
+      
+      // Don't assume session is valid on network errors - this might be blocking initialization
       return false;
+    }
+  };
+
+  // Test API connectivity
+  const testApiConnectivity = async () => {
+    const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3005';
+    devLog('🌐 Testing API connectivity to:', apiUrl);
+    
+    try {
+      const response = await fetch(`${apiUrl}/api/health`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      devLog('🌐 API connectivity test result:', {
+        status: response.status,
+        ok: response.ok,
+        url: `${apiUrl}/api/health`
+      });
+    } catch (error) {
+      devError('🌐 API connectivity test failed:', error);
     }
   };
 
@@ -85,23 +130,50 @@ export function AuthProvider({ children }) {
     // Get initial session and validate it (with container restart recovery)
     const getInitialSession = async () => {
       try {
+        devLog('🚀 Starting getInitialSession...');
+        
         // Fast initialization for anonymous users
         const { data: { session }, error } = await supabase.auth.getSession();
+        
+        devLog('📋 Supabase getSession result:', {
+          hasSession: !!session,
+          hasError: !!error,
+          userId: session?.user?.id,
+          email: session?.user?.email
+        });
 
         if (error) {
+          devError('❌ Supabase session error:', error);
           // Clear any stale session data
           await supabase.auth.signOut();
           sessionManager.clearSessionMetadata();
           setUser(null);
           setUserProfile(null);
         } else if (session) {
+          devLog('🔍 Session found, validating with backend...');
           // Validate the session with the backend
           const isValidSession = await validateSessionWithBackend(session);
+          
+          devLog('✅ Session validation complete:', { isValidSession });
 
           if (isValidSession) {
             authStore.setSession(session);
             setUser(session.user);
-            await fetchUserProfile(session.user.id);
+            
+            // Fetch user profile with timeout
+            try {
+              const profilePromise = fetchUserProfile(session.user.id);
+              const timeoutPromise = new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Profile fetch timeout')), 5000)
+              );
+              
+              await Promise.race([profilePromise, timeoutPromise]);
+            } catch (profileError) {
+              devWarn('⚠️ Profile fetch failed or timed out:', profileError.message);
+              // Continue without profile - don't block the auth flow
+              setUserProfile(null);
+            }
+            
             sessionManager.storeSessionMetadata(session);
           } else {
             // Session is invalid, clear it
@@ -113,6 +185,7 @@ export function AuthProvider({ children }) {
           }
         } else {
           // No session found - anonymous user
+          devLog('👤 No session found - setting anonymous user state');
           authStore.clearSession();
           sessionManager.clearSessionMetadata();
           setUser(null);
@@ -126,12 +199,27 @@ export function AuthProvider({ children }) {
         setUser(null);
         setUserProfile(null);
       } finally {
+        devLog('🏁 getInitialSession complete - setting initializing and loading to false');
         setInitializing(false);
         setLoading(false);
       }
     };
 
-    getInitialSession();
+    // Add timeout to initialization to prevent infinite loading
+    const initTimeout = setTimeout(() => {
+      if (initializing) {
+        logError('⏱️ Auth initialization timeout after 3 seconds');
+        setInitializing(false);
+        setLoading(false);
+      }
+    }, 3000);
+
+    // Test API connectivity first
+    testApiConnectivity();
+    
+    getInitialSession().finally(() => {
+      clearTimeout(initTimeout);
+    });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -214,6 +302,7 @@ export function AuthProvider({ children }) {
     );
 
     return () => {
+      clearTimeout(initTimeout);
       subscription.unsubscribe();
     };
   }, []);

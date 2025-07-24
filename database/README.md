@@ -1,227 +1,269 @@
-# Supabase Environment Setup Guide
+# Complete Database Setup Guide
 
-This guide will help you set up separate development and production Supabase projects for StreetWiseWeb.
-
-## Overview
-
-Having separate Supabase projects for development and production allows you to:
-- Test changes safely without affecting production data
-- Have different rate limits and configurations
-- Maintain separate user bases
-- Implement proper CI/CD workflows
+This guide provides step-by-step instructions for setting up a new Supabase database for StreetWiseWeb, including all scripts, storage configuration, environment variables, and CORS setup.
 
 ## Prerequisites
 
 - Supabase account (free tier works for development)
 - Access to create new Supabase projects
+- Basic knowledge of SQL
 
-## Step 1: Create Two Supabase Projects
+## Step 1: Create New Supabase Project
 
-### 1.1 Development Project
 1. Go to [Supabase Dashboard](https://app.supabase.com)
 2. Click "New Project"
-3. Name it something like `streetwiseweb-dev`
-4. Choose your region (closest to you)
+3. Name it (e.g., `streetwiseweb-dev` or `streetwiseweb-prod`)
+4. Choose your region
 5. Generate a strong database password (save it!)
 6. Click "Create new project"
+7. Wait for project to be fully initialized
 
-### 1.2 Production Project
-1. Click "New Project" again
-2. Name it `streetwiseweb-prod` (or your preferred production name)
-3. Choose your region (consider your users' location)
-4. Generate a different strong database password (save it!)
-5. Click "Create new project"
+## Step 2: Run Database Setup Scripts
 
-## Step 2: Configure Storage Buckets
+Run these scripts **in order** using the Supabase SQL Editor:
 
-For **BOTH** projects, you need to create the storage bucket:
+### 2.1 Script Execution Order
+1. `01_cleanup.sql` - Cleans existing schema (if any)
+2. `02_core_tables.sql` - Creates main application tables
+3. `03_functions.sql` - Creates utility functions and triggers
+4. `04_indexes.sql` - Creates performance indexes
+5. `05_materialized_views.sql` - Creates dashboard statistics views
+6. `06_triggers.sql` - Creates automated triggers
+7. `07_rls_policies.sql` - Sets up Row Level Security
+8. `08_permissions.sql` - Grants necessary permissions
+9. `09_validation.sql` - Validates all components
 
-1. Go to Storage in the Supabase dashboard
-2. Click "Create bucket"
-3. Name: `analysis-screenshots`
-4. Public bucket: **Yes** (toggle on)
-5. Click "Create bucket"
+### 2.2 How to Run Scripts
+1. In Supabase Dashboard, go to **SQL Editor**
+2. Click **"New Query"**
+3. Copy entire contents of first script file
+4. Paste into editor and click **"Run"**
+5. Verify success messages appear
+6. Repeat for each script in order
 
-### Storage Policies (Important!)
+### 2.3 Expected Success Messages
+Each script should show messages like:
+- `✅ Tables created successfully`
+- `✅ Functions created successfully`
+- `✅ All expected tables exist`
 
-After creating the bucket, set up RLS policies:
+## Step 3: Configure Storage Buckets
+
+Create the storage bucket for screenshot files:
+
+### 3.1 Create Bucket
+1. In Supabase Dashboard, go to **Storage**
+2. Click **"Create bucket"**
+3. Bucket name: `analysis-screenshots`
+4. **Public bucket: Yes** (toggle on)
+5. Click **"Create bucket"**
+
+### 3.2 Set Up Storage Policies
+After creating the bucket, configure RLS policies:
 
 1. Click on the `analysis-screenshots` bucket
-2. Go to "Policies" tab
-3. Create the following policies:
+2. Go to **"Policies"** tab
+3. Click **"New Policy"** for each policy below:
 
-**Insert Policy** (Authenticated users can upload):
+**Policy 1: Insert (Authenticated users can upload)**
 ```sql
--- Policy name: Authenticated users can upload screenshots
 CREATE POLICY "Authenticated users can upload screenshots"
 ON storage.objects FOR INSERT
 TO authenticated
 WITH CHECK (bucket_id = 'analysis-screenshots');
 ```
 
-**Select Policy** (Public can view):
+**Policy 2: Select (Public can view)**
 ```sql
--- Policy name: Public can view screenshots
 CREATE POLICY "Public can view screenshots"
 ON storage.objects FOR SELECT
 TO public
 USING (bucket_id = 'analysis-screenshots');
 ```
 
-**Delete Policy** (Users can delete their own):
+**Policy 3: Delete (Users can delete their own)**
 ```sql
--- Policy name: Users can delete their own screenshots
 CREATE POLICY "Users can delete their own screenshots"
 ON storage.objects FOR DELETE
 TO authenticated
 USING (bucket_id = 'analysis-screenshots' AND auth.uid()::text = (storage.foldername(name))[1]);
 ```
 
-## Step 3: Set Up Database Schema
+## Step 4: Configure Authentication & CORS
 
-1. For **BOTH** projects, go to SQL Editor
-2. Copy the entire contents of `/database/COMPLETE_DATABASE_CLEANUP_AND_SETUP.sql`
-3. Paste and run it in the SQL editor
-4. You should see success messages
-
-## Step 4: Configure Authentication
-
-For **BOTH** projects:
-
-1. Go to Authentication → Settings
+### 4.1 Basic Authentication Settings
+1. Go to **Authentication → Settings**
 2. Configure the following:
 
-### Email Settings
+**Email Settings:**
 - Enable Email Confirmations: Your choice (can be off for dev)
 - Enable Email Change Confirmations: Your choice
 - Secure Email Change: Enabled
 
-### Auth Providers
+**Auth Providers:**
 - Keep Email/Password enabled
 - Configure social providers if needed (Google, GitHub, etc.)
 
-### Email Templates (Optional)
-- Customize confirmation emails
-- Add your branding
+### 4.2 Critical CORS Configuration
+**THIS IS ESSENTIAL FOR FRONTEND AUTHENTICATION**
 
-## Step 5: Environment Files Setup
+1. Go to **Authentication → Settings**
+2. Scroll down to **"Site URL"** section
+3. Set **Site URL** to: `http://localhost:3000` (for development)
+4. In **"Additional Redirect URLs"** add:
+   ```
+   http://localhost:3000/**
+   http://localhost:3002/**
+   http://localhost:3005/**
+   ```
+5. Click **"Save"**
 
-### 5.1 Development Environment
+### 4.3 For Production
+Replace localhost URLs with your production domain:
+- Site URL: `https://yourdomain.com`
+- Redirect URLs: `https://yourdomain.com/**`
 
-1. Copy `.env.development.example` to `.env.development`
-2. Get your development project credentials:
-   - Go to your dev project → Settings → API
-   - Copy:
-     - Project URL → `SUPABASE_URL` and `REACT_APP_SUPABASE_URL`
-     - `anon` public key → `SUPABASE_ANON_KEY` and `REACT_APP_SUPABASE_ANON_KEY`
-     - `service_role` key → `SUPABASE_SERVICE_ROLE_KEY` (keep this secret!)
+**Note:** Without correct CORS setup, you'll get "Access-Control-Allow-Origin" errors when trying to authenticate.
 
-### 5.2 Production Environment
+## Step 5: Get API Keys and Configure Environment
 
-1. Copy `.env.production.example` to `.env.production`
-2. Get your production project credentials (same process as above)
-3. Update production-specific values:
-   - `REACT_APP_API_URL`: Your production domain
-   - `FRONTEND_URL`: Your production domain
-   - Generate strong secrets for `JWT_SECRET` and `SESSION_SECRET`
+### 5.1 Get Supabase API Keys
+1. In Supabase Dashboard, go to **Settings → API**
+2. Copy the following values:
+   - **Project URL** (looks like: `https://xxxxx.supabase.co`)
+   - **anon public** key (starts with `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9`)
+   - **service_role** key (starts with `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9`)
 
-## Step 6: Switching Between Environments
+### 5.2 Update .env File
+Open your project's main `.env` file and add/update these values:
 
-### For Development
 ```bash
-# Backend
-cd backend
-cp ../.env.development .env
+# Supabase Configuration
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_ANON_KEY=your-anon-key-here
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
+
+# Frontend Environment Variables
+REACT_APP_SUPABASE_URL=https://your-project-id.supabase.co
+REACT_APP_SUPABASE_ANON_KEY=your-anon-key-here
+
+# Backend Configuration
+PORT=3005
+FRONTEND_URL=http://localhost:3000
+NODE_ENV=development
+```
+
+### 5.3 Restart Your Application
+After updating the .env file:
+```bash
+# Stop any running servers (Ctrl+C)
+# Then restart with:
 npm run dev
-
-# Frontend (in new terminal)
-cd frontend
-cp ../.env.development .env
-npm start
 ```
 
-### For Production Build
-```bash
-# Backend
-cd backend
-cp ../.env.production .env
-npm start
+## Step 6: Test Your Setup
 
-# Frontend build
-cd frontend
-cp ../.env.production .env
-npm run build
-```
+### 6.1 Verify Database
+1. Go to **Table Editor** in Supabase Dashboard
+2. Verify these tables exist:
+   - `user_profiles`
+   - `analyses` 
+   - `analysis_screenshots`
+   - `projects`
+   - `storage_objects`
 
-## Step 7: Database Management Commands
+### 6.2 Test Authentication
+1. Start your application: `npm run dev`
+2. Go to `http://localhost:3000`
+3. Try to register a new user account
+4. Check if registration succeeds without CORS errors
 
-### Clean/Reset Development Database
+### 6.3 Test Screenshot Storage
+1. Run an accessibility analysis
+2. Check if screenshots appear in Supabase Storage bucket
+3. Verify screenshot URLs are accessible
+
+## Step 7: Common Issues & Solutions
+
+### Issue: "Access-Control-Allow-Origin" CORS Error
+**Solution:** 
+- Verify CORS settings in Authentication → Settings
+- Ensure `http://localhost:3000/**` is in Additional Redirect URLs
+- Check Site URL is set to `http://localhost:3000`
+
+### Issue: "Failed to fetch" during authentication
+**Solution:**
+- Verify API keys are correctly set in .env file
+- Restart your application after changing .env
+- Check network tab for actual error details
+
+### Issue: Screenshots not storing
+**Solution:**
+- Verify storage bucket `analysis-screenshots` exists and is public
+- Check storage policies are properly configured
+- Ensure service_role key is set in backend .env
+
+### Issue: Database validation fails
+**Solution:**
+- Run scripts in exact order (01 through 09)
+- Check for error messages in SQL Editor
+- Verify all scripts completed successfully
+
+## Step 8: Final Security Checklist
+
+Before going live, ensure:
+
+- [ ] **Environment variables are secure**
+  - API keys are not committed to git
+  - Different keys for development/production
+  - Strong database passwords used
+
+- [ ] **Database security is configured**
+  - All RLS policies are enabled
+  - Storage bucket policies are properly set
+  - Service role key is only used in backend
+
+- [ ] **CORS is properly configured**
+  - Site URL matches your domain
+  - Redirect URLs are specific to your domains
+  - No wildcard (*) domains in production
+
+- [ ] **Storage security is set**
+  - Screenshots bucket exists and is public
+  - Storage policies allow appropriate access
+  - File uploads are validated
+
+## Step 9: Quick Verification Queries
+
+Run these in Supabase SQL Editor to verify setup:
+
 ```sql
--- Run in Supabase SQL Editor for dev project
--- This will delete all data and reset the schema
--- (Use the COMPLETE_DATABASE_CLEANUP_AND_SETUP.sql file)
-```
-
-### Backup Production Database
-```bash
-# Use Supabase dashboard → Settings → Database → Backups
-# Or use pg_dump with connection string
-```
-
-### Monitor Database Usage
-- Check Supabase dashboard → Database → Statistics
-- Monitor storage usage in Storage section
-
-## Important Notes
-
-1. **Never commit .env files** - They contain secrets!
-2. **Keep service role keys secret** - They bypass RLS
-3. **Use different passwords** for dev and prod databases
-4. **Regular backups** for production data
-5. **Test migrations** in development first
-
-## Troubleshooting
-
-### Screenshot Storage Issues
-1. Verify the bucket exists and is public
-2. Check Storage policies are applied
-3. Ensure service role key is used in backend
-4. Check Storage logs in Supabase dashboard
-
-### Authentication Issues
-1. Verify API keys are correct
-2. Check CORS settings match your domains
-3. Ensure auth emails are configured
-4. Check rate limits haven't been exceeded
-
-### Database Issues
-1. Run verification queries:
-```sql
--- Check if tables exist
+-- Check if all tables exist
 SELECT table_name FROM information_schema.tables 
-WHERE table_schema = 'public';
+WHERE table_schema = 'public' 
+ORDER BY table_name;
 
--- Check if screenshots table has metadata column
+-- Verify analysis_screenshots table structure
 SELECT column_name, data_type 
 FROM information_schema.columns 
-WHERE table_name = 'analysis_screenshots';
+WHERE table_name = 'analysis_screenshots'
+ORDER BY ordinal_position;
+
+-- Check if materialized view exists
+SELECT matviewname FROM pg_matviews 
+WHERE schemaname = 'public';
+
+-- Test dashboard stats refresh
+SELECT refresh_dashboard_stats();
 ```
 
-## Next Steps
+## Need Help?
 
-1. Test the setup by creating a new user account
-2. Run an analysis and verify screenshots are stored
-3. Check that dashboard loads analyses correctly
-4. Set up CI/CD pipelines with environment variables
-5. Configure monitoring and alerts for production
+If you encounter issues:
+1. Check the error message in your browser's Network tab
+2. Verify each step was completed in order
+3. Check Supabase Dashboard logs for backend errors
+4. Ensure all environment variables are correctly set
+5. Try the verification queries above to diagnose issues
 
-## Security Checklist
-
-- [ ] Different API keys for dev/prod
-- [ ] Strong database passwords
-- [ ] RLS policies enabled on all tables
-- [ ] Storage bucket policies configured
-- [ ] Service role key only used in backend
-- [ ] CORS configured for your domains only
-- [ ] Rate limiting enabled
-- [ ] SSL/HTTPS enforced in production
+The most common issue is CORS configuration - make sure your redirect URLs exactly match your frontend URL with `/**` at the end.

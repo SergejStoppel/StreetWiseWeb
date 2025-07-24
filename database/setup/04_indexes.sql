@@ -37,7 +37,7 @@ CREATE INDEX idx_analysis_violations_analysis ON public.analysis_violations(anal
 
 -- Analysis screenshots indexes
 CREATE INDEX idx_analysis_screenshots_analysis ON public.analysis_screenshots(analysis_id);
-CREATE INDEX idx_analysis_screenshots_type ON public.analysis_screenshots(type);
+CREATE INDEX idx_analysis_screenshots_type ON public.analysis_screenshots(screenshot_type);
 CREATE INDEX idx_analysis_screenshots_storage ON public.analysis_screenshots(storage_object_id);
 
 -- Analysis summaries indexes

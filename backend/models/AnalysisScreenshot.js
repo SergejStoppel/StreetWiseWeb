@@ -5,9 +5,9 @@ class AnalysisScreenshot {
    * Create screenshot record for an analysis
    * @param {string} analysisId - Analysis ID
    * @param {Object} screenshotData - Screenshot data
-   * @param {string} screenshotData.url - Screenshot URL
+   * @param {string} screenshotData.url - Screenshot URL (stored in 'url' column)
    * @param {string} screenshotData.storageObjectId - Storage object ID
-   * @param {string} screenshotData.type - Screenshot type (main, mobile, etc.)
+   * @param {string} screenshotData.type - Screenshot type (stored in 'type' column: desktop, mobile, tablet, main)
    * @param {Object} screenshotData.metadata - Additional metadata
    * @returns {Promise<Object>} Created screenshot record
    */

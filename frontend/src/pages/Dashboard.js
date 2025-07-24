@@ -92,7 +92,7 @@ const AnalysisCard = styled.div`
 
 const AnalysisHeader = styled.div`
   display: flex;
-  justify-content: between;
+  justify-content: space-between;
   align-items: flex-start;
   margin-bottom: var(--spacing-md);
   gap: var(--spacing-md);
@@ -191,6 +191,15 @@ const EmptyState = styled.div`
   color: var(--color-text-secondary);
 `;
 
+const ErrorMessage = styled.div`
+  background-color: var(--color-error-light, #fee);
+  color: var(--color-error, #c00);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  margin-bottom: var(--spacing-xl);
+  border: 1px solid var(--color-error, #c00);
+`;
+
 const Dashboard = () => {
   const { user, userProfile } = useAuth();
   const navigate = useNavigate();
@@ -201,15 +210,23 @@ const Dashboard = () => {
 
   console.log('🏠 Dashboard: Component rendered', {
     user: user ? { id: user.id, email: user.email } : null,
+    userProfile: userProfile ? { id: userProfile.id, name: userProfile.first_name } : null,
     loading,
-    error
+    error,
+    timestamp: new Date().toISOString()
   });
 
   useEffect(() => {
+    let isMounted = true;
+    let abortController = new AbortController();
+
     const fetchDashboardData = async () => {
       try {
         console.log('🏠 Dashboard: Starting to fetch dashboard data...');
-        setLoading(true);
+        if (isMounted) {
+          setLoading(true);
+          setError(null);
+        }
 
         console.log('🏠 Dashboard: Making API calls to getRecent and getStats...');
 
@@ -226,11 +243,19 @@ const Dashboard = () => {
           statsReason: statsResult.reason
         });
 
+        // Only update state if component is still mounted
+        if (!isMounted) {
+          console.log('🏠 Dashboard: Component unmounted, skipping state updates');
+          return;
+        }
+
         if (analysesResult.status === 'fulfilled') {
           console.log('✅ Dashboard: Recent analyses loaded successfully', analysesResult.value);
           setAnalyses(analysesResult.value.data || []);
         } else {
           console.error('❌ Dashboard: Failed to load recent analyses', analysesResult.reason);
+          // Set empty data on failure to prevent infinite loading
+          setAnalyses([]);
         }
 
         if (statsResult.status === 'fulfilled') {
@@ -238,28 +263,91 @@ const Dashboard = () => {
           setStats(statsResult.value.data || {});
         } else {
           console.error('❌ Dashboard: Failed to load stats', statsResult.reason);
+          // Set default stats on failure
+          setStats({
+            totalAnalyses: 0,
+            recentAnalyses: 0,
+            avgAccessibilityScore: 0,
+            avgOverallScore: 0
+          });
         }
 
       } catch (err) {
         console.error('❌ Dashboard: Error fetching dashboard data:', err);
-        setError('Failed to load dashboard data');
+        if (isMounted) {
+          setError('Failed to load dashboard data');
+          // Ensure we have default data even on error
+          setAnalyses([]);
+          setStats({
+            totalAnalyses: 0,
+            recentAnalyses: 0,
+            avgAccessibilityScore: 0,
+            avgOverallScore: 0
+          });
+        }
       } finally {
-        console.log('🏠 Dashboard: Setting loading to false');
-        setLoading(false);
+        console.log('🏠 Dashboard: In finally block, isMounted:', isMounted);
+        if (isMounted) {
+          console.log('🏠 Dashboard: Setting loading to false');
+          setLoading(false);
+        } else {
+          console.log('🏠 Dashboard: Component unmounted, not updating loading state');
+        }
       }
     };
 
-    console.log('🏠 Dashboard: useEffect triggered, calling fetchDashboardData');
+    console.log('🏠 Dashboard: useEffect triggered', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      isMounted: isMounted
+    });
+    
+    let timeoutId;
     
     // Only fetch data if we have a user
-    if (user) {
-      fetchDashboardData();
+    if (user && user.id) {
+      console.log('🏠 Dashboard: User found, fetching data');
+      // Add a timeout to prevent infinite loading
+      timeoutId = setTimeout(() => {
+        if (isMounted && loading) {
+          console.error('🏠 Dashboard: Fetch timeout after 30 seconds');
+          setError('Request timed out. Please refresh the page.');
+          setLoading(false);
+          setAnalyses([]);
+          setStats({
+            totalAnalyses: 0,
+            recentAnalyses: 0,
+            avgAccessibilityScore: 0,
+            avgOverallScore: 0
+          });
+        }
+      }, 30000); // 30 second timeout
+      
+      fetchDashboardData().finally(() => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      });
     } else {
       console.log('🏠 Dashboard: No user found, clearing data');
-      setAnalyses([]);
-      setStats(null);
-      setLoading(false);
+      if (isMounted) {
+        setAnalyses([]);
+        setStats(null);
+        setLoading(false);
+        setError(null);
+      }
     }
+
+    // Cleanup function
+    return () => {
+      console.log('🏠 Dashboard: Cleaning up effect');
+      isMounted = false;
+      abortController.abort();
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [user]);
 
   const handleViewAnalysis = (analysis) => {
@@ -291,7 +379,21 @@ const Dashboard = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+    console.log('📅 Dashboard: Formatting date:', { input: dateString, type: typeof dateString });
+    
+    if (!dateString) {
+      console.warn('📅 Dashboard: No date string provided');
+      return 'No date';
+    }
+    
+    const date = new Date(dateString);
+    
+    if (isNaN(date.getTime())) {
+      console.error('📅 Dashboard: Invalid date string:', dateString);
+      return 'Invalid date';
+    }
+    
+    return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -317,6 +419,12 @@ const Dashboard = () => {
           Here's an overview of your accessibility analyses.
         </Subtitle>
       </Header>
+
+      {error && (
+        <ErrorMessage>
+          {error}
+        </ErrorMessage>
+      )}
 
       <StatsGrid>
         <StatCard>
