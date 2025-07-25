@@ -1,7 +1,7 @@
 const { AxePuppeteer } = require('@axe-core/puppeteer');
 const { v4: uuidv4 } = require('uuid');
 const logger = require('../utils/logger');
-const pdfGenerator = require('./pdfGenerator');
+// const pdfGenerator = require('./pdfGenerator'); // Removed - PDF functionality disabled
 const i18n = require('../utils/i18n');
 const colorContrastAnalyzer = require('./analysis/colorContrastAnalyzer');
 
@@ -80,10 +80,8 @@ class AccessibilityAnalyzer {
       logger.info(`Navigating to ${validUrl}`, { analysisId });
       
       try {
-        await page.goto(validUrl, { 
-          waitUntil: 'networkidle2',
-          timeout: 45000
-        });
+        // Enhanced navigation with frame detachment protection
+        await this.navigateWithRetry(page, validUrl, analysisId);
         
         // Wait for page to stabilize
         await this.waitForPageStability(page, analysisId);
@@ -91,40 +89,79 @@ class AccessibilityAnalyzer {
         // Get page metadata
         const metadata = await this.browserUtils.getPageMetadata(page);
         
-        // Run all analyzers in parallel for better performance
-        const [
-          axeResults,
-          structureData,
-          ariaData,
-          formData,
-          tableData,
-          keyboardData,
-          textReadabilityData,
-          enhancedImageData,
-          focusManagementData,
-          navigationData,
-          touchTargetData,
-          keyboardShortcutData,
-          contentStructureData,
-          mobileAccessibilityData,
-          customChecks
-        ] = await Promise.all([
-          this.runAxeAnalysis(page, analysisId),
-          this.structureAnalyzer.analyze(page, analysisId),
-          this.ariaAnalyzer.analyze(page, analysisId),
-          this.formAnalyzer.analyze(page, analysisId),
-          this.tableAnalyzer.analyze(page, analysisId),
-          this.keyboardAnalyzer.analyze(page, analysisId),
-          this.textReadabilityAnalyzer.analyze(page, analysisId),
-          this.enhancedImageAnalyzer.analyze(page, analysisId),
-          this.focusManagementAnalyzer.analyze(page, analysisId),
-          this.navigationAnalyzer.analyze(page, analysisId),
-          this.touchTargetAnalyzer.analyze(page, analysisId),
-          this.keyboardShortcutAnalyzer.analyze(page, analysisId),
-          this.contentStructureAnalyzer.analyze(page, analysisId),
-          this.mobileAccessibilityAnalyzer.analyze(page, analysisId),
-          this.runLegacyCustomChecks(page, analysisId)
+        // Run core accessibility analysis first (most important)
+        logger.info('Running core accessibility analysis', { analysisId });
+        const axeResults = await this.runAxeAnalysis(page, analysisId);
+        
+        // Run other analyzers in smaller batches to avoid browser overload
+        logger.info('Running structure and content analyzers', { analysisId });
+        const [structureData, ariaData, formData] = await Promise.all([
+          this.structureAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Structure analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.ariaAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`ARIA analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.formAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Form analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          })
         ]);
+        
+        logger.info('Running additional analyzers', { analysisId });
+        const [tableData, keyboardData, textReadabilityData, enhancedImageData] = await Promise.all([
+          this.tableAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Table analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.keyboardAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Keyboard analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.textReadabilityAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Text readability analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.enhancedImageAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Enhanced image analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          })
+        ]);
+        
+        logger.info('Running mobile and navigation analyzers', { analysisId });
+        const [focusManagementData, navigationData, touchTargetData, keyboardShortcutData, contentStructureData, mobileAccessibilityData, customChecks] = await Promise.all([
+          this.focusManagementAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Focus management analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.navigationAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Navigation analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.touchTargetAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Touch target analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.keyboardShortcutAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Keyboard shortcut analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.contentStructureAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Content structure analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.mobileAccessibilityAnalyzer.analyze(page, analysisId).catch(err => {
+            logger.warn(`Mobile accessibility analyzer failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          }),
+          this.runLegacyCustomChecks(page, analysisId).catch(err => {
+            logger.warn(`Legacy custom checks failed: ${err.message}`, { analysisId });
+            return { issues: [], score: 0 };
+          })
+        ]);
+        
         
         // Run color contrast analysis
         const colorContrastAnalysis = colorContrastAnalyzer.analyzeColorContrast(
@@ -166,7 +203,12 @@ class AccessibilityAnalyzer {
           this.generateOverviewReport(detailedReport) : 
           detailedReport;
         
-        await page.close();
+        // Ensure proper cleanup
+        try {
+          await page.close();
+        } catch (cleanupError) {
+          logger.warn(`Page cleanup warning: ${cleanupError.message}`, { analysisId });
+        }
         
         logger.info('Analysis completed successfully', { 
           analysisId, 
@@ -178,13 +220,85 @@ class AccessibilityAnalyzer {
         
       } catch (navigationError) {
         logger.error(`Navigation failed: ${navigationError.message}`, { analysisId });
-        throw new Error(`Unable to load the website: ${navigationError.message}`);
+        
+        // Ensure cleanup even on error
+        try {
+          await page.close();
+        } catch (cleanupError) {
+          logger.warn(`Page cleanup error: ${cleanupError.message}`, { analysisId });
+        }
+        
+        // Enhanced error handling for different navigation failure types
+        const errorMessage = navigationError.message.toLowerCase();
+        if (errorMessage.includes('frame was detached') || errorMessage.includes('navigating frame was detached')) {
+          throw new Error(`The website's navigation structure caused a technical issue. This can happen with complex sites that use frames or heavy JavaScript. Please try again, or contact support if the issue persists.`);
+        } else if (errorMessage.includes('connection closed') || errorMessage.includes('protocol error')) {
+          throw new Error(`The website connection was interrupted during analysis. This may be due to the website's security settings or heavy traffic. Please try again.`);
+        } else if (errorMessage.includes('net::err_name_not_resolved')) {
+          throw new Error(`The website "${validUrl}" could not be found. Please check the URL and try again.`);
+        } else if (errorMessage.includes('net::err_connection_refused')) {
+          throw new Error(`The website "${validUrl}" refused the connection. It may be down or blocking automated requests.`);
+        } else if (errorMessage.includes('timeout')) {
+          throw new Error(`The website "${validUrl}" took too long to respond. Please try again later.`);
+        } else if (errorMessage.includes('is not valid json')) {
+          throw new Error(`The website returned invalid data during analysis. This may be due to server-side issues. Please try again later.`);
+        } else {
+          throw new Error(`Unable to load the website: ${navigationError.message}`);
+        }
       }
       
     } catch (error) {
       logger.error(`Analysis failed: ${error.message}`, { analysisId });
       throw error;
     }
+  }
+
+  async navigateWithRetry(page, url, analysisId, maxRetries = 2) {
+    let lastError;
+    
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        logger.info(`Navigation attempt ${attempt}/${maxRetries}`, { analysisId, url });
+        
+        // Use more conservative navigation options
+        await page.goto(url, { 
+          waitUntil: 'domcontentloaded', // Less strict than 'networkidle2'
+          timeout: 30000 // Shorter timeout to fail faster
+        });
+        
+        // Wait a bit for initial content to load
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Verify page is actually loaded
+        const title = await page.title().catch(() => '');
+        if (!title && attempt < maxRetries) {
+          throw new Error('Page appears not to have loaded properly');
+        }
+        
+        logger.info(`Navigation successful on attempt ${attempt}`, { analysisId, title });
+        return; // Success
+        
+      } catch (error) {
+        lastError = error;
+        logger.warn(`Navigation attempt ${attempt} failed: ${error.message}`, { analysisId });
+        
+        // Check if this is a non-retryable error
+        const errorMessage = error.message.toLowerCase();
+        if (errorMessage.includes('net::err_name_not_resolved') || 
+            errorMessage.includes('net::err_connection_refused')) {
+          throw error; // Don't retry DNS or connection refused errors
+        }
+        
+        // Wait before retry (except on last attempt)
+        if (attempt < maxRetries) {
+          logger.info(`Waiting before retry attempt ${attempt + 1}`, { analysisId });
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+    }
+    
+    // If we get here, all attempts failed
+    throw lastError;
   }
 
   async waitForPageStability(page, analysisId) {
@@ -224,7 +338,7 @@ class AccessibilityAnalyzer {
       const results = await axe
         .configure({
           branding: {
-            brand: 'SiteCraft Accessibility Scanner'
+            brand: 'StreetWiseWeb Accessibility Scanner'
           }
         })
         .analyze();
@@ -375,6 +489,7 @@ class AccessibilityAnalyzer {
       customChecks: customChecks,
       colorContrast: colorContrastAnalysis,
       axeResults,
+      violations: axeResults?.violations || [], // Add violations field for frontend compatibility
       recommendations: flatRecommendations, // Flat array for frontend compatibility
       recommendationsGrouped: recommendations, // Keep grouped version for internal use
       technicalDetails: {
@@ -388,6 +503,12 @@ class AccessibilityAnalyzer {
   calculateOverallScore(scores, axeResults) {
     // Start with axe-core violations as the primary score factor
     let score = this.calculateRealisticAxeScore(axeResults);
+    
+    // Ensure we have a valid score to start with
+    if (score === null || score === undefined || isNaN(score)) {
+      score = 50; // Default fallback score
+    }
+    
     
     // Apply modifiers based on individual analysis areas (smaller impact)
     const modifiers = {
@@ -408,14 +529,18 @@ class AccessibilityAnalyzer {
     };
 
     // Individual scores can only provide small bonuses/penalties
-    Object.keys(modifiers).forEach(key => {
-      if (scores[key] !== undefined && scores[key] !== null) {
-        const modifier = (scores[key] - 80) * modifiers[key]; // Baseline 80, can add/subtract
-        score += modifier;
-      }
-    });
+    if (scores && typeof scores === 'object') {
+      Object.keys(modifiers).forEach(key => {
+        if (scores[key] !== undefined && scores[key] !== null && !isNaN(scores[key])) {
+          const modifier = (scores[key] - 80) * modifiers[key]; // Baseline 80, can add/subtract
+          score += modifier;
+        }
+      });
+    }
 
-    return Math.max(0, Math.min(100, Math.round(score)));
+    const finalScore = Math.max(0, Math.min(100, Math.round(score)));
+    
+    return finalScore;
   }
 
   calculateRealisticAxeScore(axeResults) {
@@ -621,6 +746,7 @@ class AccessibilityAnalyzer {
     
     // Extract specific violation counts from axe results
     const axeViolations = axeResults.violations || [];
+    
     
     // Use enhanced image analyzer data if available, otherwise fall back to custom checks
     const enhancedImageData = additionalData.enhancedImageData;
@@ -828,7 +954,11 @@ class AccessibilityAnalyzer {
       reportType: 'overview', // Frontend expects this to show overview UI
       overallScore: detailedReport.overallScore,
       scores: detailedReport.scores,
-      summary: detailedReport.summary,
+      summary: {
+        ...detailedReport.summary,
+        accessibilityScore: detailedReport.overallScore // Add accessibilityScore field for frontend compatibility
+      },
+      violations: detailedReport.axeResults?.violations || [], // Add violations field for frontend
       recommendations: flatRecommendations, // Flat array for frontend compatibility
       recommendationsSummary: {
         total: detailedReport.recommendations.total,
@@ -866,13 +996,20 @@ class AccessibilityAnalyzer {
         return null;
       }
       
+      
       // If the cached report is an overview, we need to construct the detailed version
       if (!cachedReport.structure || !cachedReport.aria) {
         logger.warn('Cached report appears to be overview only', { analysisId });
         return null;
       }
       
-      return cachedReport;
+      // Ensure the detailed report has the correct reportType
+      const detailedReport = {
+        ...cachedReport,
+        reportType: 'detailed'
+      };
+      
+      return detailedReport;
     } catch (error) {
       logger.error('Failed to retrieve detailed report:', { error: error.message, analysisId });
       return null;
@@ -909,13 +1046,9 @@ class AccessibilityAnalyzer {
         return cachedPDF;
       }
       
-      // Generate new PDF
-      const pdfBuffer = await pdfGenerator.generateAccessibilityReport(analysisData, language);
-      
-      // Cache the PDF
-      this.cacheManager.setPDF(analysisId, pdfBuffer, language);
-      
-      return pdfBuffer;
+      // PDF generation disabled
+      logger.info('PDF generation disabled', { analysisId, language });
+      return null;
     } catch (error) {
       logger.error('PDF generation failed:', error);
       throw error;

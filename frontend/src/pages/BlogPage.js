@@ -282,7 +282,7 @@ const BlogPage = () => {
   const featuredPost = {
     title: "The Ultimate Guide to Website Accessibility for Small Businesses",
     excerpt: "Learn why website accessibility isn't just about compliance—it's about reaching more customers, improving SEO, and protecting your business from legal risks.",
-    author: "SiteCraft Team",
+    author: "StreetWiseWeb Team",
     date: "March 15, 2024",
     readTime: "8 min read",
     tags: ["Accessibility", "Legal", "SEO"]
@@ -292,7 +292,7 @@ const BlogPage = () => {
     {
       title: "5 SEO Mistakes That Are Killing Your Local Business",
       excerpt: "Discover the most common SEO errors small businesses make and how to fix them for better search rankings.",
-      author: "SiteCraft Team",
+      author: "StreetWiseWeb Team",
       date: "March 10, 2024",
       readTime: "6 min read",
       tags: ["SEO", "Local Business"]
@@ -300,7 +300,7 @@ const BlogPage = () => {
     {
       title: "Mobile-First Design: Why It Matters More Than Ever",
       excerpt: "With 60% of web traffic coming from mobile devices, learn why mobile-first design is crucial for your business success.",
-      author: "SiteCraft Team",
+      author: "StreetWiseWeb Team",
       date: "March 5, 2024",
       readTime: "5 min read",
       tags: ["Design", "Mobile", "UX"]
@@ -308,7 +308,7 @@ const BlogPage = () => {
     {
       title: "How to Improve Your Website's Loading Speed",
       excerpt: "Page speed affects everything from user experience to SEO rankings. Here's how to make your site lightning fast.",
-      author: "SiteCraft Team",
+      author: "StreetWiseWeb Team",
       date: "February 28, 2024",
       readTime: "7 min read",
       tags: ["Performance", "Technical"]
@@ -327,7 +327,7 @@ const BlogPage = () => {
     <BlogContainer>
       <HeroSection>
         <HeroContent>
-          <HeroTitle>SiteCraft Blog</HeroTitle>
+          <HeroTitle>StreetWiseWeb Blog</HeroTitle>
           <HeroSubtitle>
             Insights, tips, and strategies to help your small business thrive online
           </HeroSubtitle>

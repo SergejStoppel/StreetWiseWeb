@@ -1,5 +1,5 @@
 {
-  "siteName": "SiteCraft",
+  "siteName": "StreetWiseWeb",
   "tagline": "Análisis Profesional de Accesibilidad",
   "loading": "Cargando...",
   "error": "Error",
@@ -156,5 +156,20 @@
   "minor": "Menor",
   "high": "Alto",
   "medium": "Medio",
-  "low": "Bajo"
+  "low": "Bajo",
+  "auth": {
+    "signIn": "Iniciar Sesión",
+    "signInSubtitle": "Inicia sesión en tu cuenta de StreetWiseWeb",
+    "signUp": "Registrarse",
+    "email": "Email",
+    "emailPlaceholder": "Ingresa tu email",
+    "password": "Contraseña",
+    "passwordPlaceholder": "Ingresa tu contraseña",
+    "forgotPassword": "¿Olvidaste tu contraseña?",
+    "or": "o",
+    "noAccount": "¿No tienes una cuenta?"
+  },
+  "common": {
+    "loading": "Cargando..."
+  }
 }

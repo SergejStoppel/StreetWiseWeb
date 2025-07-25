@@ -22,6 +22,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { accessibilityAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import { useAuth } from '../contexts/AuthContext';
 
 const HomeContainer = styled.div`
   min-height: calc(100vh - 160px);
@@ -489,15 +490,15 @@ const StatContent = styled.div`
 `;
 
 const StatNumber = styled.div`
-  font-size: ${props => props.isBreaking ? 'var(--font-size-2xl)' : 'var(--font-size-4xl)'};
+  font-size: ${props => props.$isBreaking ? 'var(--font-size-2xl)' : 'var(--font-size-4xl)'};
   font-weight: var(--font-weight-extrabold);
   font-family: var(--font-family-primary);
   color: var(--color-interactive-primary);
   margin-bottom: var(--spacing-md);
-  text-transform: ${props => props.isBreaking ? 'uppercase' : 'none'};
-  letter-spacing: ${props => props.isBreaking ? '0.05em' : 'normal'};
+  text-transform: ${props => props.$isBreaking ? 'uppercase' : 'none'};
+  letter-spacing: ${props => props.$isBreaking ? '0.05em' : 'normal'};
   line-height: 1.1;
-  min-height: ${props => props.isBreaking ? '60px' : '80px'};
+  min-height: ${props => props.$isBreaking ? '60px' : '80px'};
   display: flex;
   align-items: center;
   justify-content: center;
@@ -645,6 +646,7 @@ const CTATitle = styled.h2`
   margin-bottom: var(--spacing-md);
   color: var(--color-text-inverse);
   font-family: var(--font-family-primary);
+  text-align: center;
 `;
 
 const CTASubtitle = styled.p`
@@ -653,6 +655,7 @@ const CTASubtitle = styled.p`
   opacity: 0.95;
   color: var(--color-text-inverse);
   font-family: var(--font-family-secondary);
+  text-align: center;
 `;
 
 const CTAButton = styled.button`
@@ -691,19 +694,19 @@ const HomePage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
   const { t, i18n, ready } = useTranslation(['homepage', 'forms']);
+  const { initializing } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!url.trim()) {
-      toast.error(t('forms:messages.enterUrl'));
+    // Guard against double-submission in StrictMode
+    if (isAnalyzing) {
+      console.log('⚠️ Analysis already in progress, ignoring duplicate submission');
       return;
     }
-
-    // Basic URL validation - allow domains without protocol
-    const urlPattern = /^(https?:\/\/)?([a-zA-Z0-9]([a-zA-Z0-9-]*[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}(\/.*)?$/;
-    if (!urlPattern.test(url.trim())) {
-      toast.error(t('forms:validation.invalidUrl'));
+    
+    if (!url.trim()) {
+      toast.error('Please enter a URL');
       return;
     }
 
@@ -713,36 +716,83 @@ const HomePage = () => {
       fullUrl = 'https://' + fullUrl;
     }
 
+    console.log('🚀 Starting analysis for:', fullUrl);
+    console.log('🌐 API Base URL:', process.env.REACT_APP_API_URL);
+    
+    // Test backend connectivity first
+    try {
+      console.log('🔍 Testing backend connectivity...');
+      const healthResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/health`);
+      console.log('🏥 Health check response:', {
+        status: healthResponse.status,
+        statusText: healthResponse.statusText,
+        ok: healthResponse.ok
+      });
+    } catch (healthError) {
+      console.error('❌ Backend health check failed:', healthError);
+    }
+    
     setIsAnalyzing(true);
     
     try {
-      toast.info(t('forms:messages.analysisStarted'), {
-        autoClose: 2000,
-      });
+      toast.info('Starting analysis...', { autoClose: 2000 });
       
       const result = await accessibilityAPI.analyzeWebsite(fullUrl, 'overview', i18n.language);
       
-      if (result.success) {
-        toast.success(t('forms:messages.analysisComplete'));
+      console.log('🔍 Analysis result structure:', {
+        result: !!result,
+        resultKeys: result ? Object.keys(result) : null,
+        hasSuccess: result?.success,
+        hasData: result?.data,
+        resultType: typeof result
+      });
+      
+      if (result && result.success) {
+        console.log('✅ Analysis successful, storing result and navigating');
+        toast.success('Analysis complete!');
         
-        // Store results in sessionStorage for the results page
+        console.log('💾 Storing result in sessionStorage:', {
+          dataKeys: Object.keys(result.data),
+          dataSize: JSON.stringify(result.data).length
+        });
         sessionStorage.setItem('analysisResult', JSON.stringify(result.data));
         
-        // Navigate to results page
+        console.log('🧭 Attempting navigation to /results');
         navigate('/results');
+        
+        // Verify navigation after a short delay
+        setTimeout(() => {
+          console.log('🔍 Current location after navigation:', window.location.pathname);
+        }, 100);
       } else {
-        toast.error(t('forms:messages.analysisFailed'));
+        console.log('❌ Analysis failed - no success flag or no result');
+        console.log('Result object:', result);
+        toast.error('Analysis failed');
       }
     } catch (error) {
-      console.error('Analysis error:', error);
-      toast.error(error.message || t('forms:messages.error'));
+      console.error('💥 Analysis error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        response: error.response,
+        code: error.code
+      });
+      toast.error(error.message || 'Analysis failed with error');
     } finally {
+      console.log('🔄 Analysis completed, setting isAnalyzing to false');
       setIsAnalyzing(false);
     }
   };
 
+  // Show loading only if translations are not ready (should be very fast)
   if (!ready) {
-    return null; // Return nothing while translations are loading
+    return (
+      <HomeContainer>
+        <HeroSection>
+          <LoadingSpinner size="large" />
+        </HeroSection>
+      </HomeContainer>
+    );
   }
 
   return (
@@ -769,7 +819,10 @@ const HomePage = () => {
                 required
                 aria-label={t('forms:labels.websiteUrl')}
               />
-              <AnalyzeButton type="submit" disabled={isAnalyzing}>
+              <AnalyzeButton 
+                type="submit" 
+                disabled={isAnalyzing}
+              >
                 {isAnalyzing ? (
                   <>
                     <LoadingSpinner size="small" />
@@ -799,7 +852,7 @@ const HomePage = () => {
           </SectionSubtitle>
           
           <QuestionsGrid>
-            {t('homepage:problem.questions', { returnObjects: true }).map((question, index) => (
+            {(Array.isArray(t('homepage:problem.questions', { returnObjects: true })) ? t('homepage:problem.questions', { returnObjects: true }) : []).map((question, index) => (
               <QuestionCard key={index}>
                 <QuestionTitle>"{question.title}"</QuestionTitle>
                 <QuestionDescription>{question.description}</QuestionDescription>
@@ -822,7 +875,7 @@ const HomePage = () => {
           </SectionTitle>
           
           <PromiseGrid>
-            {t('homepage:solution.promise.points', { returnObjects: true }).map((point, index) => (
+            {(Array.isArray(t('homepage:solution.promise.points', { returnObjects: true })) ? t('homepage:solution.promise.points', { returnObjects: true }) : []).map((point, index) => (
               <PromiseCard key={index}>
                 <ServiceIcon>
                   {index === 0 && <FaCheckCircle />}
@@ -843,7 +896,7 @@ const HomePage = () => {
           <SectionTitle>{t('homepage:howItWorks.title')}</SectionTitle>
           
           <StepsGrid>
-            {t('homepage:howItWorks.steps', { returnObjects: true }).map((step, index) => (
+            {(Array.isArray(t('homepage:howItWorks.steps', { returnObjects: true })) ? t('homepage:howItWorks.steps', { returnObjects: true }) : []).map((step, index) => (
               <StepCard key={index}>
                 <StepNumber>{step.number}</StepNumber>
                 <StepTitle>{step.title}</StepTitle>
@@ -860,7 +913,7 @@ const HomePage = () => {
           <SectionTitle>{t('homepage:services.title')}</SectionTitle>
           
           <ServicesGrid>
-            {t('homepage:services.items', { returnObjects: true }).map((service, index) => (
+            {(Array.isArray(t('homepage:services.items', { returnObjects: true })) ? t('homepage:services.items', { returnObjects: true }) : []).map((service, index) => (
               <ServiceCard key={index}>
                 <ServiceIcon>
                   {index === 0 && <FaAccessibleIcon />}
@@ -889,10 +942,10 @@ const HomePage = () => {
           </AIDescription>
           
           <StatsGrid>
-            {t('homepage:aiStats.stats', { returnObjects: true }).map((stat, index) => (
+            {(Array.isArray(t('homepage:aiStats.stats', { returnObjects: true })) ? t('homepage:aiStats.stats', { returnObjects: true }) : []).map((stat, index) => (
               <StatCard key={index}>
                 <StatContent>
-                  <StatNumber isBreaking={stat.number === "Breaking"}>{stat.number}</StatNumber>
+                  <StatNumber $isBreaking={stat.number === "Breaking"}>{stat.number}</StatNumber>
                   <StatLabel>{stat.label}</StatLabel>
                 </StatContent>
                 {stat.detail && <StatDetail>{stat.detail}</StatDetail>}

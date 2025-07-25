@@ -213,10 +213,51 @@ class StructureAnalyzer {
         return results;
       });
 
-      return structureData;
+      // Transform the data to match what the frontend expects
+      const transformedData = {
+        analysisId,
+        timestamp: new Date().toISOString(),
+        headings: structureData.headings || [],
+        score: this.calculateScore(structureData),
+        issues: this.findIssues(structureData),
+        hasH1: structureData.hasH1,
+        h1Count: structureData.h1Count,
+        hasMain: structureData.hasMain,
+        hasNav: structureData.hasNav,
+        hasFooter: structureData.hasFooter,
+        hasHeader: structureData.hasHeader,
+        semanticElements: structureData.semanticElements,
+        headingHierarchy: structureData.headingHierarchy,
+        ariaLandmarks: structureData.ariaLandmarks,
+        documentStructure: structureData.documentStructure,
+        languageValidation: structureData.languageValidation,
+        rawData: structureData
+      };
+
+      logger.info('Structure analysis completed', { 
+        analysisId, 
+        headings: transformedData.headings.length,
+        score: transformedData.score,
+        issues: transformedData.issues.length
+      });
+
+      return transformedData;
     } catch (error) {
       logger.error('Structure analysis failed:', { error: error.message, analysisId });
-      throw error;
+      return {
+        analysisId,
+        timestamp: new Date().toISOString(),
+        headings: [],
+        score: 0,
+        issues: [],
+        hasH1: false,
+        h1Count: 0,
+        hasMain: false,
+        hasNav: false,
+        hasFooter: false,
+        hasHeader: false,
+        error: error.message
+      };
     }
   }
 
@@ -258,6 +299,70 @@ class StructureAnalyzer {
     }
     
     return Math.max(0, Math.min(100, Math.round(score)));
+  }
+
+  findIssues(structureData) {
+    if (!structureData) return [];
+    
+    const issues = [];
+    
+    // Check for missing H1
+    if (!structureData.hasH1) {
+      issues.push({
+        type: 'missing_h1',
+        severity: 'high',
+        message: 'Page is missing an H1 heading'
+      });
+    }
+    
+    // Check for multiple H1s
+    if (structureData.h1Count > 1) {
+      issues.push({
+        type: 'multiple_h1',
+        severity: 'medium',
+        message: `Found ${structureData.h1Count} H1 headings. Use only one H1 per page.`
+      });
+    }
+    
+    // Check for missing main element
+    if (!structureData.hasMain) {
+      issues.push({
+        type: 'missing_main',
+        severity: 'high',
+        message: 'Page is missing a main element'
+      });
+    }
+    
+    // Check for missing nav element
+    if (!structureData.hasNav) {
+      issues.push({
+        type: 'missing_nav',
+        severity: 'medium',
+        message: 'Page is missing a nav element'
+      });
+    }
+    
+    // Check heading hierarchy violations
+    if (structureData.headingHierarchy?.violations?.length > 0) {
+      issues.push({
+        type: 'heading_hierarchy',
+        severity: 'medium',
+        message: `Found ${structureData.headingHierarchy.violations.length} heading hierarchy violations`
+      });
+    }
+    
+    // Check language validation issues
+    if (structureData.languageValidation?.issues?.length > 0) {
+      structureData.languageValidation.issues.forEach(issue => {
+        issues.push({
+          type: 'language_validation',
+          severity: issue.type === 'missing_lang' ? 'high' : 'medium',
+          message: issue.message
+        });
+      });
+    }
+    
+    return issues;
   }
 
   generateRecommendations(structureData, language = 'en') {

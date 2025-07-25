@@ -30,7 +30,7 @@ const getSystemPreference = () => {
 // Get stored theme preference
 const getStoredTheme = () => {
   if (typeof window !== 'undefined' && window.localStorage) {
-    const stored = localStorage.getItem('sitecraft-theme');
+    const stored = localStorage.getItem('streetwiseweb-theme');
     return stored && Object.values(THEMES).includes(stored) ? stored : THEMES.SYSTEM;
   }
   return THEMES.SYSTEM;
@@ -102,7 +102,7 @@ export const ThemeProvider = ({ children }) => {
     
     // Store preference
     if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('sitecraft-theme', newTheme);
+      localStorage.setItem('streetwiseweb-theme', newTheme);
     }
 
     // Calculate and apply actual theme

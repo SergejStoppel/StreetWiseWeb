@@ -1,39 +1,29 @@
 const puppeteer = require('puppeteer');
 const logger = require('../../utils/logger');
+const BrowserConfig = require('../../utils/browserConfig');
 
 class BrowserUtils {
   constructor() {
     this.browser = null;
+    this.browserConfig = new BrowserConfig();
   }
 
   async initBrowser() {
     if (!this.browser) {
-      this.browser = await puppeteer.launch({
-        headless: 'new',
-        args: [
-          '--no-sandbox',
-          '--disable-setuid-sandbox',
-          '--disable-dev-shm-usage',
-          '--disable-accelerated-2d-canvas',
-          '--no-first-run',
-          '--disable-gpu',
-          '--disable-background-timer-throttling',
-          '--disable-renderer-backgrounding',
-          '--disable-features=VizDisplayCompositor',
-          '--disable-ipc-flooding-protection',
-          '--disable-backgrounding-occluded-windows',
-          '--disable-background-media-strategy',
-          '--disable-web-security',
-          '--window-size=1920,1080'
-        ],
-        defaultViewport: {
-          width: 1920,
-          height: 1080
-        },
-        timeout: 60000,
-        ignoreHTTPSErrors: true,
-        ignoreDefaultArgs: ['--disable-extensions']
-      });
+      try {
+        const launchOptions = this.browserConfig.getLaunchOptions();
+        logger.info('Initializing browser with cross-platform configuration', {
+          platform: this.browserConfig.platform,
+          isWSL: this.browserConfig.isWSL,
+          executablePath: launchOptions.executablePath || 'bundled'
+        });
+        
+        this.browser = await puppeteer.launch(launchOptions);
+        logger.info('Browser initialized successfully');
+      } catch (error) {
+        logger.error('Failed to initialize browser:', error.message);
+        throw new Error(`Browser initialization failed: ${error.message}`);
+      }
     }
     return this.browser;
   }
@@ -57,34 +47,104 @@ class BrowserUtils {
     await page.setDefaultNavigationTimeout(45000);
     await page.setDefaultTimeout(45000);
     
+    // Add stealth measures to avoid bot detection
+    await page.evaluateOnNewDocument(() => {
+      // Remove webdriver property
+      Object.defineProperty(navigator, 'webdriver', {
+        get: () => undefined,
+      });
+      
+      // Mock chrome property
+      window.chrome = {
+        runtime: {},
+      };
+      
+      // Mock plugins
+      Object.defineProperty(navigator, 'plugins', {
+        get: () => [1, 2, 3, 4, 5],
+      });
+      
+      // Mock languages
+      Object.defineProperty(navigator, 'languages', {
+        get: () => ['en-US', 'en'],
+      });
+      
+      // Override permissions
+      const originalQuery = window.navigator.permissions.query;
+      window.navigator.permissions.query = (parameters) => (
+        parameters.name === 'notifications' ?
+          Promise.resolve({ state: Notification.permission }) :
+          originalQuery(parameters)
+      );
+    });
+    
     return page;
   }
 
   async setupPageInterception(page) {
-    // Configure page settings
-    await page.setRequestInterception(true);
-    page.on('request', (request) => {
-      // Block only non-essential resources to speed up loading while preserving accessibility analysis accuracy
-      const resourceType = request.resourceType();
-      if (['stylesheet', 'font', 'media'].includes(resourceType)) {
-        request.abort();
-      } else {
-        // Allow images and scripts to load for accurate accessibility analysis
-        request.continue();
-      }
-    });
+    try {
+      // Configure page settings with more conservative interception
+      await page.setRequestInterception(true);
+      page.on('request', (request) => {
+        try {
+          const resourceType = request.resourceType();
+          const url = request.url();
+          
+          // Only block heavy media files and some third-party resources
+          // Keep stylesheets and fonts as they're important for accessibility analysis
+          if (resourceType === 'media' && (url.includes('.mp4') || url.includes('.webm') || url.includes('.mov'))) {
+            request.abort();
+          } else if (resourceType === 'image' && (url.includes('banner') || url.includes('ad'))) {
+            // Block advertising images but keep content images
+            request.abort();
+          } else {
+            // Allow all other resources including stylesheets, fonts, scripts, and content images
+            request.continue();
+          }
+        } catch (interceptError) {
+          // Fallback to allowing the request if interception fails
+          try {
+            request.continue();
+          } catch (continueError) {
+            logger.debug('Request interception error (non-critical)', { 
+              url: request?.url?.(), 
+              error: interceptError.message 
+            });
+          }
+        }
+      });
+    } catch (setupError) {
+      logger.warn('Request interception setup failed, continuing without interception', { 
+        error: setupError.message 
+      });
+    }
     
     // Handle page errors
     page.on('error', (err) => {
-      logger.error(`Page error: ${err.message}`);
+      if (err && err.message) {
+        logger.error(`Page error: ${err.message}`);
+      }
     });
     
     page.on('pageerror', (err) => {
-      logger.error(`Page error: ${err.message}`);
+      if (err && err.message) {
+        logger.error(`Page error: ${err.message}`);
+      }
     });
     
     page.on('console', (msg) => {
-      logger.debug(`Console ${msg.type()}: ${msg.text()}`);
+      try {
+        if (msg && typeof msg.type === 'function' && typeof msg.text === 'function') {
+          const msgType = msg.type();
+          const msgText = msg.text();
+          if (msgType && msgText !== undefined && msgText !== null) {
+            logger.debug(`Console ${msgType}: ${msgText}`);
+          }
+        }
+      } catch (consoleError) {
+        // Silently ignore console message errors to prevent cascading failures
+        logger.debug('Console message handling error (non-critical)', { error: consoleError.message });
+      }
     });
   }
 

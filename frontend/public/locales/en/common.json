@@ -1,5 +1,5 @@
 {
-  "siteName": "SiteCraft",
+  "siteName": "StreetWiseWeb",
   "tagline": "Professional Accessibility Analysis",
   "loading": "Loading...",
   "error": "Error",
@@ -156,5 +156,20 @@
   "minor": "Minor",
   "high": "High",
   "medium": "Medium",
-  "low": "Low"
+  "low": "Low",
+  "auth": {
+    "signIn": "Sign In",
+    "signInSubtitle": "Sign in to your StreetWiseWeb account",
+    "signUp": "Sign Up",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "forgotPassword": "Forgot your password?",
+    "or": "or",
+    "noAccount": "Don't have an account?"
+  },
+  "common": {
+    "loading": "Loading..."
+  }
 }

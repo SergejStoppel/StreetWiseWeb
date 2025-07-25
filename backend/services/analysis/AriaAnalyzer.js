@@ -185,10 +185,46 @@ class AriaAnalyzer {
         return results;
       });
 
-      return ariaData;
+      // Transform the data to match what the frontend expects
+      const transformedData = {
+        analysisId,
+        timestamp: new Date().toISOString(),
+        elementsWithAria: this.getElementsWithAria(ariaData),
+        score: this.calculateScore(ariaData),
+        issues: this.findIssues(ariaData),
+        landmarks: ariaData.landmarks,
+        ariaLabels: ariaData.ariaLabels,
+        ariaRoles: ariaData.ariaRoles,
+        ariaStates: ariaData.ariaStates,
+        liveRegions: ariaData.liveRegions,
+        hiddenContent: ariaData.hiddenContent,
+        rawData: ariaData
+      };
+
+      logger.info('ARIA analysis completed', { 
+        analysisId, 
+        elementsWithAria: transformedData.elementsWithAria.length,
+        score: transformedData.score,
+        issues: transformedData.issues.length
+      });
+
+      return transformedData;
     } catch (error) {
       logger.error('ARIA analysis failed:', { error: error.message, analysisId });
-      throw error;
+      return {
+        analysisId,
+        timestamp: new Date().toISOString(),
+        elementsWithAria: [],
+        score: 0,
+        issues: [],
+        landmarks: null,
+        ariaLabels: null,
+        ariaRoles: null,
+        ariaStates: null,
+        liveRegions: null,
+        hiddenContent: null,
+        error: error.message
+      };
     }
   }
 
@@ -229,6 +265,148 @@ class AriaAnalyzer {
     }
     
     return Math.max(0, Math.min(100, Math.round(score)));
+  }
+
+  getElementsWithAria(ariaData) {
+    if (!ariaData) return [];
+    
+    const elementsWithAria = [];
+    
+    // Count elements with ARIA labels
+    if (ariaData.ariaLabels) {
+      elementsWithAria.push(...Array(ariaData.ariaLabels.withAriaLabel).fill({ type: 'aria-label' }));
+      elementsWithAria.push(...Array(ariaData.ariaLabels.withAriaLabelledby).fill({ type: 'aria-labelledby' }));
+      elementsWithAria.push(...Array(ariaData.ariaLabels.withAriaDescribedby).fill({ type: 'aria-describedby' }));
+    }
+    
+    // Count elements with ARIA roles
+    if (ariaData.ariaRoles?.totalWithRole) {
+      elementsWithAria.push(...Array(ariaData.ariaRoles.totalWithRole).fill({ type: 'role' }));
+    }
+    
+    // Count elements with ARIA states
+    if (ariaData.ariaStates?.totalAriaAttributes) {
+      elementsWithAria.push(...Array(ariaData.ariaStates.totalAriaAttributes).fill({ type: 'aria-state' }));
+    }
+    
+    // Count live regions
+    if (ariaData.liveRegions?.total) {
+      elementsWithAria.push(...Array(ariaData.liveRegions.total).fill({ type: 'live-region' }));
+    }
+    
+    return elementsWithAria;
+  }
+
+  findIssues(ariaData) {
+    if (!ariaData) return [];
+    
+    const issues = [];
+    
+    // Check for missing ARIA landmarks
+    if (!ariaData.landmarks?.hasMainLandmark) {
+      issues.push({
+        type: 'missing_main_landmark',
+        severity: 'high',
+        message: 'Page is missing a main landmark'
+      });
+    }
+    
+    if (!ariaData.landmarks?.hasNavigationLandmark) {
+      issues.push({
+        type: 'missing_nav_landmark',
+        severity: 'medium',
+        message: 'Page is missing a navigation landmark'
+      });
+    }
+    
+    if (!ariaData.landmarks?.hasBannerLandmark) {
+      issues.push({
+        type: 'missing_banner_landmark',
+        severity: 'medium',
+        message: 'Page is missing a banner landmark'
+      });
+    }
+    
+    // Check for empty ARIA labels
+    if (ariaData.ariaLabels?.emptyAriaLabels > 0) {
+      issues.push({
+        type: 'empty_aria_labels',
+        severity: 'high',
+        message: `Found ${ariaData.ariaLabels.emptyAriaLabels} elements with empty aria-label attributes`
+      });
+    }
+    
+    // Check for invalid labelledby references
+    if (ariaData.ariaLabels?.invalidLabelledby > 0) {
+      issues.push({
+        type: 'invalid_labelledby',
+        severity: 'high',
+        message: `Found ${ariaData.ariaLabels.invalidLabelledby} elements with invalid aria-labelledby references`
+      });
+    }
+    
+    // Check for invalid describedby references
+    if (ariaData.ariaLabels?.invalidDescribedby > 0) {
+      issues.push({
+        type: 'invalid_describedby',
+        severity: 'medium',
+        message: `Found ${ariaData.ariaLabels.invalidDescribedby} elements with invalid aria-describedby references`
+      });
+    }
+    
+    // Check for invalid ARIA roles
+    if (ariaData.ariaRoles?.invalidRoles?.length > 0) {
+      issues.push({
+        type: 'invalid_roles',
+        severity: 'medium',
+        message: `Found ${ariaData.ariaRoles.invalidRoles.length} elements with invalid ARIA roles`
+      });
+    }
+    
+    // Check for invalid ARIA states
+    if (ariaData.ariaStates?.invalidStates?.length > 0) {
+      issues.push({
+        type: 'invalid_states',
+        severity: 'medium',
+        message: `Found ${ariaData.ariaStates.invalidStates.length} elements with invalid ARIA state values`
+      });
+    }
+    
+    // Check for hidden interactive elements
+    if (ariaData.hiddenContent?.hiddenInteractive > 0) {
+      issues.push({
+        type: 'hidden_interactive',
+        severity: 'high',
+        message: `Found ${ariaData.hiddenContent.hiddenInteractive} interactive elements hidden with aria-hidden="true"`
+      });
+    }
+    
+    // Check for excessive landmarks
+    if (ariaData.landmarks?.landmarkCounts?.main > 1) {
+      issues.push({
+        type: 'multiple_main_landmarks',
+        severity: 'high',
+        message: `Found ${ariaData.landmarks.landmarkCounts.main} main landmarks. Use only one main landmark per page.`
+      });
+    }
+    
+    if (ariaData.landmarks?.landmarkCounts?.banner > 1) {
+      issues.push({
+        type: 'multiple_banner_landmarks',
+        severity: 'medium',
+        message: `Found ${ariaData.landmarks.landmarkCounts.banner} banner landmarks. Consider using only one banner per page.`
+      });
+    }
+    
+    if (ariaData.landmarks?.landmarkCounts?.contentinfo > 1) {
+      issues.push({
+        type: 'multiple_contentinfo_landmarks',
+        severity: 'medium',
+        message: `Found ${ariaData.landmarks.landmarkCounts.contentinfo} contentinfo landmarks. Consider using only one contentinfo per page.`
+      });
+    }
+    
+    return issues;
   }
 
   generateRecommendations(ariaData, language = 'en') {

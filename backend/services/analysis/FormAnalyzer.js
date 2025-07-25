@@ -7,7 +7,7 @@ class FormAnalyzer {
     try {
       logger.info('Running form analysis', { analysisId });
       
-      const formData = await page.evaluate(() => {
+      const rawFormData = await page.evaluate(() => {
         const results = {
           // Basic form statistics
           totalForms: document.querySelectorAll('form').length,
@@ -493,10 +493,44 @@ class FormAnalyzer {
         return results;
       });
 
-      return formData;
+      // Transform the data to match what the frontend expects
+      const transformedData = {
+        analysisId,
+        timestamp: new Date().toISOString(),
+        formsFound: rawFormData.totalForms || 0,
+        score: this.calculateScore(rawFormData),
+        issues: this.findIssues(rawFormData),
+        formControls: rawFormData.formControls,
+        fieldsets: rawFormData.fieldsets,
+        buttons: rawFormData.buttons,
+        errorHandling: rawFormData.errorHandling,
+        inputTypes: rawFormData.inputTypes,
+        rawData: rawFormData
+      };
+
+      logger.info('Form analysis completed', { 
+        analysisId, 
+        formsFound: transformedData.formsFound,
+        score: transformedData.score,
+        issues: transformedData.issues.length
+      });
+
+      return transformedData;
     } catch (error) {
       logger.error('Form analysis failed:', { error: error.message, analysisId });
-      throw error;
+      return {
+        analysisId,
+        timestamp: new Date().toISOString(),
+        formsFound: 0,
+        score: 0,
+        issues: [],
+        formControls: null,
+        fieldsets: null,
+        buttons: null,
+        errorHandling: null,
+        inputTypes: null,
+        error: error.message
+      };
     }
   }
 
@@ -563,6 +597,119 @@ class FormAnalyzer {
     }
     
     return Math.max(0, Math.min(100, Math.round(score)));
+  }
+
+  findIssues(formData) {
+    if (!formData) return [];
+    
+    const issues = [];
+    
+    // Check for unlabeled form controls
+    if (formData.formControls?.withoutLabels > 0) {
+      issues.push({
+        type: 'unlabeled_controls',
+        severity: 'high',
+        message: `Found ${formData.formControls.withoutLabels} form controls without proper labels`
+      });
+    }
+    
+    // Check for required fields without indicators
+    if (formData.formControls?.requiredWithoutIndicator > 0) {
+      issues.push({
+        type: 'required_without_indicator',
+        severity: 'high',
+        message: `Found ${formData.formControls.requiredWithoutIndicator} required fields without visual indicators`
+      });
+    }
+    
+    // Check for fieldsets without legends
+    if (formData.fieldsets?.withoutLegend > 0) {
+      issues.push({
+        type: 'fieldset_without_legend',
+        severity: 'medium',
+        message: `Found ${formData.fieldsets.withoutLegend} fieldsets without legend elements`
+      });
+    }
+    
+    // Check for buttons without accessible names
+    if (formData.buttons?.withoutAccessibleName > 0) {
+      issues.push({
+        type: 'button_without_name',
+        severity: 'high',
+        message: `Found ${formData.buttons.withoutAccessibleName} buttons without accessible names`
+      });
+    }
+    
+    // Check for forms without submit buttons
+    if (formData.totalForms > 0 && formData.buttons?.submitButtons === 0) {
+      issues.push({
+        type: 'no_submit_button',
+        severity: 'medium',
+        message: 'Forms found but no submit buttons detected'
+      });
+    }
+    
+    // Check for over-reliance on placeholders
+    if (formData.formControls?.withPlaceholder > formData.formControls?.withLabels) {
+      issues.push({
+        type: 'placeholder_overuse',
+        severity: 'medium',
+        message: 'More form controls use placeholders than proper labels'
+      });
+    }
+    
+    // Check error handling issues
+    if (formData.errorHandling) {
+      const errorHandling = formData.errorHandling;
+      
+      // Error identification issues (WCAG 3.3.1)
+      if (errorHandling.errorIdentification?.issues?.length > 0) {
+        issues.push({
+          type: 'error_identification',
+          severity: 'high',
+          message: `Found ${errorHandling.errorIdentification.issues.length} error identification issues`
+        });
+      }
+      
+      // Missing instructions issues (WCAG 3.3.2)
+      if (errorHandling.labelsAndInstructions?.issues?.length > 0) {
+        issues.push({
+          type: 'missing_instructions',
+          severity: 'medium',
+          message: `Found ${errorHandling.labelsAndInstructions.issues.length} inputs missing format instructions`
+        });
+      }
+      
+      // Missing error suggestions (WCAG 3.3.3)
+      if (errorHandling.errorIdentification?.controlsWithErrors > 0 && 
+          errorHandling.errorSuggestion?.controlsWithSuggestions === 0) {
+        issues.push({
+          type: 'missing_error_suggestions',
+          severity: 'high',
+          message: 'Error messages found but none provide correction suggestions'
+        });
+      }
+      
+      // Error prevention issues (WCAG 3.3.4)
+      if (errorHandling.errorPrevention?.issues?.length > 0) {
+        issues.push({
+          type: 'error_prevention',
+          severity: 'medium',
+          message: `Found ${errorHandling.errorPrevention.issues.length} error prevention issues`
+        });
+      }
+      
+      // No form validation
+      if (formData.totalForms > 0 && errorHandling.formsWithValidation === 0) {
+        issues.push({
+          type: 'no_validation',
+          severity: 'medium',
+          message: 'Forms found but no validation mechanisms detected'
+        });
+      }
+    }
+    
+    return issues;
   }
 
   generateRecommendations(formData, language = 'en') {

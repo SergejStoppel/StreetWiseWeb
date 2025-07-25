@@ -1,105 +1,83 @@
 {
   "hero": {
-    "title": "Is Your Website Losing You Customers?",
-    "subtitle": "Find out for free. Get a simple, no-jargon report on your website's health, and see how you can attract more customers.",
-    "formTitle": "Get My Free Report",
-    "exampleText": "No technical skills needed. We email you the results.",
+    "title": "Is Your Website a Hidden Liability?",
+    "subtitle": "Don't let AI traffic pass you by or face costly accessibility lawsuits. StreetWiseWeb helps small businesses like yours get found online and stay legally safe, without the tech headache.",
+    "formTitle": "Get My Free Website Health Report",
+    "exampleText": "No credit card needed. Results emailed directly to you.",
     "microcopy": "yourwebsite.com"
   },
   "problem": {
-    "title": "Your Website Should Help Your Business, Not Hurt It.",
-    "intro": "For many small business owners, a website can feel like a confusing, expensive, and time-consuming problem. You might be wondering:",
+    "title": "The Silent Threats to Your Small Business Online",
+    "intro": "You work hard to serve your customers, but is your website working hard for you? Many small business owners are unknowingly facing two major challenges that can cripple their online growth and lead to unexpected costs:",
     "questions": [
       {
-        "title": "Am I reaching the right customers?",
-        "description": "If your website isn't optimized for search engines like Google and AI assistants like ChatGPT, you're likely invisible to potential customers looking for your products or services."
+        "title": "The Rise of AI Search: Are You Invisible?",
+        "description": "Customers are increasingly using AI tools like ChatGPT and Perplexity to find information and businesses. If your website isn't optimized for these new search methods, you're missing out on a massive wave of potential customers. AI-driven referrals surged over 1000% last year, yet most websites aren't prepared."
       },
       {
-        "title": "Is my website turning people away?",
-        "description": "A slow, confusing, or broken website frustrates visitors and sends them straight to your competitors."
-      },
-      {
-        "title": "Could my website get me in legal trouble?",
-        "description": "Many business owners are unaware that their websites are legally required to be accessible to people with disabilities. This can lead to expensive lawsuits."
-      }
-    ]
-  },
-  "agitate": {
-    "title": "Ignoring Your Website's Problems is Costly.",
-    "content": "An unhealthy website isn't just a missed opportunity; it's a direct threat to your bottom line.",
-    "points": [
-      {
-        "title": "You're Losing Money",
-        "description": "Every customer who can't find you online, gets frustrated with your site, or can't use it due to a disability is a sale you've lost."
-      },
-      {
-        "title": "You're Falling Behind",
-        "description": "Your competitors are getting smarter online. If your website isn't keeping up, you're giving them your business."
-      },
-      {
-        "title": "You're at Risk",
-        "description": "Accessibility lawsuits against small businesses are on the rise, with potential costs reaching tens of thousands of dollars."
+        "title": "Accessibility Lawsuits: Are You at Risk?",
+        "description": "Websites are legally required to be accessible to everyone, including people with disabilities. If your site isn't compliant, you could face expensive lawsuits, fines, and damage to your reputation. These cases are on the rise, and small businesses are not exempt."
       }
     ]
   },
   "solution": {
-    "title": "We Make Your Website Work for You.",
-    "subtitle": "StreetWiseWeb is your friendly, affordable partner for a healthy, customer-attracting website. We translate the technical jargon into simple, actionable steps so you can focus on what you do best: running your business.",
+    "title": "Your All-in-One Solution for a Healthy, Profitable Website",
+    "subtitle": "At StreetWiseWeb, we believe managing your online presence shouldn't be complicated. We provide straightforward, actionable solutions to tackle these challenges head-on, so you can focus on running your business.",
     "promise": {
-      "title": "Our Promise:",
+      "title": "How We Help (Our Tiered Approach):",
       "points": [
         {
-          "title": "No More Guesswork",
-          "description": "We show you exactly what's wrong and how to fix it."
+          "title": "Step 1: Free Website Health Report (Identify the Problems)",
+          "description": "A simple, easy-to-understand report that highlights critical SEO and accessibility issues on your website. We use advanced technology to scan your site, but we translate the findings into plain English."
         },
         {
-          "title": "More Customers, Not More Headaches",
-          "description": "We help you get found on Google, ChatGPT, and other AI assistants, while providing a great experience for your visitors."
+          "title": "Step 2: Assisted Fixes & One-Time Solutions (Get It Fixed)",
+          "description": "Once you have your report, you might need a hand implementing the changes. We offer one-time services to help you fix specific issues, from optimizing your content for AI search to making your site legally accessible."
         },
         {
-          "title": "Peace of Mind",
-          "description": "We help you understand and address your legal requirements, protecting you from lawsuits."
+          "title": "Step 3: Ongoing Monitoring & Automated Improvements (Stay Protected & Grow)",
+          "description": "For ultimate peace of mind and continuous growth, our subscription plans provide ongoing monitoring of your website's SEO and accessibility. We'll alert you to new issues, suggest fresh content ideas for AI discoverability, and even automate certain fixes."
         }
       ]
     }
   },
   "howItWorks": {
-    "title": "Get Your Free Website Health Report in 3 Simple Steps.",
+    "title": "Your Website's Essential Health Check",
     "steps": [
       {
         "number": "1",
-        "title": "Enter Your Website",
-        "description": "Just type in your website address."
+        "title": "AI-Ready SEO",
+        "description": "We analyze how well your website can be found by traditional search engines AND the new wave of AI assistants like ChatGPT. Don't miss out on the future of search."
       },
       {
         "number": "2",
-        "title": "We Analyze Your Site",
-        "description": "Our smart technology scans your website for critical issues."
+        "title": "Accessibility Compliance",
+        "description": "We ensure your website is welcoming to all visitors and meets legal requirements, protecting you from potential lawsuits and expanding your customer base."
       },
       {
         "number": "3",
-        "title": "Get Your Report",
-        "description": "We email you a simple, easy-to-understand report with your results."
+        "title": "Overall Website Health",
+        "description": "We check for foundational issues like loading speed, mobile-friendliness, and security that impact user experience and search rankings."
       }
     ]
   },
   "services": {
-    "title": "What We Check For",
+    "title": "Simple Solutions for Busy Business Owners",
     "items": [
       {
-        "title": "Accessibility",
-        "description": "Is your website open for business to everyone, including people with disabilities?",
-        "details": "We ensure your site meets legal requirements and serves all customers."
+        "title": "No Tech Jargon",
+        "description": "We speak your language, not code.",
+        "details": "Clear, actionable reports you can understand and implement."
       },
       {
-        "title": "SEO & AI Discoverability",
-        "description": "How easy is it for customers to find you on Google and AI assistants?",
-        "details": "With AI traffic growing 40x in 2024, we optimize for both traditional search and AI discovery."
+        "title": "Affordable & Flexible",
+        "description": "Solutions that fit your budget and needs, from one-time fixes to ongoing support.",
+        "details": "Real people, real help every step of the way."
       },
       {
-        "title": "Website Health",
-        "description": "Is your site fast, secure, and easy to use on all devices?",
-        "details": "We check everything from loading speed to mobile-friendliness."
+        "title": "Real Results",
+        "description": "Get expert help without the long-term commitment.",
+        "details": "We can guide you or even make the changes for you, ensuring your website is up to par quickly and efficiently."
       }
     ]
   },
@@ -132,15 +110,15 @@
     "insight": "Visitors from AI tools like ChatGPT view 12% more pages and bounce 23% less than those from Google. Better leads. Better SEO."
   },
   "testimonial": {
-    "title": "Trusted by Small Businesses Like Yours",
-    "quote": "I'm not a tech person, and I was worried my website was a mess. StreetWiseWeb gave me a report I could actually understand. They pointed out some simple fixes that made a huge difference. We've seen more online inquiries since we started working with them.",
-    "author": "Sarah L.",
-    "role": "Owner, The Corner Bookstore"
+    "title": "Real Results, Real Peace of Mind",
+    "quote": "I was completely overwhelmed by all the technical stuff with my website. StreetWiseWeb made it so easy to understand what needed fixing. Their report was clear, and they even helped me make the changes. Now I feel confident my website is working for me, not against me!",
+    "author": "Maria S.",
+    "role": "Owner, Maria's Bakery"
   },
   "finalCta": {
-    "title": "Ready to See How Your Website Can Improve?",
-    "subtitle": "Get your free, no-obligation website health report now.",
-    "button": "Get My Free Report"
+    "title": "Ready to Unlock Your Website's Full Potential?",
+    "subtitle": "Get your free, no-obligation website health report today and take the first step towards a healthier, more profitable online presence.",
+    "button": "Get My Free Website Health Report"
   },
   "features": {
     "wcagCompliance": {

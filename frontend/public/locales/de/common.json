@@ -1,5 +1,5 @@
 {
-  "siteName": "SiteCraft",
+  "siteName": "StreetWiseWeb",
   "tagline": "Professionelle Barrierefreiheits-Analyse",
   "loading": "Lädt...",
   "error": "Fehler",
@@ -156,5 +156,20 @@
   "minor": "Geringfügig",
   "high": "Hoch",
   "medium": "Mittel",
-  "low": "Niedrig"
+  "low": "Niedrig",
+  "auth": {
+    "signIn": "Anmelden",
+    "signInSubtitle": "Melden Sie sich bei Ihrem StreetWiseWeb-Konto an",
+    "signUp": "Registrieren",
+    "email": "E-Mail",
+    "emailPlaceholder": "E-Mail eingeben",
+    "password": "Passwort",
+    "passwordPlaceholder": "Passwort eingeben",
+    "forgotPassword": "Passwort vergessen?",
+    "or": "oder",
+    "noAccount": "Noch kein Konto?"
+  },
+  "common": {
+    "loading": "Lädt..."
+  }
 }

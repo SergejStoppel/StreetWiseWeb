@@ -1,0 +1,67 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "3005:3005"
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - chrome-data:/app/chrome-user-data
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - PORT=3005
+      # Unified environment variables are loaded via env_file
+    env_file:
+      - .env
+    networks:
+      - streetwiseweb-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3005/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - APP_ENV=${APP_ENV:-production}
+      - CHOKIDAR_USEPOLLING=true
+      # React environment variables for production
+      - REACT_APP_API_URL=${PROD_API_URL:-http://localhost:3005}
+      - REACT_APP_SUPABASE_URL=${PROD_SUPABASE_URL}
+      - REACT_APP_SUPABASE_ANON_KEY=${PROD_SUPABASE_ANON_KEY}
+      - REACT_APP_ENV=${APP_ENV:-production}
+      - REACT_APP_ENVIRONMENT=production
+      - REACT_APP_DEBUG=false
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    networks:
+      - streetwiseweb-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  streetwiseweb-network:
+    driver: bridge
+
+volumes:
+  chrome-data:
+    driver: local

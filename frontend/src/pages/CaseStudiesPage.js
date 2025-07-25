@@ -367,7 +367,7 @@ const CaseStudiesPage = () => {
           <CTATitle>Ready to Be Our Next Success Story?</CTATitle>
           <CTAText>
             Join the growing number of small businesses that have transformed their online presence 
-            with SiteCraft's accessibility, SEO, and design services.
+            with StreetWiseWeb's accessibility, SEO, and design services.
           </CTAText>
           <CTAButton to="/free-audit">
             Start Your Transformation <FaArrowRight />

@@ -1,21 +1,39 @@
 {
-  "name": "sitecraft",
+  "name": "streetwiseweb",
   "version": "1.0.0",
   "description": "Website Accessibility Analysis Tool",
   "main": "index.js",
   "scripts": {
     "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "dev:production": "APP_ENV=production concurrently \"npm run backend\" \"npm run frontend\"",
     "backend": "cd backend && npm run dev",
     "frontend": "cd frontend && npm start",
-    "build": "cd frontend && npm run build",
+    "build": "npm run build:env && cd frontend && npm run build",
+    "build:dev": "APP_ENV=development npm run build",
+    "build:prod": "APP_ENV=production npm run build",
+    "build:production": "node scripts/build-production.js",
+    "build:env": "node scripts/setup-build-env.js",
+    "validate:production": "node scripts/validate-production-env.js",
     "test": "cd backend && npm test && cd ../frontend && npm test",
-    "start": "cd backend && npm start"
+    "start": "cd backend && npm start",
+    "start:dev": "APP_ENV=development npm start",
+    "start:prod": "APP_ENV=production npm start"
   },
-  "keywords": ["accessibility", "web", "analysis", "audit", "compliance"],
+  "keywords": [
+    "accessibility",
+    "web",
+    "analysis",
+    "audit",
+    "compliance"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
     "concurrently": "^8.2.0"
+  },
+  "dependencies": {
+    "axios": "^1.10.0",
+    "dotenv": "^17.2.0"
   }
 }

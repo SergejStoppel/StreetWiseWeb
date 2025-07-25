@@ -58,7 +58,7 @@ const I18N_CONFIG = {
     caches: ['localStorage'],
     
     // Local storage key
-    storageKey: 'sitecraft_language'
+    storageKey: 'streetwiseweb_language'
   },
   
   // Namespace configuration for organized translations

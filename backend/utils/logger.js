@@ -10,7 +10,7 @@ const logger = winston.createLogger({
     winston.format.errors({ stack: true }),
     winston.format.json()
   ),
-  defaultMeta: { service: 'sitecraft-backend' },
+  defaultMeta: { service: 'streetwiseweb-backend' },
   transports: [
     new winston.transports.File({ 
       filename: path.join(logDir, 'error.log'), 

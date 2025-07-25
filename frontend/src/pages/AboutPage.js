@@ -465,7 +465,7 @@ const AboutPage = () => {
           <StoryContent>
             <SectionTitle>Our Story</SectionTitle>
             <StoryText>
-              SiteCraft was born from a simple observation: small businesses were being left behind in the digital revolution. 
+              StreetWiseWeb was born from a simple observation: small businesses were being left behind in the digital revolution. 
               While large corporations had teams of developers and specialists, small business owners were struggling with 
               outdated websites that didn't work on mobile, couldn't be found in search results, and excluded customers with disabilities.
             </StoryText>

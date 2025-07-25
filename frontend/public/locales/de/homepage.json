@@ -1,110 +1,88 @@
 {
   "hero": {
-    "title": "Verliert Ihre Website Kunden?",
-    "subtitle": "Finden Sie es kostenlos heraus. Erhalten Sie einen einfachen, fachsprachenfreien Bericht über die Gesundheit Ihrer Website und sehen Sie, wie Sie mehr Kunden anziehen können.",
-    "formTitle": "Meinen Kostenlosen Bericht Erhalten",
-    "exampleText": "Keine technischen Kenntnisse erforderlich. Wir senden Ihnen die Ergebnisse per E-Mail.",
+    "title": "Ist Ihre Website eine versteckte Haftung?",
+    "subtitle": "Lassen Sie nicht zu, dass KI-Traffic an Ihnen vorbeigeht oder teure Barrierefreiheitsklagen drohen. StreetWiseWeb hilft kleinen Unternehmen wie Ihrem, online gefunden zu werden und rechtlich sicher zu bleiben, ohne den Technik-Stress.",
+    "formTitle": "Meinen Kostenlosen Website-Gesundheitsbericht Erhalten",
+    "exampleText": "Keine Kreditkarte erforderlich. Ergebnisse werden direkt per E-Mail gesendet.",
     "microcopy": "ihrewebsite.de"
   },
   "problem": {
-    "title": "Ihre Website Sollte Ihrem Business Helfen, Nicht Schaden.",
-    "intro": "Für viele Kleinunternehmer kann sich eine Website wie ein verwirrendes, teures und zeitaufwändiges Problem anfühlen. Sie fragen sich vielleicht:",
+    "title": "Die stillen Bedrohungen für Ihr kleines Unternehmen online",
+    "intro": "Sie arbeiten hart daran, Ihre Kunden zu bedienen, aber arbeitet Ihre Website hart für Sie? Viele Kleinunternehmer stehen unwissentlich vor zwei großen Herausforderungen, die ihr Online-Wachstum lähmen und zu unerwarteten Kosten führen können:",
     "questions": [
       {
-        "title": "Erreiche ich die richtigen Kunden?",
-        "description": "Wenn Ihre Website nicht für Suchmaschinen wie Google und KI-Assistenten wie ChatGPT optimiert ist, sind Sie wahrscheinlich unsichtbar für potenzielle Kunden, die nach Ihren Produkten oder Dienstleistungen suchen."
+        "title": "Der Aufstieg der KI-Suche: Sind Sie unsichtbar?",
+        "description": "Kunden nutzen zunehmend KI-Tools wie ChatGPT und Perplexity, um Informationen und Unternehmen zu finden. Wenn Ihre Website nicht für diese neuen Suchmethoden optimiert ist, verpassen Sie eine massive Welle potenzieller Kunden. KI-getriebene Verweise stiegen letztes Jahr um über 1000%, doch die meisten Websites sind nicht vorbereitet."
       },
       {
-        "title": "Schreckt meine Website Menschen ab?",
-        "description": "Eine langsame, verwirrende oder kaputte Website frustriert Besucher und schickt sie direkt zur Konkurrenz."
-      },
-      {
-        "title": "Könnte meine Website mich in rechtliche Schwierigkeiten bringen?",
-        "description": "Viele Geschäftsinhaber wissen nicht, dass ihre Websites gesetzlich verpflichtet sind, für Menschen mit Behinderungen zugänglich zu sein. Dies kann zu teuren Klagen führen."
-      }
-    ]
-  },
-  "agitate": {
-    "title": "Die Probleme Ihrer Website zu Ignorieren Ist Teuer.",
-    "content": "Eine ungesunde Website ist nicht nur eine verpasste Gelegenheit; sie ist eine direkte Bedrohung für Ihre Einnahmen.",
-    "points": [
-      {
-        "title": "Sie Verlieren Geld",
-        "description": "Jeder Kunde, der Sie online nicht finden kann, sich über Ihre Website ärgert oder sie aufgrund einer Behinderung nicht nutzen kann, ist ein verlorener Verkauf."
-      },
-      {
-        "title": "Sie Fallen Zurück",
-        "description": "Ihre Konkurrenten werden online intelligenter. Wenn Ihre Website nicht mithält, geben Sie ihnen Ihr Geschäft."
-      },
-      {
-        "title": "Sie Sind Gefährdet",
-        "description": "Barrierefreiheitsklagen gegen kleine Unternehmen nehmen zu, mit potenziellen Kosten von zehntausenden Euro."
+        "title": "Barrierefreiheitsklagen: Sind Sie gefährdet?",
+        "description": "Websites sind gesetzlich verpflichtet, für alle zugänglich zu sein, einschließlich Menschen mit Behinderungen. Wenn Ihre Seite nicht konform ist, könnten Sie teure Klagen, Bußgelder und Schäden an Ihrem Ruf riskieren. Diese Fälle nehmen zu, und kleine Unternehmen sind nicht ausgenommen."
       }
     ]
   },
   "solution": {
-    "title": "Wir Lassen Ihre Website Für Sie Arbeiten.",
-    "subtitle": "StreetWiseWeb ist Ihr freundlicher, erschwinglicher Partner für eine gesunde, kundengewinnende Website. Wir übersetzen technisches Fachchinesisch in einfache, umsetzbare Schritte, damit Sie sich auf das konzentrieren können, was Sie am besten können: Ihr Geschäft führen.",
+    "title": "Ihre All-in-One-Lösung für eine gesunde, profitable Website",
+    "subtitle": "Bei StreetWiseWeb glauben wir, dass die Verwaltung Ihrer Online-Präsenz nicht kompliziert sein sollte. Wir bieten unkomplizierte, umsetzbare Lösungen, um diese Herausforderungen direkt anzugehen, damit Sie sich auf die Führung Ihres Unternehmens konzentrieren können.",
     "promise": {
-      "title": "Unser Versprechen:",
+      "title": "Wie wir helfen (Unser gestaffelter Ansatz):",
       "points": [
         {
-          "title": "Kein Rätselraten Mehr",
-          "description": "Wir zeigen Ihnen genau, was falsch ist und wie Sie es beheben können."
+          "title": "Schritt 1: Kostenloser Website-Gesundheitsbericht (Probleme identifizieren)",
+          "description": "Ein einfacher, leicht verständlicher Bericht, der kritische SEO- und Barrierefreiheitsprobleme auf Ihrer Website hervorhebt. Wir verwenden fortschrittliche Technologie, um Ihre Seite zu scannen, übersetzen die Ergebnisse aber in einfache Sprache."
         },
         {
-          "title": "Mehr Kunden, Keine Kopfschmerzen",
-          "description": "Wir helfen Ihnen, bei Google, ChatGPT und anderen KI-Assistenten gefunden zu werden, während wir Ihren Besuchern eine großartige Erfahrung bieten."
+          "title": "Schritt 2: Unterstützte Korrekturen & Einmalige Lösungen (Es reparieren lassen)",
+          "description": "Sobald Sie Ihren Bericht haben, könnten Sie Hilfe bei der Umsetzung der Änderungen benötigen. Wir bieten einmalige Dienstleistungen, um Ihnen bei der Behebung spezifischer Probleme zu helfen, von der Optimierung Ihres Inhalts für KI-Suche bis zur rechtlichen Barrierefreiheit Ihrer Website."
         },
         {
-          "title": "Seelenfrieden",
-          "description": "Wir helfen Ihnen, Ihre rechtlichen Anforderungen zu verstehen und anzugehen, und schützen Sie vor Klagen."
+          "title": "Schritt 3: Laufende Überwachung & Automatisierte Verbesserungen (Geschützt bleiben & wachsen)",
+          "description": "Für ultimativen Seelenfrieden und kontinuierliches Wachstum bieten unsere Abonnementpläne laufende Überwachung der SEO und Barrierefreiheit Ihrer Website. Wir warnen Sie vor neuen Problemen, schlagen frische Inhaltsideen für KI-Auffindbarkeit vor und automatisieren sogar bestimmte Korrekturen."
         }
       ]
     }
   },
   "howItWorks": {
-    "title": "Erhalten Sie Ihren Kostenlosen Website-Gesundheitsbericht in 3 Einfachen Schritten.",
+    "title": "Die wesentliche Gesundheitsprüfung Ihrer Website",
     "steps": [
       {
         "number": "1",
-        "title": "Geben Sie Ihre Website Ein",
-        "description": "Tippen Sie einfach Ihre Website-Adresse ein."
+        "title": "KI-bereite SEO",
+        "description": "Wir analysieren, wie gut Ihre Website von traditionellen Suchmaschinen UND der neuen Welle von KI-Assistenten wie ChatGPT gefunden werden kann. Verpassen Sie nicht die Zukunft der Suche."
       },
       {
         "number": "2",
-        "title": "Wir Analysieren Ihre Seite",
-        "description": "Unsere intelligente Technologie scannt Ihre Website nach kritischen Problemen."
+        "title": "Barrierefreiheits-Compliance",
+        "description": "Wir stellen sicher, dass Ihre Website alle Besucher willkommen heißt und rechtliche Anforderungen erfüllt, schützen Sie vor potenziellen Klagen und erweitern Ihre Kundenbasis."
       },
       {
         "number": "3",
-        "title": "Erhalten Sie Ihren Bericht",
-        "description": "Wir senden Ihnen einen einfachen, leicht verständlichen Bericht mit Ihren Ergebnissen per E-Mail."
+        "title": "Allgemeine Website-Gesundheit",
+        "description": "Wir überprüfen grundlegende Probleme wie Ladegeschwindigkeit, Mobilfreundlichkeit und Sicherheit, die die Benutzererfahrung und Suchrankings beeinflussen."
       }
     ]
   },
   "services": {
-    "title": "Was Wir Überprüfen",
+    "title": "Einfache Lösungen für beschäftigte Geschäftsinhaber",
     "items": [
       {
-        "title": "Barrierefreiheit",
-        "description": "Ist Ihre Website für alle offen, einschließlich Menschen mit Behinderungen?",
-        "details": "Wir stellen sicher, dass Ihre Seite rechtliche Anforderungen erfüllt und alle Kunden bedient."
+        "title": "Kein Technik-Jargon",
+        "description": "Wir sprechen Ihre Sprache, nicht Code.",
+        "details": "Klare, umsetzbare Berichte, die Sie verstehen und umsetzen können."
       },
       {
-        "title": "SEO & KI-Auffindbarkeit",
-        "description": "Wie einfach ist es für Kunden, Sie bei Google und KI-Assistenten zu finden?",
-        "details": "Mit KI-Traffic, der 2024 um das 40-fache gewachsen ist, optimieren wir sowohl für traditionelle Suche als auch für KI-Entdeckung."
+        "title": "Erschwinglich & Flexibel",
+        "description": "Lösungen, die zu Ihrem Budget und Ihren Bedürfnissen passen, von einmaligen Korrekturen bis hin zu laufender Unterstützung.",
+        "details": "Echte Menschen, echte Hilfe bei jedem Schritt."
       },
       {
-        "title": "Website-Gesundheit",
-        "description": "Ist Ihre Seite schnell, sicher und auf allen Geräten einfach zu nutzen?",
-        "details": "Wir überprüfen alles von der Ladegeschwindigkeit bis zur Mobilfreundlichkeit."
+        "title": "Echte Ergebnisse",
+        "description": "Erhalten Sie Expertenhilfe ohne langfristige Verpflichtung.",
+        "details": "Wir können Sie anleiten oder sogar die Änderungen für Sie vornehmen und sicherstellen, dass Ihre Website schnell und effizient auf dem neuesten Stand ist."
       }
     ]
   },
   "aiStats": {
-    "title": "Die Zukunft der Suche Ist Da",
+    "title": "Die Zukunft der Suche ist da",
     "subtitle": "KI-Assistenten wie ChatGPT und Perplexity verändern, wie Kunden Unternehmen finden. Sind Sie bereit?",
     "description": "KI-Verweise sind explodiert—um 2.200% letztes Jahr gestiegen. Doch die meisten Websites verfolgen sie nicht einmal. Wir helfen Unternehmen, sich der nächsten Generation der Suche anzupassen—nicht nur Google, sondern ChatGPT, Perplexity und darüber hinaus.",
     "stats": [
@@ -132,15 +110,15 @@
     "insight": "Besucher von KI-Tools wie ChatGPT betrachten 12% mehr Seiten und haben 23% weniger Absprünge als die von Google. Bessere Leads. Bessere SEO."
   },
   "testimonial": {
-    "title": "Vertraut von Kleinen Unternehmen Wie Ihrem",
-    "quote": "Ich bin keine Technikerin, und ich hatte Sorge, dass meine Website ein Durcheinander war. StreetWiseWeb gab mir einen Bericht, den ich tatsächlich verstehen konnte. Sie wiesen auf einige einfache Korrekturen hin, die einen großen Unterschied machten. Wir haben mehr Online-Anfragen gesehen, seit wir mit ihnen arbeiten.",
-    "author": "Sarah M.",
-    "role": "Inhaberin, Die Buchhandlung an der Ecke"
+    "title": "Echte Ergebnisse, echter Seelenfrieden",
+    "quote": "Ich war völlig überwältigt von all dem technischen Zeug mit meiner Website. StreetWiseWeb machte es so einfach zu verstehen, was repariert werden musste. Ihr Bericht war klar, und sie halfen mir sogar dabei, die Änderungen vorzunehmen. Jetzt fühle ich mich sicher, dass meine Website für mich arbeitet, nicht gegen mich!",
+    "author": "Maria S.",
+    "role": "Inhaberin, Marias Bäckerei"
   },
   "finalCta": {
-    "title": "Bereit zu Sehen, Wie Sich Ihre Website Verbessern Kann?",
-    "subtitle": "Holen Sie sich jetzt Ihren kostenlosen, unverbindlichen Website-Gesundheitsbericht.",
-    "button": "Meinen Kostenlosen Bericht Erhalten"
+    "title": "Bereit, das volle Potenzial Ihrer Website zu erschließen?",
+    "subtitle": "Holen Sie sich heute Ihren kostenlosen, unverbindlichen Website-Gesundheitsbericht und machen Sie den ersten Schritt zu einer gesünderen, profitableren Online-Präsenz.",
+    "button": "Meinen Kostenlosen Website-Gesundheitsbericht Erhalten"
   },
   "features": {
     "wcagCompliance": {

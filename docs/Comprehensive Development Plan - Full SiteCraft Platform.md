@@ -1,4 +1,4 @@
-# Comprehensive Development Plan - Full SiteCraft Platform
+# Comprehensive Development Plan - Full StreetWiseWeb Platform
 
 ## Overview
 This plan encompasses all three Tier 1 services from the business proposal, complete website structure with all pages, and a robust global styling system for consistent branding and easy maintenance.
