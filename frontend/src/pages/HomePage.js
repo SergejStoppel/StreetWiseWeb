@@ -646,6 +646,7 @@ const CTATitle = styled.h2`
   margin-bottom: var(--spacing-md);
   color: var(--color-text-inverse);
   font-family: var(--font-family-primary);
+  text-align: center;
 `;
 
 const CTASubtitle = styled.p`
@@ -654,6 +655,7 @@ const CTASubtitle = styled.p`
   opacity: 0.95;
   color: var(--color-text-inverse);
   font-family: var(--font-family-secondary);
+  text-align: center;
 `;
 
 const CTAButton = styled.button`

@@ -1,105 +1,83 @@
 {
   "hero": {
-    "title": "¿Su Sitio Web Está Perdiendo Clientes?",
-    "subtitle": "Descúbralo gratis. Obtenga un informe simple y sin jerga técnica sobre la salud de su sitio web, y vea cómo puede atraer más clientes.",
-    "formTitle": "Obtener Mi Informe Gratis",
-    "exampleText": "No se necesitan habilidades técnicas. Le enviamos los resultados por correo.",
+    "title": "¿Es Su Sitio Web una Responsabilidad Oculta?",
+    "subtitle": "No permita que el tráfico de IA pase de largo o enfrente costosas demandas por accesibilidad. StreetWiseWeb ayuda a pequeños negocios como el suyo a ser encontrados en línea y mantenerse legalmente seguros, sin el dolor de cabeza tecnológico.",
+    "formTitle": "Obtener Mi Informe Gratuito de Salud Web",
+    "exampleText": "No se necesita tarjeta de crédito. Los resultados se envían directamente por correo.",
     "microcopy": "susitioweb.com"
   },
   "problem": {
-    "title": "Su Sitio Web Debería Ayudar a Su Negocio, No Perjudicarlo.",
-    "intro": "Para muchos propietarios de pequeños negocios, un sitio web puede sentirse como un problema confuso, costoso y que consume tiempo. Podría estar preguntándose:",
+    "title": "Las Amenazas Silenciosas para Su Pequeño Negocio en Línea",
+    "intro": "Usted trabaja duro para servir a sus clientes, pero ¿su sitio web está trabajando duro para usted? Muchos propietarios de pequeños negocios enfrentan sin saberlo dos grandes desafíos que pueden paralizar su crecimiento en línea y llevar a costos inesperados:",
     "questions": [
       {
-        "title": "¿Estoy llegando a los clientes correctos?",
-        "description": "Si su sitio web no está optimizado para motores de búsqueda como Google y asistentes de IA como ChatGPT, probablemente sea invisible para clientes potenciales que buscan sus productos o servicios."
+        "title": "El Auge de la Búsqueda por IA: ¿Es Invisible?",
+        "description": "Los clientes están usando cada vez más herramientas de IA como ChatGPT y Perplexity para encontrar información y negocios. Si su sitio web no está optimizado para estos nuevos métodos de búsqueda, se está perdiendo una ola masiva de clientes potenciales. Las referencias impulsadas por IA aumentaron más del 1000% el año pasado, sin embargo, la mayoría de sitios web no están preparados."
       },
       {
-        "title": "¿Mi sitio web está alejando a la gente?",
-        "description": "Un sitio web lento, confuso o roto frustra a los visitantes y los envía directamente a sus competidores."
-      },
-      {
-        "title": "¿Podría mi sitio web meterme en problemas legales?",
-        "description": "Muchos propietarios de negocios no saben que sus sitios web están legalmente obligados a ser accesibles para personas con discapacidades. Esto puede llevar a demandas costosas."
-      }
-    ]
-  },
-  "agitate": {
-    "title": "Ignorar los Problemas de Su Sitio Web Es Costoso.",
-    "content": "Un sitio web poco saludable no es solo una oportunidad perdida; es una amenaza directa a sus ingresos.",
-    "points": [
-      {
-        "title": "Está Perdiendo Dinero",
-        "description": "Cada cliente que no puede encontrarlo en línea, se frustra con su sitio, o no puede usarlo debido a una discapacidad es una venta que ha perdido."
-      },
-      {
-        "title": "Se Está Quedando Atrás",
-        "description": "Sus competidores se están volviendo más inteligentes en línea. Si su sitio web no se mantiene al día, les está dando su negocio."
-      },
-      {
-        "title": "Está en Riesgo",
-        "description": "Las demandas por accesibilidad contra pequeños negocios están aumentando, con costos potenciales que alcanzan decenas de miles de euros."
+        "title": "Demandas por Accesibilidad: ¿Está en Riesgo?",
+        "description": "Los sitios web están legalmente obligados a ser accesibles para todos, incluidas las personas con discapacidades. Si su sitio no cumple, podría enfrentar demandas costosas, multas y daños a su reputación. Estos casos están aumentando, y los pequeños negocios no están exentos."
       }
     ]
   },
   "solution": {
-    "title": "Hacemos Que Su Sitio Web Trabaje Para Usted.",
-    "subtitle": "StreetWiseWeb es su socio amigable y asequible para un sitio web saludable que atraiga clientes. Traducimos la jerga técnica en pasos simples y accionables para que pueda enfocarse en lo que hace mejor: dirigir su negocio.",
+    "title": "Su Solución Todo en Uno para un Sitio Web Saludable y Rentable",
+    "subtitle": "En StreetWiseWeb, creemos que gestionar su presencia en línea no debería ser complicado. Proporcionamos soluciones directas y accionables para abordar estos desafíos de frente, para que pueda enfocarse en dirigir su negocio.",
     "promise": {
-      "title": "Nuestra Promesa:",
+      "title": "Cómo Ayudamos (Nuestro Enfoque Escalonado):",
       "points": [
         {
-          "title": "No Más Adivinanzas",
-          "description": "Le mostramos exactamente qué está mal y cómo solucionarlo."
+          "title": "Paso 1: Informe Gratuito de Salud Web (Identificar los Problemas)",
+          "description": "Un informe simple y fácil de entender que destaca problemas críticos de SEO y accesibilidad en su sitio web. Usamos tecnología avanzada para escanear su sitio, pero traducimos los hallazgos a un lenguaje sencillo."
         },
         {
-          "title": "Más Clientes, No Más Dolores de Cabeza",
-          "description": "Le ayudamos a ser encontrado en Google, ChatGPT y otros asistentes de IA, mientras proporciona una gran experiencia para sus visitantes."
+          "title": "Paso 2: Correcciones Asistidas y Soluciones Únicas (Hacer que se Arregle)",
+          "description": "Una vez que tenga su informe, podría necesitar ayuda para implementar los cambios. Ofrecemos servicios únicos para ayudarle a arreglar problemas específicos, desde optimizar su contenido para búsqueda por IA hasta hacer su sitio legalmente accesible."
         },
         {
-          "title": "Tranquilidad",
-          "description": "Le ayudamos a entender y abordar sus requisitos legales, protegiéndolo de demandas."
+          "title": "Paso 3: Monitoreo Continuo y Mejoras Automatizadas (Mantenerse Protegido y Crecer)",
+          "description": "Para la máxima tranquilidad y crecimiento continuo, nuestros planes de suscripción proporcionan monitoreo continuo del SEO y accesibilidad de su sitio web. Le alertaremos sobre nuevos problemas, sugeriremos ideas frescas de contenido para detectabilidad por IA, e incluso automatizaremos ciertas correcciones."
         }
       ]
     }
   },
   "howItWorks": {
-    "title": "Obtenga Su Informe Gratuito de Salud Web en 3 Pasos Simples.",
+    "title": "La Verificación Esencial de Salud de Su Sitio Web",
     "steps": [
       {
         "number": "1",
-        "title": "Ingrese Su Sitio Web",
-        "description": "Solo escriba la dirección de su sitio web."
+        "title": "SEO Listo para IA",
+        "description": "Analizamos qué tan bien su sitio web puede ser encontrado por motores de búsqueda tradicionales Y la nueva ola de asistentes de IA como ChatGPT. No se pierda el futuro de la búsqueda."
       },
       {
         "number": "2",
-        "title": "Analizamos Su Sitio",
-        "description": "Nuestra tecnología inteligente escanea su sitio web en busca de problemas críticos."
+        "title": "Cumplimiento de Accesibilidad",
+        "description": "Nos aseguramos de que su sitio web dé la bienvenida a todos los visitantes y cumpla con los requisitos legales, protegiéndole de demandas potenciales y expandiendo su base de clientes."
       },
       {
         "number": "3",
-        "title": "Obtenga Su Informe",
-        "description": "Le enviamos por correo un informe simple y fácil de entender con sus resultados."
+        "title": "Salud General del Sitio Web",
+        "description": "Verificamos problemas fundamentales como velocidad de carga, compatibilidad móvil y seguridad que impactan la experiencia del usuario y los rankings de búsqueda."
       }
     ]
   },
   "services": {
-    "title": "Qué Revisamos",
+    "title": "Soluciones Simples para Propietarios de Negocios Ocupados",
     "items": [
       {
-        "title": "Accesibilidad",
-        "description": "¿Su sitio web está abierto para el negocio a todos, incluidas las personas con discapacidades?",
-        "details": "Nos aseguramos de que su sitio cumpla con los requisitos legales y sirva a todos los clientes."
+        "title": "Sin Jerga Técnica",
+        "description": "Hablamos su idioma, no código.",
+        "details": "Informes claros y accionables que puede entender e implementar."
       },
       {
-        "title": "SEO y Detectabilidad por IA",
-        "description": "¿Qué tan fácil es para los clientes encontrarlo en Google y asistentes de IA?",
-        "details": "Con el tráfico de IA creciendo 40 veces en 2024, optimizamos tanto para búsqueda tradicional como para descubrimiento por IA."
+        "title": "Asequible y Flexible",
+        "description": "Soluciones que se ajustan a su presupuesto y necesidades, desde correcciones únicas hasta apoyo continuo.",
+        "details": "Personas reales, ayuda real en cada paso."
       },
       {
-        "title": "Salud del Sitio Web",
-        "description": "¿Su sitio es rápido, seguro y fácil de usar en todos los dispositivos?",
-        "details": "Revisamos todo, desde la velocidad de carga hasta la compatibilidad móvil."
+        "title": "Resultados Reales",
+        "description": "Obtenga ayuda experta sin compromiso a largo plazo.",
+        "details": "Podemos guiarle o incluso hacer los cambios por usted, asegurando que su sitio web esté al día rápida y eficientemente."
       }
     ]
   },
@@ -132,15 +110,15 @@
     "insight": "Los visitantes de herramientas de IA como ChatGPT ven 12% más páginas y rebotan 23% menos que los de Google. Mejores leads. Mejor SEO."
   },
   "testimonial": {
-    "title": "Confiado por Pequeños Negocios Como el Suyo",
-    "quote": "No soy una persona técnica, y estaba preocupada de que mi sitio web fuera un desastre. StreetWiseWeb me dio un informe que realmente podía entender. Señalaron algunas correcciones simples que hicieron una gran diferencia. Hemos visto más consultas en línea desde que comenzamos a trabajar con ellos.",
-    "author": "María L.",
-    "role": "Propietaria, La Librería de la Esquina"
+    "title": "Resultados Reales, Tranquilidad Real",
+    "quote": "Estaba completamente abrumada por todas las cosas técnicas con mi sitio web. StreetWiseWeb hizo tan fácil entender qué necesitaba arreglarse. Su informe fue claro, e incluso me ayudaron a hacer los cambios. ¡Ahora me siento confiada de que mi sitio web está trabajando para mí, no contra mí!",
+    "author": "María S.",
+    "role": "Propietaria, Panadería de María"
   },
   "finalCta": {
-    "title": "¿Listo para Ver Cómo Su Sitio Web Puede Mejorar?",
-    "subtitle": "Obtenga su informe gratuito y sin compromiso de salud web ahora.",
-    "button": "Obtener Mi Informe Gratis"
+    "title": "¿Listo para Desbloquear el Potencial Completo de Su Sitio Web?",
+    "subtitle": "Obtenga su informe gratuito y sin compromiso de salud web hoy y dé el primer paso hacia una presencia en línea más saludable y rentable.",
+    "button": "Obtener Mi Informe Gratuito de Salud Web"
   },
   "features": {
     "wcagCompliance": {
