@@ -104,7 +104,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Test API connectivity
+  // Test API connectivity (only when actually needed)
   const testApiConnectivity = async () => {
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3005';
     devLog('🌐 Testing API connectivity to:', apiUrl);
@@ -120,8 +120,10 @@ export function AuthProvider({ children }) {
         ok: response.ok,
         url: `${apiUrl}/api/health`
       });
+      return response.ok;
     } catch (error) {
       devError('🌐 API connectivity test failed:', error);
+      return false;
     }
   };
 
@@ -214,8 +216,8 @@ export function AuthProvider({ children }) {
       }
     }, 3000);
 
-    // Test API connectivity first
-    testApiConnectivity();
+    // Only test API connectivity if we have a user session
+    // Homepage and public pages don't need backend connectivity
     
     getInitialSession().finally(() => {
       clearTimeout(initTimeout);

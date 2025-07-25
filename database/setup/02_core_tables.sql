@@ -191,7 +191,7 @@ CREATE TABLE public.deletion_logs (
 -- Report configurations for different report types
 CREATE TABLE public.report_configurations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    report_type TEXT NOT NULL CHECK (report_type IN ('free', 'detailed')),
+    report_type TEXT NOT NULL UNIQUE CHECK (report_type IN ('free', 'detailed')),
     included_features JSONB NOT NULL DEFAULT '{}'::jsonb,
     max_issues_shown INTEGER,
     includes_ai_insights BOOLEAN DEFAULT false,

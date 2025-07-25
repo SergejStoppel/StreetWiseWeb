@@ -12,7 +12,10 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import { accessibilityAPI, analysisAPI } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
-// Import Phase 2 components
+// Import new report display components
+import ReportDisplay from '../components/reports/ReportDisplay';
+
+// Import Phase 2 components (fallback for compatibility)
 import EnhancedReportHeader from '../components/EnhancedReportHeader';
 import AiInsightsDashboard from '../components/AiInsightsDashboard';
 import SeoAnalysisSection from '../components/SeoAnalysisSection';
@@ -438,6 +441,14 @@ const EnhancedResultsPage = () => {
     resultsKeys: Object.keys(results),
     screenshotType: typeof results.screenshot
   });
+
+  // Use new report display if structured report data is available
+  const useNewReportDisplay = results.structuredReport || 
+    (process.env.REACT_APP_USE_NEW_REPORTS === 'true');
+
+  if (useNewReportDisplay) {
+    return <ReportDisplay reportData={results} loading={loading} error={error} />;
+  }
 
   return (
     <ResultsContainer>
