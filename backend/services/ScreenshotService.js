@@ -61,12 +61,12 @@ class ScreenshotService {
       
       // Navigate to the page with timeout
       await page.goto(url, {
-        waitUntil: 'networkidle2',
-        timeout: 30000
+        waitUntil: 'domcontentloaded', // Use faster wait condition 
+        timeout: 15000 // Reduce timeout to 15 seconds
       });
 
-      // Wait for potential dynamic content
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Wait for potential dynamic content (reduced)
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const screenshots = {};
 
@@ -149,11 +149,11 @@ class ScreenshotService {
       await page.setViewport(viewport);
       
       await page.goto(url, {
-        waitUntil: 'networkidle2',
-        timeout: 30000
+        waitUntil: 'domcontentloaded', // Use faster wait condition
+        timeout: 15000 // Reduce timeout to 15 seconds
       });
 
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
       const screenshot = await page.screenshot({
         encoding: 'base64',
@@ -174,6 +174,24 @@ class ScreenshotService {
   }
 
   /**
+   * Capture screenshots with timeout wrapper
+   * @param {string} url - The URL to capture
+   * @param {Object} options - Screenshot options
+   * @param {number} timeoutMs - Timeout in milliseconds
+   * @returns {Object} Screenshot data or throws timeout error
+   */
+  async captureScreenshotsWithTimeout(url, options = {}, timeoutMs = 60000) {
+    return Promise.race([
+      this.captureScreenshots(url, options),
+      new Promise((_, reject) => {
+        setTimeout(() => {
+          reject(new Error(`Screenshot capture timed out after ${timeoutMs / 1000} seconds`));
+        }, timeoutMs);
+      })
+    ]);
+  }
+
+  /**
    * Capture screenshots with error handling and retries
    * @param {string} url - The URL to capture
    * @param {Object} options - Screenshot options
@@ -186,7 +204,8 @@ class ScreenshotService {
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         logger.info(`Screenshot attempt ${attempt} for ${url}`);
-        return await this.captureScreenshots(url, options);
+        // Use timeout wrapper to prevent hanging
+        return await this.captureScreenshotsWithTimeout(url, options, 45000); // 45 second timeout per attempt
       } catch (error) {
         lastError = error;
         logger.warn(`Screenshot attempt ${attempt} failed for ${url}:`, error.message);

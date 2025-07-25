@@ -143,6 +143,52 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Function to find cached analysis for a given URL within cache window
+CREATE OR REPLACE FUNCTION find_cached_analysis(
+    p_url TEXT,
+    p_cache_hours INTEGER DEFAULT 24
+)
+RETURNS TABLE(
+    analysis_id UUID,
+    created_at TIMESTAMPTZ,
+    hours_old NUMERIC,
+    is_cache_valid BOOLEAN
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        a.id as analysis_id,
+        a.created_at,
+        EXTRACT(EPOCH FROM (NOW() - a.created_at))/3600 as hours_old,
+        (EXTRACT(EPOCH FROM (NOW() - a.created_at))/3600) <= p_cache_hours as is_cache_valid
+    FROM analyses a
+    WHERE a.url = p_url
+      AND a.status = 'completed'
+      AND a.created_at > NOW() - INTERVAL '1 hour' * p_cache_hours
+    ORDER BY a.created_at DESC
+    LIMIT 1;
+END;
+$$;
+
+-- Function to increment analysis access count
+CREATE OR REPLACE FUNCTION increment_analysis_access(
+    p_analysis_id UUID
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+    UPDATE analyses 
+    SET access_count = COALESCE(access_count, 0) + 1,
+        updated_at = NOW()
+    WHERE id = p_analysis_id;
+END;
+$$;
+
 -- Function to log report access
 CREATE OR REPLACE FUNCTION log_report_access(
     p_analysis_id UUID,

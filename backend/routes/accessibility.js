@@ -692,23 +692,33 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
         });
       }
 
-      // Generate appropriate report using ReportService
-      logger.info('Generating structured report using ReportService', {
-        requestedType: reportType,
-        userPlan: user?.plan_type || 'anonymous'
-      });
-
-      const structuredReport = await reportService.generateReport(rawAnalysisData, {
-        user: user,
-        requestedReportType: reportType,
-        language: language
-      });
-
-      // Convert to legacy format for backward compatibility
-      const report = reportService.convertToLegacyFormat(structuredReport);
+      // Try to generate structured report, fallback to legacy format if it fails
+      let report = rawAnalysisData;
       
-      // Add structured report data for new frontend components
-      report.structuredReport = structuredReport;
+      try {
+        logger.info('Attempting to generate structured report using ReportService', {
+          requestedType: reportType,
+          userPlan: req.user?.plan_type || 'anonymous'
+        });
+
+        const structuredReport = await reportService.generateReport(rawAnalysisData, {
+          user: req.user,
+          requestedReportType: reportType,
+          language: language
+        });
+
+        // Convert to legacy format for backward compatibility
+        report = reportService.convertToLegacyFormat(structuredReport);
+        
+        // Add structured report data for new frontend components
+        report.structuredReport = structuredReport;
+        
+        logger.info('Structured report generated successfully');
+      } catch (reportError) {
+        logger.warn('Failed to generate structured report, using legacy format:', reportError.message);
+        // Use the original rawAnalysisData as fallback
+        report = rawAnalysisData;
+      }
       
       // Update the cached detailed report with enhanced features
       if (accessibilityReport && accessibilityReport.analysisId) {
