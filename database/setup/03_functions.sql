@@ -143,6 +143,50 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+-- Function to log report access
+CREATE OR REPLACE FUNCTION log_report_access(
+    p_analysis_id UUID,
+    p_user_id UUID,
+    p_access_type TEXT,
+    p_report_type TEXT,
+    p_ip_address INET DEFAULT NULL,
+    p_user_agent TEXT DEFAULT NULL,
+    p_referrer TEXT DEFAULT NULL,
+    p_session_id TEXT DEFAULT NULL
+)
+RETURNS UUID
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+    v_log_id UUID;
+BEGIN
+    INSERT INTO report_access_logs (
+        analysis_id,
+        user_id,
+        access_type,
+        report_type,
+        ip_address,
+        user_agent,
+        referrer,
+        session_id
+    )
+    VALUES (
+        p_analysis_id,
+        p_user_id,
+        p_access_type,
+        p_report_type,
+        p_ip_address,
+        p_user_agent,
+        p_referrer,
+        p_session_id
+    )
+    RETURNING id INTO v_log_id;
+    
+    RETURN v_log_id;
+END;
+$$;
+
 COMMIT;
 
 -- Success message

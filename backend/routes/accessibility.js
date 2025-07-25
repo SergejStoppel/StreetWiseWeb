@@ -6,6 +6,7 @@ const AccessibilityAnalyzer = require('../services/accessibilityAnalyzer');
 const SeoAnalyzer = require('../services/analysis/SeoAnalyzer');
 const AiAnalysisService = require('../services/analysis/AiAnalysisService');
 const screenshotService = require('../services/ScreenshotService');
+const ReportService = require('../services/reports/ReportService');
 // const pdfGenerator = require('../services/pdfGenerator'); // Removed - PDF functionality disabled
 const Analysis = require('../models/Analysis');
 const { extractUser } = require('../middleware/auth');
@@ -16,6 +17,7 @@ const supabase = require('../config/supabase');
 const accessibilityAnalyzer = new AccessibilityAnalyzer();
 const seoAnalyzer = new SeoAnalyzer();
 const aiAnalysisService = new AiAnalysisService();
+const reportService = new ReportService();
 
 const router = express.Router();
 
@@ -654,10 +656,11 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
         throw new Error('Accessibility analysis failed. Unable to generate report.');
       }
 
-      // Create comprehensive report
-      const report = {
+      // Create comprehensive raw analysis data
+      const rawAnalysisData = {
         ...accessibilityReport,
         screenshot: screenshotData,
+        screenshots: screenshotData, // For new report format
         seo: seoData,
         aiInsights: aiData,
         metadata: {
@@ -669,25 +672,43 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
       };
       
       // Update summary with comprehensive data
-      if (report.summary) {
-        report.summary.seoScore = seoData?.score || 0;
-        report.summary.performanceScore = 0; // Placeholder for future performance analysis
+      if (rawAnalysisData.summary) {
+        rawAnalysisData.summary.seoScore = seoData?.score || 0;
+        rawAnalysisData.summary.performanceScore = 0; // Placeholder for future performance analysis
         
         // Use the calculated overallScore from the detailed report
-        report.summary.accessibilityScore = report.overallScore || report.summary.accessibilityScore || 0;
-        report.summary.overallScore = Math.round(
-          (report.summary.accessibilityScore * 0.5) + 
-          (report.summary.seoScore * 0.3) + 
-          (report.summary.performanceScore * 0.2)
+        rawAnalysisData.summary.accessibilityScore = rawAnalysisData.overallScore || rawAnalysisData.summary.accessibilityScore || 0;
+        rawAnalysisData.summary.overallScore = Math.round(
+          (rawAnalysisData.summary.accessibilityScore * 0.5) + 
+          (rawAnalysisData.summary.seoScore * 0.3) + 
+          (rawAnalysisData.summary.performanceScore * 0.2)
         );
         
         logger.info('Updated summary scores:', {
-          accessibilityScore: report.summary.accessibilityScore,
-          seoScore: report.summary.seoScore,
-          overallScore: report.summary.overallScore,
-          reportOverallScore: report.overallScore
+          accessibilityScore: rawAnalysisData.summary.accessibilityScore,
+          seoScore: rawAnalysisData.summary.seoScore,
+          overallScore: rawAnalysisData.summary.overallScore,
+          reportOverallScore: rawAnalysisData.overallScore
         });
       }
+
+      // Generate appropriate report using ReportService
+      logger.info('Generating structured report using ReportService', {
+        requestedType: reportType,
+        userPlan: user?.plan_type || 'anonymous'
+      });
+
+      const structuredReport = await reportService.generateReport(rawAnalysisData, {
+        user: user,
+        requestedReportType: reportType,
+        language: language
+      });
+
+      // Convert to legacy format for backward compatibility
+      const report = reportService.convertToLegacyFormat(structuredReport);
+      
+      // Add structured report data for new frontend components
+      report.structuredReport = structuredReport;
       
       // Update the cached detailed report with enhanced features
       if (accessibilityReport && accessibilityReport.analysisId) {

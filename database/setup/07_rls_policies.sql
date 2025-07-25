@@ -188,6 +188,17 @@ CREATE POLICY "Project owners can manage team members" ON public.team_members
 CREATE POLICY "Users can view own deletion logs" ON public.deletion_logs
     FOR SELECT USING (auth.uid() = user_id);
 
+-- Report configurations policies (read-only for all authenticated users)
+CREATE POLICY "Authenticated users can view report configurations" ON public.report_configurations
+    FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Report access logs policies
+CREATE POLICY "Users can view their own report access logs" ON public.report_access_logs
+    FOR SELECT USING (auth.uid() = user_id);
+
+CREATE POLICY "System can insert report access logs" ON public.report_access_logs
+    FOR INSERT WITH CHECK (true);
+
 COMMIT;
 
 -- Success message

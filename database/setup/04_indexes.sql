@@ -61,6 +61,15 @@ CREATE INDEX idx_deletion_logs_user ON public.deletion_logs(user_id);
 CREATE INDEX idx_deletion_logs_entity ON public.deletion_logs(entity_type, entity_id);
 CREATE INDEX idx_deletion_logs_created ON public.deletion_logs(created_at DESC);
 
+-- Report configurations indexes
+CREATE INDEX idx_report_configurations_type ON public.report_configurations(report_type);
+
+-- Report access logs indexes
+CREATE INDEX idx_report_access_logs_analysis ON public.report_access_logs(analysis_id);
+CREATE INDEX idx_report_access_logs_user ON public.report_access_logs(user_id);
+CREATE INDEX idx_report_access_logs_created ON public.report_access_logs(created_at DESC);
+CREATE INDEX idx_report_access_logs_access_type ON public.report_access_logs(access_type);
+
 COMMIT;
 
 -- Success message

@@ -28,7 +28,7 @@ END $$;
 -- Step 1: Cleanup existing schema (if needed)
 DO $$
 BEGIN
-    RAISE NOTICE '📋 Step 1/9: Cleaning up existing schema...';
+    RAISE NOTICE '📋 Step 1/10: Cleaning up existing schema...';
 END $$;
 
 \i 01_cleanup_existing.sql
@@ -36,7 +36,7 @@ END $$;
 -- Step 2: Create core tables
 DO $$
 BEGIN
-    RAISE NOTICE '📋 Step 2/9: Creating core tables...';
+    RAISE NOTICE '📋 Step 2/10: Creating core tables...';
 END $$;
 
 \i 02_core_tables.sql
@@ -44,7 +44,7 @@ END $$;
 -- Step 3: Create functions
 DO $$
 BEGIN
-    RAISE NOTICE '📋 Step 3/9: Creating database functions...';
+    RAISE NOTICE '📋 Step 3/10: Creating database functions...';
 END $$;
 
 \i 03_functions.sql
@@ -52,7 +52,7 @@ END $$;
 -- Step 4: Create indexes
 DO $$
 BEGIN
-    RAISE NOTICE '📋 Step 4/9: Creating performance indexes...';
+    RAISE NOTICE '📋 Step 4/10: Creating performance indexes...';
 END $$;
 
 \i 04_indexes.sql
@@ -60,7 +60,7 @@ END $$;
 -- Step 5: Create materialized views
 DO $$
 BEGIN
-    RAISE NOTICE '📋 Step 5/9: Creating materialized views...';
+    RAISE NOTICE '📋 Step 5/10: Creating materialized views...';
 END $$;
 
 \i 05_materialized_views.sql
@@ -68,7 +68,7 @@ END $$;
 -- Step 6: Create triggers
 DO $$
 BEGIN
-    RAISE NOTICE '📋 Step 6/9: Creating database triggers...';
+    RAISE NOTICE '📋 Step 6/10: Creating database triggers...';
 END $$;
 
 \i 06_triggers.sql
@@ -76,7 +76,7 @@ END $$;
 -- Step 7: Create RLS policies
 DO $$
 BEGIN
-    RAISE NOTICE '📋 Step 7/9: Creating Row Level Security policies...';
+    RAISE NOTICE '📋 Step 7/10: Creating Row Level Security policies...';
 END $$;
 
 \i 07_rls_policies.sql
@@ -84,7 +84,7 @@ END $$;
 -- Step 8: Set permissions
 DO $$
 BEGIN
-    RAISE NOTICE '📋 Step 8/9: Configuring permissions and grants...';
+    RAISE NOTICE '📋 Step 8/10: Configuring permissions and grants...';
 END $$;
 
 \i 08_permissions.sql
@@ -92,10 +92,18 @@ END $$;
 -- Step 9: Validate setup
 DO $$
 BEGIN
-    RAISE NOTICE '📋 Step 9/9: Validating database setup...';
+    RAISE NOTICE '📋 Step 9/10: Validating database setup...';
 END $$;
 
 \i 09_validation.sql
+
+-- Step 10: Insert initial data
+DO $$
+BEGIN
+    RAISE NOTICE '📋 Step 10/10: Inserting initial configuration data...';
+END $$;
+
+\i 10_initial_data.sql
 
 -- Final completion message
 DO $$

@@ -188,6 +188,36 @@ CREATE TABLE public.deletion_logs (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- Report configurations for different report types
+CREATE TABLE public.report_configurations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    report_type TEXT NOT NULL CHECK (report_type IN ('free', 'detailed')),
+    included_features JSONB NOT NULL DEFAULT '{}'::jsonb,
+    max_issues_shown INTEGER,
+    includes_ai_insights BOOLEAN DEFAULT false,
+    includes_code_snippets BOOLEAN DEFAULT false,
+    includes_remediation_steps BOOLEAN DEFAULT false,
+    includes_full_screenshots BOOLEAN DEFAULT false,
+    includes_seo_analysis BOOLEAN DEFAULT false,
+    watermark_enabled BOOLEAN DEFAULT false,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Report access logs for auditing and analytics
+CREATE TABLE public.report_access_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    analysis_id UUID REFERENCES public.analyses(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES public.user_profiles(id) ON DELETE SET NULL,
+    access_type TEXT NOT NULL CHECK (access_type IN ('view', 'download', 'share', 'generate')),
+    report_type TEXT CHECK (report_type IN ('free', 'detailed')),
+    ip_address INET,
+    user_agent TEXT,
+    referrer TEXT,
+    session_id TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 COMMIT;
 
 -- Success message
