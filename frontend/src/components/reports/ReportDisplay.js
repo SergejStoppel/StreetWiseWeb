@@ -8,7 +8,7 @@ import DetailedReportDisplay from './DetailedReportDisplay';
  * Automatically chooses between FreeReportDisplay and DetailedReportDisplay
  * based on the report data
  */
-const ReportDisplay = ({ reportData, loading = false, error = null }) => {
+const ReportDisplay = ({ reportData, loading = false, error = null, onUpgradeRequest }) => {
   if (loading) {
     return (
       <LoadingContainer>
@@ -62,7 +62,10 @@ const ReportDisplay = ({ reportData, loading = false, error = null }) => {
               and AI-powered insights in our comprehensive report.
             </UpgradeText>
           </UpgradeContent>
-          <UpgradeButton>
+          <UpgradeButton onClick={() => onUpgradeRequest && onUpgradeRequest({
+            action: 'upgrade_to_detailed',
+            url: reportData.url || reportData.structuredReport?.url
+          })}>
             Upgrade to Detailed Report
           </UpgradeButton>
         </UpgradeNotice>
@@ -72,33 +75,9 @@ const ReportDisplay = ({ reportData, loading = false, error = null }) => {
       {isDetailedReport ? (
         <DetailedReportDisplay reportData={reportData} />
       ) : (
-        <FreeReportDisplay reportData={reportData} />
+        <FreeReportDisplay reportData={reportData} onUpgradeRequest={onUpgradeRequest} />
       )}
 
-      {/* Service metadata display for debugging (dev only) */}
-      {process.env.NODE_ENV === 'development' && reportData.serviceMetadata && (
-        <DebugInfo>
-          <DebugTitle>Debug Info (Dev Only)</DebugTitle>
-          <DebugItem>
-            <DebugLabel>Requested Type:</DebugLabel>
-            <DebugValue>{reportData.serviceMetadata.requestedReportType}</DebugValue>
-          </DebugItem>
-          <DebugItem>
-            <DebugLabel>Actual Type:</DebugLabel>
-            <DebugValue>{reportData.serviceMetadata.actualReportType}</DebugValue>
-          </DebugItem>
-          <DebugItem>
-            <DebugLabel>User Plan:</DebugLabel>
-            <DebugValue>{reportData.serviceMetadata.userPlan}</DebugValue>
-          </DebugItem>
-          {reportData.serviceMetadata.accessRestrictions?.hasRestrictions && (
-            <DebugItem>
-              <DebugLabel>Restrictions:</DebugLabel>
-              <DebugValue>{reportData.serviceMetadata.accessRestrictions.message}</DebugValue>
-            </DebugItem>
-          )}
-        </DebugInfo>
-      )}
     </ReportContainer>
   );
 };

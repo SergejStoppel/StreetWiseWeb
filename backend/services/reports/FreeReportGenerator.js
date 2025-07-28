@@ -110,8 +110,8 @@ class FreeReportGenerator {
         // Call to Action
         callToAction: this.generateCallToAction(fullAnalysisData),
 
-        // Basic screenshot (watermarked)
-        screenshot: this.processScreenshot(fullAnalysisData.screenshot),
+        // Basic screenshots (watermarked) - both desktop and mobile
+        screenshot: this.processScreenshots(fullAnalysisData.screenshot),
 
         // Disclaimer
         disclaimer: this.getDisclaimer(),
@@ -373,17 +373,33 @@ class FreeReportGenerator {
   }
 
   /**
-   * Process screenshot with watermark for free reports
+   * Process screenshots with watermark for free reports
    */
-  processScreenshot(screenshot) {
+  processScreenshots(screenshot) {
     if (!screenshot) return null;
 
-    return {
-      url: screenshot.desktop || screenshot.mobile || screenshot,
-      type: 'thumbnail',
+    // Handle both desktop and mobile screenshots
+    const result = {
       watermarked: true,
       caption: 'Website preview - Full resolution available in detailed report'
     };
+
+    // Add desktop screenshot if available
+    if (screenshot.desktop) {
+      result.desktop = screenshot.desktop;
+    }
+
+    // Add mobile screenshot if available  
+    if (screenshot.mobile) {
+      result.mobile = screenshot.mobile;
+    }
+
+    // Fallback for legacy single screenshot format
+    if (!result.desktop && !result.mobile && screenshot) {
+      result.desktop = screenshot;
+    }
+
+    return result;
   }
 
   /**

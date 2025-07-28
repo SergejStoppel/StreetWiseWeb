@@ -221,6 +221,40 @@ const EnhancedResultsPage = () => {
   const { i18n } = useTranslation();
   const { initializing: authInitializing } = useAuth();
 
+  // Handle upgrade requests from the report display
+  const handleUpgradeRequest = async ({ action, url, analysisId: requestedAnalysisId }) => {
+    try {
+      if (action === 'get_detailed_report' || action === 'upgrade_to_detailed') {
+        // Re-run analysis with detailed report type
+        setLoading(true);
+        setError(null);
+        
+        const reportUrl = url || results?.url;
+        if (!reportUrl) {
+          throw new Error('No URL available for detailed analysis');
+        }
+
+        const detailedResults = await accessibilityAPI.analyzeWebsite(
+          reportUrl, 
+          'detailed', 
+          i18n.language
+        );
+        
+        setResults(detailedResults.data);
+        toast.success('Detailed report generated successfully!');
+      } else if (action === 'schedule_consultation') {
+        // For now, show a message about contacting support
+        toast.info('Please contact support to schedule a consultation.');
+      }
+    } catch (error) {
+      console.error('Upgrade request failed:', error);
+      setError(error.message || 'Failed to generate detailed report');
+      toast.error(error.message || 'Failed to generate detailed report');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     console.log('📊 Results page useEffect triggered', { analysisId, authInitializing });
 
@@ -447,7 +481,12 @@ const EnhancedResultsPage = () => {
     (process.env.REACT_APP_USE_NEW_REPORTS === 'true');
 
   if (useNewReportDisplay) {
-    return <ReportDisplay reportData={results} loading={loading} error={error} />;
+    return <ReportDisplay 
+      reportData={results} 
+      loading={loading} 
+      error={error} 
+      onUpgradeRequest={handleUpgradeRequest} 
+    />;
   }
 
   return (

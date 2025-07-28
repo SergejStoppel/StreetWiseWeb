@@ -2,10 +2,24 @@ import React from 'react';
 import styled from 'styled-components';
 import { FreeReportSummary } from '../../models/FreeReportSummary';
 
-const FreeReportDisplay = ({ reportData }) => {
+const FreeReportDisplay = ({ reportData, onUpgradeRequest }) => {
   // Convert raw data to structured model
   const report = new FreeReportSummary(reportData?.structuredReport || reportData);
   const complianceStyle = report.getComplianceStatusStyling();
+
+  // Handle upgrade button clicks
+  const handleUpgradeClick = (actionType = 'upgrade_to_detailed') => {
+    if (onUpgradeRequest) {
+      onUpgradeRequest({
+        action: actionType,
+        analysisId: report.analysisId,
+        url: report.url
+      });
+    } else {
+      // Fallback: request detailed report for same URL
+      window.location.href = `/analyze?url=${encodeURIComponent(report.url)}&type=detailed`;
+    }
+  };
 
   return (
     <ReportContainer>
@@ -21,8 +35,27 @@ const FreeReportDisplay = ({ reportData }) => {
         
         {report.screenshot && (
           <ScreenshotContainer>
-            <Screenshot src={report.screenshot.url || report.screenshot} alt="Website preview" />
-            <WatermarkOverlay>Preview - Full resolution in detailed report</WatermarkOverlay>
+            {report.screenshot.desktop && (
+              <ScreenshotViewport>
+                <ViewportLabel>Desktop</ViewportLabel>
+                <Screenshot src={report.screenshot.desktop} alt="Desktop website preview" />
+                <WatermarkOverlay>Preview - Full resolution in detailed report</WatermarkOverlay>
+              </ScreenshotViewport>
+            )}
+            {report.screenshot.mobile && (
+              <ScreenshotViewport>
+                <ViewportLabel>Mobile</ViewportLabel>
+                <Screenshot src={report.screenshot.mobile} alt="Mobile website preview" />
+                <WatermarkOverlay>Preview - Full resolution in detailed report</WatermarkOverlay>
+              </ScreenshotViewport>
+            )}
+            {/* Fallback for legacy single screenshot */}
+            {!report.screenshot.desktop && !report.screenshot.mobile && (
+              <ScreenshotViewport>
+                <Screenshot src={report.screenshot.url || report.screenshot} alt="Website preview" />
+                <WatermarkOverlay>Preview - Full resolution in detailed report</WatermarkOverlay>
+              </ScreenshotViewport>
+            )}
           </ScreenshotContainer>
         )}
       </ReportHeader>
@@ -132,10 +165,13 @@ const FreeReportDisplay = ({ reportData }) => {
           <CTAContent>{report.callToAction.content}</CTAContent>
           
           <CTAButtons>
-            <PrimaryCTAButton highlight={report.callToAction.primaryCTA.highlight}>
+            <PrimaryCTAButton 
+              highlight={report.callToAction.primaryCTA.highlight}
+              onClick={() => handleUpgradeClick('get_detailed_report')}
+            >
               {report.callToAction.primaryCTA.text}
             </PrimaryCTAButton>
-            <SecondaryCTAButton>
+            <SecondaryCTAButton onClick={() => handleUpgradeClick('schedule_consultation')}>
               {report.callToAction.secondaryCTA.text}
             </SecondaryCTAButton>
           </CTAButtons>
@@ -219,14 +255,39 @@ const FreeReportBadge = styled.span`
 `;
 
 const ScreenshotContainer = styled.div`
+  display: flex;
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+`;
+
+const ScreenshotViewport = styled.div`
   position: relative;
   border-radius: 0.5rem;
   overflow: hidden;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  flex: 1;
+`;
+
+const ViewportLabel = styled.div`
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  z-index: 1;
 `;
 
 const Screenshot = styled.img`
-  width: 200px;
+  width: 100%;
+  max-width: 200px;
   height: auto;
   display: block;
   

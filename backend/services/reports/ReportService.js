@@ -77,18 +77,32 @@ class ReportService {
   async determineReportType(user, requestedType) {
     // Anonymous users always get free reports
     if (!user) {
+      logger.info('No user provided, returning free report');
       return 'free';
     }
 
-    // In development, allow detailed reports for testing
-    if (process.env.NODE_ENV === 'development' && requestedType === 'detailed') {
-      logger.info('Development mode: allowing detailed report');
+    logger.info('Determining report type', {
+      userId: user.id,
+      userPlan: user.plan_type,
+      requestedType,
+      isDevelopment: process.env.NODE_ENV === 'development'
+    });
+
+    // In development, allow detailed reports for authenticated users
+    if (process.env.NODE_ENV === 'development' && requestedType === 'detailed' && user.id) {
+      logger.info('Development mode: allowing detailed report for authenticated user');
       return 'detailed';
     }
 
     // Check user plan permissions
     const userPlan = user.plan_type || 'free';
     const canAccessDetailed = await this.canUserAccessDetailedReport(user);
+
+    logger.info('Report access check results', {
+      userPlan,
+      canAccessDetailed,
+      requestedType
+    });
 
     if (requestedType === 'detailed' && canAccessDetailed) {
       return 'detailed';

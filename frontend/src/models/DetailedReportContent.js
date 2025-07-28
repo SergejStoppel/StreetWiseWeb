@@ -48,14 +48,14 @@ export class DetailedReportContent {
    * Get total issue count across all categories
    */
   get totalIssueCount() {
-    return this.executiveSummary.summaryOfFindings.totalIssues || 0;
+    return this.executiveSummary?.summaryOfFindings?.totalIssues || 0;
   }
 
   /**
    * Get critical issues across all categories
    */
   get criticalIssueCount() {
-    const accessibilityCount = this.executiveSummary.summaryOfFindings.byCategory?.accessibility?.critical || 0;
+    const accessibilityCount = this.executiveSummary?.summaryOfFindings?.byCategory?.accessibility?.critical || 0;
     return accessibilityCount; // Add other categories when available
   }
 
@@ -63,7 +63,7 @@ export class DetailedReportContent {
    * Get compliance status styling information
    */
   getComplianceStatusStyling() {
-    const status = this.executiveSummary.complianceStatus.level;
+    const status = this.executiveSummary?.complianceStatus?.level || 'NON-COMPLIANT';
     
     const stylingMap = {
       'COMPLIANT': {
@@ -99,28 +99,28 @@ export class DetailedReportContent {
    * Get violations grouped by WCAG principle
    */
   getViolationsByPrinciple() {
-    return this.accessibilityViolations.violationsByPrinciple || [];
+    return this.accessibilityViolations?.violationsByPrinciple || [];
   }
 
   /**
    * Get SEO recommendations by category
    */
   getSeoRecommendationsByCategory() {
-    return this.seoRecommendations.categories || [];
+    return this.seoRecommendations?.categories || [];
   }
 
   /**
    * Get prioritized action items
    */
   getPrioritizedActions() {
-    return this.recommendations.prioritizationMatrix || [];
+    return this.recommendations?.prioritizationMatrix || [];
   }
 
   /**
    * Get implementation roadmap phases
    */
   getImplementationPhases() {
-    const roadmap = this.recommendations.implementationRoadmap || {};
+    const roadmap = this.recommendations?.implementationRoadmap || {};
     return [
       roadmap.phase1,
       roadmap.phase2,

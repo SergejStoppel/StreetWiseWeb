@@ -6,9 +6,49 @@ const DetailedReportDisplay = ({ reportData }) => {
   const [activeTab, setActiveTab] = useState('executive');
   const [expandedSections, setExpandedSections] = useState({});
 
-  // Convert raw data to structured model
-  const report = new DetailedReportContent(reportData?.structuredReport || reportData);
-  const complianceStyle = report.getComplianceStatusStyling();
+  // Check if we have proper detailed report data
+  const hasDetailedData = reportData?.structuredReport || 
+    (reportData?.reportType === 'detailed' && reportData?.executiveSummary);
+
+  // If we don't have detailed data, show upgrade message
+  if (!hasDetailedData) {
+    return (
+      <UpgradeContainer>
+        <UpgradeIcon>🔒</UpgradeIcon>
+        <UpgradeTitle>Detailed Report Not Available</UpgradeTitle>
+        <UpgradeMessage>
+          This analysis doesn't have detailed report data. The detailed report includes 
+          comprehensive insights, code examples, and step-by-step remediation instructions.
+        </UpgradeMessage>
+        <UpgradeButton onClick={() => window.location.href = '/pricing'}>
+          Upgrade to Access Detailed Reports
+        </UpgradeButton>
+      </UpgradeContainer>
+    );
+  }
+
+  // Convert raw data to structured model with error handling
+  let report, complianceStyle;
+  try {
+    report = new DetailedReportContent(reportData?.structuredReport || reportData);
+    complianceStyle = report.getComplianceStatusStyling();
+  } catch (error) {
+    console.error('Error creating DetailedReportContent:', error);
+    // Fallback to upgrade container if report creation fails
+    return (
+      <UpgradeContainer>
+        <UpgradeIcon>⚠️</UpgradeIcon>
+        <UpgradeTitle>Report Data Error</UpgradeTitle>
+        <UpgradeMessage>
+          There was an error processing the detailed report data. This might be because 
+          the report doesn't contain the expected detailed structure.
+        </UpgradeMessage>
+        <UpgradeButton onClick={() => window.location.reload()}>
+          Refresh Page
+        </UpgradeButton>
+      </UpgradeContainer>
+    );
+  }
 
   const toggleSection = (sectionId) => {
     setExpandedSections(prev => ({
@@ -1471,6 +1511,58 @@ const ExportButton = styled.button`
     color: white;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+  }
+`;
+
+// Upgrade Container Components
+const UpgradeContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 3rem;
+  text-align: center;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin: 2rem;
+`;
+
+const UpgradeIcon = styled.div`
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+`;
+
+const UpgradeTitle = styled.h2`
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+`;
+
+const UpgradeMessage = styled.p`
+  font-size: 1.125rem;
+  color: #6b7280;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 0 2rem 0;
+`;
+
+const UpgradeButton = styled.button`
+  background: linear-gradient(135deg, #6366f1, #4f46e5);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 0.75rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
   }
 `;
 
