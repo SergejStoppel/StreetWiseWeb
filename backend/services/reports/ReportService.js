@@ -29,35 +29,41 @@ class ReportService {
     });
 
     try {
-      // Determine actual report type based on user permissions
-      const actualReportType = await this.determineReportType(user, requestedReportType);
-      
-      // Generate report using appropriate generator
+      // Always generate the requested report type - access control is handled separately
       let report;
-      if (actualReportType === 'detailed') {
+      if (requestedReportType === 'detailed') {
+        logger.info('Generating detailed report as requested');
         report = await this.detailedReportGenerator.generateReport(analysisData, {
           userId: user?.id,
           language
         });
       } else {
+        logger.info('Generating free report as requested');
         report = await this.freeReportGenerator.generateReport(analysisData, {
           userId: user?.id,
           language
         });
       }
 
+      // Check user access permissions for metadata
+      const canAccessDetailed = await this.canUserAccessDetailedReport(user);
+      const isDevelopment = process.env.NODE_ENV === 'development' || process.env.APP_ENV === 'development';
+      const hasAccess = canAccessDetailed || isDevelopment;
+
       // Add service metadata
       report.serviceMetadata = {
-        actualReportType,
+        actualReportType: requestedReportType, // Always the requested type
         requestedReportType,
         userPlan: user?.plan_type || 'anonymous',
-        accessRestrictions: this.getAccessRestrictions(user, actualReportType),
-        upgradeOptions: this.getUpgradeOptions(user, requestedReportType, actualReportType)
+        accessRestrictions: this.getAccessRestrictions(user, requestedReportType),
+        upgradeOptions: this.getUpgradeOptions(user, requestedReportType, requestedReportType),
+        hasDetailedAccess: hasAccess
       };
 
       logger.info('Report generated successfully', {
         analysisId: analysisData.analysisId,
-        actualType: actualReportType,
+        actualType: requestedReportType,
+        hasAccess,
         issuesCount: report.executiveSummary?.issueCounts?.total || 0
       });
 
@@ -68,52 +74,7 @@ class ReportService {
     }
   }
 
-  /**
-   * Determine what type of report the user can access
-   * @param {Object} user - User object with plan information
-   * @param {string} requestedType - Report type requested
-   * @returns {string} Actual report type to generate
-   */
-  async determineReportType(user, requestedType) {
-    // Anonymous users always get free reports
-    if (!user) {
-      logger.info('No user provided, returning free report');
-      return 'free';
-    }
 
-    logger.info('Determining report type', {
-      userId: user.id,
-      userPlan: user.plan_type,
-      requestedType,
-      isDevelopment: process.env.NODE_ENV === 'development' || process.env.APP_ENV === 'development',
-      NODE_ENV: process.env.NODE_ENV,
-      APP_ENV: process.env.APP_ENV
-    });
-
-    // In development, allow detailed reports for authenticated users
-    const isDevelopment = process.env.NODE_ENV === 'development' || process.env.APP_ENV === 'development';
-    if (isDevelopment && requestedType === 'detailed' && user.id) {
-      logger.info('Development mode: allowing detailed report for authenticated user');
-      return 'detailed';
-    }
-
-    // Check user plan permissions
-    const userPlan = user.plan_type || 'free';
-    const canAccessDetailed = await this.canUserAccessDetailedReport(user);
-
-    logger.info('Report access check results', {
-      userPlan,
-      canAccessDetailed,
-      requestedType
-    });
-
-    if (requestedType === 'detailed' && canAccessDetailed) {
-      return 'detailed';
-    }
-
-    // Default to free report
-    return 'free';
-  }
 
   /**
    * Check if user can access detailed reports
@@ -165,11 +126,27 @@ class ReportService {
    * @returns {Object} Access restrictions
    */
   getAccessRestrictions(user, reportType) {
+    // Check if user has access to detailed reports
+    const isDevelopment = process.env.NODE_ENV === 'development' || process.env.APP_ENV === 'development';
+    const userPlan = user?.plan_type || 'free';
+    const hasAccess = (userPlan === 'premium' || userPlan === 'basic') || isDevelopment;
+
     if (reportType === 'detailed') {
-      return {
-        hasRestrictions: false,
-        message: null
-      };
+      if (hasAccess) {
+        return {
+          hasRestrictions: false,
+          message: null
+        };
+      } else {
+        return {
+          hasRestrictions: true,
+          message: 'Detailed reports require a premium account or development access.',
+          limitations: [
+            'Premium account required',
+            'Contact support for access'
+          ]
+        };
+      }
     }
 
     // Free report restrictions
@@ -189,20 +166,25 @@ class ReportService {
   /**
    * Get upgrade options for the user
    * @param {Object} user - User object
-   * @param {string} requestedType - Originally requested report type
-   * @param {string} actualType - Actually generated report type
+   * @param {string} requestedType - Report type that was requested
+   * @param {string} reportType - Report type being generated (same as requestedType now)
    * @returns {Object} Upgrade options
    */
-  getUpgradeOptions(user, requestedType, actualType) {
-    // If user got what they requested, no upgrade needed
-    if (requestedType === actualType) {
+  getUpgradeOptions(user, requestedType, reportType) {
+    // Simple check for development mode and user plan
+    const isDevelopment = process.env.NODE_ENV === 'development' || process.env.APP_ENV === 'development';
+    const userPlan = user?.plan_type || 'free';
+    const hasAccess = (userPlan === 'premium' || userPlan === 'basic') || isDevelopment;
+
+    // If user has access to detailed reports, no upgrade needed
+    if (hasAccess) {
       return {
         showUpgradePrompt: false
       };
     }
 
-    // If user requested detailed but got free, show upgrade options
-    if (requestedType === 'detailed' && actualType === 'free') {
+    // If user requested detailed but doesn't have access, show upgrade options
+    if (requestedType === 'detailed') {
       return {
         showUpgradePrompt: true,
         reason: 'detailed_report_requested',
@@ -226,7 +208,7 @@ class ReportService {
       };
     }
 
-    // Default upgrade prompt for free users
+    // Default upgrade prompt for free users viewing free reports
     return {
       showUpgradePrompt: true,
       reason: 'free_report_limitations',

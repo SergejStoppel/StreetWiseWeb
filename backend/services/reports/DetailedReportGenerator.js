@@ -118,7 +118,7 @@ class DetailedReportGenerator {
         seoRecommendations: this.processSeoRecommendations(fullAnalysisData),
 
         // AI Insights
-        aiInsights: this.processAiInsights(fullAnalysisData),
+        aiInsights: await this.processAiInsights(fullAnalysisData),
 
         // Screenshots (High-res, multiple views)
         screenshots: this.processScreenshots(fullAnalysisData),
@@ -450,14 +450,13 @@ class DetailedReportGenerator {
   /**
    * Process AI insights
    */
-  processAiInsights(analysisData) {
+  async processAiInsights(analysisData) {
     const aiData = analysisData.aiInsights || {};
     
     return {
       enabled: true,
       remediationPriority: this.generateAiRemediationPriority(analysisData),
-      businessImpactAnalysis: this.generateAiBusinessImpact(analysisData),
-      implementationTimeline: this.generateImplementationTimeline(analysisData),
+      businessImpactAnalysis: await this.generateAiBusinessImpact(analysisData),
       competitorInsights: aiData.competitorInsights || null,
       customRecommendations: aiData.customRecommendations || []
     };
@@ -489,6 +488,218 @@ class DetailedReportGenerator {
       topPriorities: prioritizedViolations.slice(0, 5),
       quickWins: prioritizedViolations.filter(v => v.effortScore <= 3).slice(0, 5),
       highImpact: prioritizedViolations.filter(v => v.businessImpact >= 8).slice(0, 5)
+    };
+  }
+
+  /**
+   * Generate AI-powered business impact analysis using OpenAI
+   */
+  async generateAiBusinessImpact(analysisData) {
+    try {
+      // Get OpenAI configuration
+      const envConfig = require('../../config/environment');
+      const openaiApiKey = envConfig.OPENAI_API_KEY;
+      const openaiModel = envConfig.OPENAI_MODEL || 'gpt-4o-mini';
+      const maxTokens = envConfig.OPENAI_MAX_TOKENS || 2000;
+      const temperature = envConfig.OPENAI_TEMPERATURE || 0.3;
+
+      if (!openaiApiKey) {
+        console.warn('OpenAI API key not configured, returning fallback business impact analysis');
+        return this.generateFallbackBusinessImpact(analysisData);
+      }
+
+      // Prepare analysis data for OpenAI
+      const violations = analysisData.violations || [];
+      const summary = analysisData.summary || {};
+      const seoData = analysisData.seo || {};
+      
+      const prompt = this.buildBusinessImpactPrompt(analysisData.url, violations, summary, seoData);
+
+      // Make OpenAI API call
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openaiApiKey}`
+        },
+        body: JSON.stringify({
+          model: openaiModel,
+          messages: [
+            {
+              role: 'system',
+              content: 'You are an expert business analyst specializing in digital accessibility and web compliance. Provide structured, actionable business impact analysis.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          max_tokens: maxTokens,
+          temperature: temperature,
+          response_format: { type: 'json_object' }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const content = data.choices[0]?.message?.content;
+
+      if (!content) {
+        throw new Error('No content received from OpenAI API');
+      }
+
+      // Parse the JSON response
+      const businessImpact = JSON.parse(content);
+      
+      console.log('OpenAI business impact analysis generated successfully');
+      return businessImpact;
+
+    } catch (error) {
+      console.error('Failed to generate AI business impact analysis:', error.message);
+      console.log('Falling back to static business impact analysis');
+      return this.generateFallbackBusinessImpact(analysisData);
+    }
+  }
+
+  /**
+   * Build prompt for OpenAI business impact analysis
+   */
+  buildBusinessImpactPrompt(url, violations, summary, seoData) {
+    const criticalIssues = violations.filter(v => v.impact === 'critical').length;
+    const seriousIssues = violations.filter(v => v.impact === 'serious').length;
+    const moderateIssues = violations.filter(v => v.impact === 'moderate').length;
+    const minorIssues = violations.filter(v => v.impact === 'minor').length;
+    
+    const topViolations = violations.slice(0, 5).map(v => ({
+      type: v.help,
+      impact: v.impact,
+      occurrences: v.nodes?.length || 0,
+      description: v.description || 'No description available'
+    }));
+
+    return `Analyze the business impact of accessibility issues for the website: ${url}
+
+Website Analysis Summary:
+- Overall Accessibility Score: ${summary.overallScore || 0}/100
+- Critical Issues: ${criticalIssues}
+- Serious Issues: ${seriousIssues}
+- Moderate Issues: ${moderateIssues}
+- Minor Issues: ${minorIssues}
+- SEO Score: ${seoData.score || 0}/100
+
+Top Accessibility Issues:
+${JSON.stringify(topViolations, null, 2)}
+
+Please provide a comprehensive business impact analysis in the following JSON format:
+
+{
+  "businessRisks": {
+    "level": "high|medium|low",
+    "score": 1-10,
+    "marketAccess": "limited|moderate|unlimited",
+    "brandReputation": "at-risk|moderate|secure",
+    "legalCompliance": "at-risk|moderate|compliant"
+  },
+  "financialImpact": {
+    "complianceCosts": {
+      "total": 0,
+      "breakdown": {
+        "audit": 0,
+        "testing": 0,
+        "development": 0
+      },
+      "totalHours": 0,
+      "testingHours": 0,
+      "developmentHours": 0,
+      "estimatedCost": 0
+    },
+    "implementationROI": {
+      "roi": 0,
+      "paybackPeriod": "string",
+      "potentialBenefits": 0,
+      "investmentRequired": 0
+    },
+    "estimatedLostRevenue": {
+      "percentage": 0,
+      "description": "string",
+      "factors": ["factor1", "factor2"]
+    }
+  },
+  "potentialUserImpact": {
+    "disabilityTypes": ["visual", "motor", "cognitive", "auditory"],
+    "severityDistribution": {
+      "minor": 0,
+      "serious": 0,
+      "critical": 0,
+      "moderate": 0
+    },
+    "affectedUserPercentage": 0
+  }
+}
+
+Focus on providing realistic, actionable insights that a business owner would find valuable for decision-making.`;
+  }
+
+  /**
+   * Generate fallback business impact analysis when OpenAI is not available
+   */
+  generateFallbackBusinessImpact(analysisData) {
+    const violations = analysisData.violations || [];
+    const summary = analysisData.summary || {};
+    
+    const criticalIssues = violations.filter(v => v.impact === 'critical').length;
+    const seriousIssues = violations.filter(v => v.impact === 'serious').length;
+    const totalIssues = violations.length;
+    
+    const riskLevel = criticalIssues > 5 ? 'high' : criticalIssues > 2 ? 'medium' : 'low';
+    const riskScore = Math.min(10, Math.max(1, criticalIssues * 2 + seriousIssues));
+    
+    return {
+      businessRisks: {
+        level: riskLevel,
+        score: riskScore,
+        marketAccess: riskLevel === 'high' ? 'limited' : 'moderate',
+        brandReputation: riskLevel === 'high' ? 'at-risk' : 'moderate',
+        legalCompliance: riskLevel === 'high' ? 'at-risk' : 'moderate'
+      },
+      financialImpact: {
+        complianceCosts: {
+          total: totalIssues * 100,
+          breakdown: {
+            audit: 2500,
+            testing: totalIssues * 20,
+            development: totalIssues * 80
+          },
+          totalHours: totalIssues * 2,
+          testingHours: totalIssues * 0.5,
+          developmentHours: totalIssues * 1.5,
+          estimatedCost: totalIssues * 100
+        },
+        implementationROI: {
+          roi: 45,
+          paybackPeriod: '12-18 months',
+          potentialBenefits: totalIssues * 50,
+          investmentRequired: totalIssues * 100
+        },
+        estimatedLostRevenue: {
+          percentage: Math.min(5, totalIssues * 0.5),
+          description: 'Estimated revenue loss from accessibility barriers',
+          factors: ['User abandonment', 'Reduced conversion', 'Limited market reach']
+        }
+      },
+      potentialUserImpact: {
+        disabilityTypes: ['visual', 'motor', 'cognitive', 'auditory'],
+        severityDistribution: {
+          minor: violations.filter(v => v.impact === 'minor').length,
+          serious: seriousIssues,
+          critical: criticalIssues,
+          moderate: violations.filter(v => v.impact === 'moderate').length
+        },
+        affectedUserPercentage: Math.min(30, totalIssues * 2)
+      }
     };
   }
 
