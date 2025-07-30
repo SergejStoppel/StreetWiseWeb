@@ -573,8 +573,9 @@ class Analysis {
       },
       metadata: dbRecord.metadata,
       screenshot: this.formatScreenshotsForFrontend(screenshots, dbRecord.user_id, dbRecord.id),
-      seo: dbRecord.seo_analysis,
-      aiInsights: dbRecord.ai_insights
+      // Extract SEO and AI data from analysis_data JSONB field
+      seo: dbRecord.analysis_data?.seo || null,
+      aiInsights: dbRecord.analysis_data?.aiInsights || null
     };
   }
 

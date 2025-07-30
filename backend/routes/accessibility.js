@@ -1088,7 +1088,13 @@ router.get('/detailed/:analysisId', extractUser, async (req, res) => {
             hasAiInsights: !!detailedReport.aiInsights,
             hasViolations: !!(detailedReport.violations && detailedReport.violations.length > 0),
             reportType: detailedReport.reportType,
-            overallScore: detailedReport.overallScore
+            overallScore: detailedReport.overallScore,
+            // Debug data structure
+            dataKeys: Object.keys(detailedReport),
+            summaryKeys: Object.keys(detailedReport.summary || {}),
+            screenshotStructure: detailedReport.screenshot,
+            seoKeys: Object.keys(detailedReport.seo || {}),
+            aiKeys: Object.keys(detailedReport.aiInsights || {})
           });
 
           // Ensure the report has the correct reportType for detailed reports

@@ -85,11 +85,14 @@ class ReportService {
       userId: user.id,
       userPlan: user.plan_type,
       requestedType,
-      isDevelopment: process.env.NODE_ENV === 'development'
+      isDevelopment: process.env.NODE_ENV === 'development' || process.env.APP_ENV === 'development',
+      NODE_ENV: process.env.NODE_ENV,
+      APP_ENV: process.env.APP_ENV
     });
 
     // In development, allow detailed reports for authenticated users
-    if (process.env.NODE_ENV === 'development' && requestedType === 'detailed' && user.id) {
+    const isDevelopment = process.env.NODE_ENV === 'development' || process.env.APP_ENV === 'development';
+    if (isDevelopment && requestedType === 'detailed' && user.id) {
       logger.info('Development mode: allowing detailed report for authenticated user');
       return 'detailed';
     }
