@@ -54,11 +54,19 @@ CREATE TABLE public.analyses (
     url TEXT NOT NULL,
     report_type VARCHAR(50) DEFAULT 'overview',
     language VARCHAR(10) DEFAULT 'en',
-    overall_score INTEGER DEFAULT 0 CHECK (overall_score >= 0 AND overall_score <= 100),
-    accessibility_score INTEGER DEFAULT 0 CHECK (accessibility_score >= 0 AND accessibility_score <= 100),
-    seo_score INTEGER DEFAULT 0 CHECK (seo_score >= 0 AND seo_score <= 100),
-    performance_score INTEGER DEFAULT 0 CHECK (performance_score >= 0 AND performance_score <= 100),
+    overall_score INTEGER DEFAULT 0 NOT NULL CHECK (overall_score >= 0 AND overall_score <= 100),
+    accessibility_score INTEGER DEFAULT 0 NOT NULL CHECK (accessibility_score >= 0 AND accessibility_score <= 100),
+    seo_score INTEGER DEFAULT 0 NOT NULL CHECK (seo_score >= 0 AND seo_score <= 100),
+    performance_score INTEGER DEFAULT 0 NOT NULL CHECK (performance_score >= 0 AND performance_score <= 100),
     analysis_data JSONB DEFAULT '{}'::jsonb,
+    
+    -- Dual report storage (both free and detailed reports generated upfront)
+    free_report JSONB DEFAULT '{}'::jsonb,
+    detailed_report JSONB DEFAULT '{}'::jsonb,
+    detailed_report_paid BOOLEAN DEFAULT FALSE,
+    detailed_report_paid_at TIMESTAMPTZ NULL,
+    has_detailed_access BOOLEAN DEFAULT FALSE,
+    
     metadata JSONB DEFAULT '{}'::jsonb,
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -202,6 +210,23 @@ CREATE TABLE public.report_configurations (
     watermark_enabled BOOLEAN DEFAULT false,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Subscriptions table for premium access control
+CREATE TABLE public.subscriptions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES public.user_profiles(id) ON DELETE CASCADE,
+    plan_type VARCHAR(20) NOT NULL DEFAULT 'free' CHECK (plan_type IN ('free', 'basic', 'premium')),
+    status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive', 'cancelled', 'expired')),
+    stripe_subscription_id TEXT UNIQUE,
+    stripe_customer_id TEXT,
+    current_period_start TIMESTAMPTZ,
+    current_period_end TIMESTAMPTZ,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    
+    -- Constraints
+    UNIQUE(user_id, stripe_subscription_id)
 );
 
 -- Report access logs for auditing and analytics

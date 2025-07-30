@@ -566,63 +566,74 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
         }
         
         if (browserAvailable) {
-          // Run additional services with separate browser instances for better isolation
-          let browser = null;
-          let page = null;
+          // Use FRESH browser instance for SEO, AI, and screenshot services
+          let seoAiPage = null;
+          let screenshotBrowser = null;
           
           try {
-            // Get the browser instance from the accessibility analyzer for SEO and AI analysis
-            browser = accessibilityAnalyzer.browserUtils.getBrowser();
-            
-            if (!browser) {
-              logger.warn('No browser instance available from accessibility analyzer, creating new one');
-              const launchOptions = browserConfig.getLaunchOptions();
-              browser = await puppeteer.launch(launchOptions);
+            // Create a fresh page for SEO and AI analysis (using accessibility analyzer's browser)
+            const accessibilityBrowser = accessibilityAnalyzer.browserUtils.getBrowser();
+            if (accessibilityBrowser) {
+              seoAiPage = await accessibilityBrowser.newPage();
+              
+              // Set up page for analysis
+              await seoAiPage.setViewport({ width: 1920, height: 1080 });
+              await seoAiPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+              await seoAiPage.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+              
+              // Run SEO analysis
+              try {
+                logger.info('Running SEO analysis');
+                seoData = await seoAnalyzer.analyze(seoAiPage, url);
+                logger.info('SEO analysis completed', { score: seoData?.score || 0 });
+              } catch (err) {
+                logger.warn('SEO analysis failed:', err.message);
+              }
+              
+              // Run AI analysis
+              try {
+                logger.info('Running AI analysis');
+                aiData = await aiAnalysisService.analyze(seoAiPage, url, {
+                  accessibility: accessibilityReport,
+                  seo: seoData
+                });
+                logger.info('AI analysis completed');
+              } catch (err) {
+                logger.warn('AI analysis failed:', err.message);
+              }
+              
+              // Close the SEO/AI page to free resources
+              await seoAiPage.close();
+              seoAiPage = null;
             }
             
-            logger.info('Using browser instance for SEO and AI analysis');
-            page = await browser.newPage();
+            // Create a COMPLETELY FRESH browser instance for screenshots to avoid state corruption
+            logger.info('Creating fresh browser instance for screenshot capture');
+            const launchOptions = browserConfig.getLaunchOptions();
+            screenshotBrowser = await puppeteer.launch(launchOptions);
+            const screenshotPage = await screenshotBrowser.newPage();
             
-            // Set up page for analysis
-            await page.setViewport({ width: 1920, height: 1080 });
-            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-            await page.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
-            
-            // Run SEO analysis
+            // Capture screenshots using the fresh browser instance
             try {
-              logger.info('Running SEO analysis');
-              seoData = await seoAnalyzer.analyze(page, url);
-              logger.info('SEO analysis completed', { score: seoData?.score || 0 });
-            } catch (err) {
-              logger.warn('SEO analysis failed:', err.message);
-            }
-            
-            // Run AI analysis
-            try {
-              logger.info('Running AI analysis');
-              aiData = await aiAnalysisService.analyze(page, url, {
-                accessibility: accessibilityReport,
-                seo: seoData
-              });
-              logger.info('AI analysis completed');
-            } catch (err) {
-              logger.warn('AI analysis failed:', err.message);
-            }
-            
-            // Capture screenshots using the already loaded page
-            try {
-              logger.info('Running screenshot capture with already loaded page');
+              logger.info('Running screenshot capture with fresh browser instance');
+              
+              // Set up the fresh page
+              await screenshotPage.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+              await screenshotPage.goto(url, { waitUntil: 'networkidle2', timeout: 30000 });
+              
+              // Wait a moment for any final loading
+              await new Promise(resolve => setTimeout(resolve, 2000));
               
               const screenshots = {};
               
               // Desktop screenshot
-              await page.setViewport({
+              await screenshotPage.setViewport({
                 width: 1920,
                 height: 1080,
                 deviceScaleFactor: 1
               });
               
-              screenshots.desktop = await page.screenshot({
+              screenshots.desktop = await screenshotPage.screenshot({
                 encoding: 'base64',
                 fullPage: false,
                 type: 'jpeg',
@@ -636,13 +647,13 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
               });
               
               // Mobile screenshot
-              await page.setViewport({
+              await screenshotPage.setViewport({
                 width: 375,
                 height: 667,
                 deviceScaleFactor: 2
               });
               
-              screenshots.mobile = await page.screenshot({
+              screenshots.mobile = await screenshotPage.screenshot({
                 encoding: 'base64',
                 fullPage: false,
                 type: 'jpeg',
@@ -670,14 +681,30 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
                 stack: err.stack
               });
               screenshotData = null;
+              logger.info('Analysis will continue without screenshots');
             }
             
           } catch (err) {
             logger.warn('SEO/AI analysis failed:', err.message);
             logger.warn('SEO/AI analysis stack:', err.stack);
           } finally {
-            if (page) {
-              try { await page.close(); } catch (e) { logger.warn('Page close error:', e.message); }
+            // Clean up SEO/AI page if it still exists
+            if (seoAiPage) {
+              try { 
+                await seoAiPage.close(); 
+              } catch (e) { 
+                logger.warn('SEO/AI page close error:', e.message); 
+              }
+            }
+            
+            // Clean up screenshot browser (complete cleanup)
+            if (screenshotBrowser) {
+              try { 
+                await screenshotBrowser.close(); 
+                logger.info('Screenshot browser cleaned up successfully');
+              } catch (e) { 
+                logger.warn('Screenshot browser close error:', e.message); 
+              }
             }
           }
           
@@ -906,11 +933,11 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
           // Legacy field for backward compatibility
           analysisData: report,
           
-          // NEW DUAL REPORT STORAGE
-          freeReport: freeReport,
-          detailedReport: detailedReport,
-          detailedReportPaid: detailedReportPaid,
-          hasDetailedAccess: hasDetailedAccess,
+          // NEW DUAL REPORT STORAGE (only if successful report generation)
+          ...(freeReport && freeReport !== rawAnalysisData && { freeReport }),
+          ...(detailedReport && detailedReport !== rawAnalysisData && { detailedReport }),
+          ...(detailedReportPaid !== undefined && { detailedReportPaid }),
+          ...(hasDetailedAccess !== undefined && { hasDetailedAccess }),
           
           metadata: {
             ...report.metadata,
@@ -1146,43 +1173,56 @@ router.get('/detailed/:analysisId', extractUser, async (req, res) => {
           const retrievalTime = Date.now() - startTime;
           
           // NEW DUAL REPORT LOGIC: Check access and return appropriate report
-          const userHasAccess = detailedReport.hasDetailedAccess || 
-                               (process.env.NODE_ENV === 'development' || process.env.APP_ENV === 'development');
-          
-          let finalReport;
-          if (userHasAccess && detailedReport.detailedReport && Object.keys(detailedReport.detailedReport).length > 0) {
-            // User has access, return detailed report
-            finalReport = detailedReport.detailedReport;
-            finalReport.reportType = 'detailed';
-            logger.info('Returning detailed report to authorized user', {
-              analysisId,
-              userId: req.user.id,
-              hasDetailedAccess: detailedReport.hasDetailedAccess,
-              detailedReportPaid: detailedReport.detailedReportPaid
-            });
+          // Check if dual report fields exist (backwards compatibility)
+          if (detailedReport.detailedReport !== undefined && detailedReport.freeReport !== undefined) {
+            const userHasAccess = detailedReport.hasDetailedAccess || 
+                                 (process.env.NODE_ENV === 'development' || process.env.APP_ENV === 'development');
+            
+            let finalReport;
+            if (userHasAccess && detailedReport.detailedReport && Object.keys(detailedReport.detailedReport).length > 0) {
+              // User has access, return detailed report
+              finalReport = detailedReport.detailedReport;
+              finalReport.reportType = 'detailed';
+              logger.info('Returning detailed report to authorized user', {
+                analysisId,
+                userId: req.user.id,
+                hasDetailedAccess: detailedReport.hasDetailedAccess,
+                detailedReportPaid: detailedReport.detailedReportPaid
+              });
+            } else {
+              // User doesn't have access, return free report
+              finalReport = detailedReport.freeReport && Object.keys(detailedReport.freeReport).length > 0 
+                ? detailedReport.freeReport 
+                : detailedReport; // Fallback to legacy format
+              finalReport.reportType = 'free';
+              logger.info('Returning free report - user lacks detailed access', {
+                analysisId,
+                userId: req.user.id,
+                hasDetailedAccess: detailedReport.hasDetailedAccess,
+                detailedReportPaid: detailedReport.detailedReportPaid
+              });
+            }
+            
+            // Ensure screenshot and other shared data is included
+            finalReport.screenshot = detailedReport.screenshot;
+            finalReport.analysisId = detailedReport.analysisId;
+            finalReport.url = detailedReport.url;
+            finalReport.timestamp = detailedReport.timestamp;
+            finalReport.language = detailedReport.language;
+            
+            // Set the final report for return
+            detailedReport = finalReport;
           } else {
-            // User doesn't have access, return free report
-            finalReport = detailedReport.freeReport && Object.keys(detailedReport.freeReport).length > 0 
-              ? detailedReport.freeReport 
-              : detailedReport; // Fallback to legacy format
-            finalReport.reportType = 'free';
-            logger.info('Returning free report - user lacks detailed access', {
+            // Legacy format - no dual reports available, use existing logic
+            logger.info('Legacy report format detected, using existing data', {
               analysisId,
-              userId: req.user.id,
-              hasDetailedAccess: detailedReport.hasDetailedAccess,
-              detailedReportPaid: detailedReport.detailedReportPaid
+              userId: req.user.id
             });
+            // Ensure the report has the correct reportType for detailed reports
+            if (detailedReport.reportType !== 'detailed') {
+              detailedReport.reportType = 'detailed';
+            }
           }
-          
-          // Ensure screenshot and other shared data is included
-          finalReport.screenshot = detailedReport.screenshot;
-          finalReport.analysisId = detailedReport.analysisId;
-          finalReport.url = detailedReport.url;
-          finalReport.timestamp = detailedReport.timestamp;
-          finalReport.language = detailedReport.language;
-          
-          // Set the final report for return
-          detailedReport = finalReport;
           
           logger.info('Database retrieval successful', {
             analysisId,

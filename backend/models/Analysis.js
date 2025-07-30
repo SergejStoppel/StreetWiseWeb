@@ -21,10 +21,11 @@ class Analysis {
         url: analysisData.url,
         report_type: analysisData.reportType || 'overview',
         language: analysisData.language || 'en',
-        overall_score: analysisData.overallScore,
-        accessibility_score: analysisData.accessibilityScore,
-        seo_score: analysisData.seoScore,
-        performance_score: analysisData.performanceScore,
+        // Ensure scores are integers (never undefined/null) with fallback to 0
+        overall_score: typeof analysisData.overallScore === 'number' ? analysisData.overallScore : 0,
+        accessibility_score: typeof analysisData.accessibilityScore === 'number' ? analysisData.accessibilityScore : 0,
+        seo_score: typeof analysisData.seoScore === 'number' ? analysisData.seoScore : 0,
+        performance_score: typeof analysisData.performanceScore === 'number' ? analysisData.performanceScore : 0,
         // Store core analysis data without large fields
         analysis_data: {
           ...analysisData.analysisData,
@@ -32,11 +33,11 @@ class Analysis {
           screenshot: undefined, // Remove screenshots from main data
         },
         
-        // NEW DUAL REPORT COLUMNS
-        free_report: analysisData.freeReport || {},
-        detailed_report: analysisData.detailedReport || {},
-        detailed_report_paid: analysisData.detailedReportPaid || false,
-        has_detailed_access: analysisData.hasDetailedAccess || false,
+        // NEW DUAL REPORT COLUMNS (only if data provided)
+        ...(analysisData.freeReport && { free_report: analysisData.freeReport }),
+        ...(analysisData.detailedReport && { detailed_report: analysisData.detailedReport }),
+        ...(analysisData.detailedReportPaid !== undefined && { detailed_report_paid: analysisData.detailedReportPaid }),
+        ...(analysisData.hasDetailedAccess !== undefined && { has_detailed_access: analysisData.hasDetailedAccess }),
         
         metadata: analysisData.metadata || {},
         status: analysisData.status || 'completed'
@@ -584,11 +585,11 @@ class Analysis {
       seo: dbRecord.analysis_data?.seo || null,
       aiInsights: dbRecord.analysis_data?.aiInsights || null,
       
-      // NEW DUAL REPORT FIELDS
-      freeReport: dbRecord.free_report || {},
-      detailedReport: dbRecord.detailed_report || {},
-      detailedReportPaid: dbRecord.detailed_report_paid || false,
-      hasDetailedAccess: dbRecord.has_detailed_access || false
+      // NEW DUAL REPORT FIELDS (only if columns exist)
+      ...(dbRecord.free_report !== undefined && { freeReport: dbRecord.free_report || {} }),
+      ...(dbRecord.detailed_report !== undefined && { detailedReport: dbRecord.detailed_report || {} }),
+      ...(dbRecord.detailed_report_paid !== undefined && { detailedReportPaid: dbRecord.detailed_report_paid || false }),
+      ...(dbRecord.has_detailed_access !== undefined && { hasDetailedAccess: dbRecord.has_detailed_access || false })
     };
   }
 

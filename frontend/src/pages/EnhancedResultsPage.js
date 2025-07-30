@@ -225,23 +225,19 @@ const EnhancedResultsPage = () => {
   const handleUpgradeRequest = async ({ action, url, analysisId: requestedAnalysisId }) => {
     try {
       if (action === 'get_detailed_report' || action === 'upgrade_to_detailed') {
-        // Re-run analysis with detailed report type
+        // Get detailed report from database using the dedicated endpoint
         setLoading(true);
         setError(null);
         
-        const reportUrl = url || results?.url;
-        if (!reportUrl) {
-          throw new Error('No URL available for detailed analysis');
+        const targetAnalysisId = requestedAnalysisId || analysisId;
+        if (!targetAnalysisId) {
+          throw new Error('No analysis ID available for detailed report');
         }
 
-        const detailedResults = await accessibilityAPI.analyzeWebsite(
-          reportUrl, 
-          'detailed', 
-          i18n.language
-        );
+        const detailedResults = await accessibilityAPI.getDetailedReport(targetAnalysisId);
         
         setResults(detailedResults.data);
-        toast.success('Detailed report generated successfully!');
+        toast.success('Detailed report loaded successfully!');
       } else if (action === 'schedule_consultation') {
         // For now, show a message about contacting support
         toast.info('Please contact support to schedule a consultation.');

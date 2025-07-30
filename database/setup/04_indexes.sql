@@ -25,6 +25,9 @@ CREATE INDEX idx_analyses_anonymous ON public.analyses(is_anonymous);
 CREATE INDEX idx_analyses_created ON public.analyses(created_at DESC);
 CREATE INDEX idx_analyses_status ON public.analyses(status);
 CREATE INDEX idx_analyses_cache_expires ON public.analyses(cache_expires_at) WHERE cache_expires_at IS NOT NULL;
+CREATE INDEX idx_analyses_scores ON public.analyses(overall_score, accessibility_score, seo_score, performance_score);
+CREATE INDEX idx_analyses_detailed_paid ON public.analyses(detailed_report_paid) WHERE detailed_report_paid = true;
+CREATE INDEX idx_analyses_has_detailed ON public.analyses(has_detailed_access) WHERE has_detailed_access = true;
 
 -- Storage objects indexes
 CREATE INDEX idx_storage_objects_user ON public.storage_objects(user_id);
@@ -63,6 +66,13 @@ CREATE INDEX idx_deletion_logs_created ON public.deletion_logs(created_at DESC);
 
 -- Report configurations indexes
 CREATE INDEX idx_report_configurations_type ON public.report_configurations(report_type);
+
+-- Subscriptions indexes
+CREATE INDEX idx_subscriptions_user ON public.subscriptions(user_id);
+CREATE INDEX idx_subscriptions_status ON public.subscriptions(status);
+CREATE INDEX idx_subscriptions_plan ON public.subscriptions(plan_type);
+CREATE INDEX idx_subscriptions_stripe_customer ON public.subscriptions(stripe_customer_id);
+CREATE INDEX idx_subscriptions_active ON public.subscriptions(status, current_period_end) WHERE status = 'active';
 
 -- Report access logs indexes
 CREATE INDEX idx_report_access_logs_analysis ON public.report_access_logs(analysis_id);
