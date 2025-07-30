@@ -493,6 +493,160 @@ class DetailedReportGenerator {
   }
 
   /**
+   * Generate AI-powered business impact analysis
+   */
+  generateAiBusinessImpact(analysisData) {
+    const violations = analysisData.violations || [];
+    const summary = analysisData.summary || {};
+    
+    // Calculate potential user impact
+    const criticalIssues = violations.filter(v => v.impact === 'critical').length;
+    const seriousIssues = violations.filter(v => v.impact === 'serious').length;
+    
+    // Estimate user base affected
+    const totalIssues = violations.length;
+    const userImpactPercentage = Math.min(100, Math.max(10, totalIssues * 5));
+    
+    // Business risk assessment
+    let riskLevel = 'low';
+    let riskScore = 0;
+    
+    if (criticalIssues > 5 || summary.accessibilityScore < 50) {
+      riskLevel = 'high';
+      riskScore = 8;
+    } else if (criticalIssues > 2 || summary.accessibilityScore < 70) {
+      riskLevel = 'medium';
+      riskScore = 5;
+    } else {
+      riskLevel = 'low';
+      riskScore = 2;
+    }
+    
+    return {
+      potentialUserImpact: {
+        affectedUserPercentage: userImpactPercentage,
+        disabilityTypes: ['visual', 'motor', 'cognitive', 'auditory'],
+        severityDistribution: {
+          critical: criticalIssues,
+          serious: seriousIssues,
+          moderate: violations.filter(v => v.impact === 'moderate').length,
+          minor: violations.filter(v => v.impact === 'minor').length
+        }
+      },
+      businessRisks: {
+        level: riskLevel,
+        score: riskScore,
+        legalCompliance: summary.accessibilityScore >= 80 ? 'compliant' : 'at-risk',
+        brandReputation: riskLevel === 'high' ? 'at-risk' : 'stable',
+        marketAccess: userImpactPercentage > 25 ? 'limited' : 'good'
+      },
+      financialImpact: {
+        estimatedLostRevenue: this.calculateLostRevenue(totalIssues, userImpactPercentage),
+        complianceCosts: this.estimateComplianceCosts(totalIssues),
+        implementationROI: this.calculateImplementationROI(totalIssues)
+      }
+    };
+  }
+
+  /**
+   * Generate implementation timeline with priorities
+   */
+  generateImplementationTimeline(analysisData) {
+    const violations = analysisData.violations || [];
+    const totalIssues = violations.length;
+    
+    // Calculate phases based on violation severity and effort
+    const phase1Issues = violations.filter(v => v.impact === 'critical').length;
+    const phase2Issues = violations.filter(v => v.impact === 'serious').length;
+    const phase3Issues = violations.filter(v => ['moderate', 'minor'].includes(v.impact)).length;
+    
+    return {
+      overview: {
+        totalEstimatedDays: Math.min(180, Math.max(30, totalIssues * 2)),
+        phases: 3,
+        recommendedApproach: 'phased-implementation'
+      },
+      phases: [
+        {
+          phase: 1,
+          title: 'Critical Issues & Quick Wins',
+          duration: Math.min(30, Math.max(7, phase1Issues * 2)),
+          priority: 'high',
+          issueCount: phase1Issues,
+          description: 'Address critical accessibility barriers and implement quick wins',
+          milestones: ['Critical barriers removed', 'Basic compliance achieved']
+        },
+        {
+          phase: 2,
+          title: 'Serious Issues & UX Improvements',
+          duration: Math.min(60, Math.max(14, phase2Issues * 3)),
+          priority: 'medium',
+          issueCount: phase2Issues,
+          description: 'Fix serious usability issues and enhance user experience',
+          milestones: ['Major usability improved', 'WCAG AA compliance']
+        },
+        {
+          phase: 3,
+          title: 'Remaining Issues & Enhancement',
+          duration: Math.min(90, Math.max(14, phase3Issues * 2)),
+          priority: 'low',
+          issueCount: phase3Issues,
+          description: 'Complete remaining issues and implement enhancements',
+          milestones: ['Full compliance achieved', 'Enhanced accessibility features']
+        }
+      ]
+    };
+  }
+
+  /**
+   * Helper: Calculate estimated lost revenue
+   */
+  calculateLostRevenue(totalIssues, userImpactPercentage) {
+    const baseRevenueLoss = Math.min(25, totalIssues * 0.5);
+    return {
+      percentage: baseRevenueLoss,
+      description: `Estimated ${baseRevenueLoss}% revenue loss from accessibility barriers`,
+      factors: ['User abandonment', 'Reduced conversion', 'Limited market reach']
+    };
+  }
+
+  /**
+   * Helper: Estimate compliance implementation costs
+   */
+  estimateComplianceCosts(totalIssues) {
+    const developmentHours = Math.min(500, totalIssues * 4);
+    const testingHours = Math.min(200, totalIssues * 2);
+    
+    return {
+      developmentHours,
+      testingHours,
+      totalHours: developmentHours + testingHours,
+      estimatedCost: (developmentHours * 75) + (testingHours * 60),
+      breakdown: {
+        development: developmentHours * 75,
+        testing: testingHours * 60,
+        audit: 2500
+      }
+    };
+  }
+
+  /**
+   * Helper: Calculate implementation ROI
+   */
+  calculateImplementationROI(totalIssues) {
+    const implementationCost = (totalIssues * 4 * 75) + (totalIssues * 2 * 60) + 2500;
+    const potentialSavings = implementationCost * 0.3; // Legal risk mitigation
+    const revenueIncrease = implementationCost * 0.15; // Market expansion
+    
+    return {
+      investmentRequired: implementationCost,
+      potentialBenefits: potentialSavings + revenueIncrease,
+      roi: ((potentialSavings + revenueIncrease) / implementationCost) * 100,
+      paybackPeriod: '12-18 months'
+    };
+  }
+
+  /**
    * Process screenshots with annotations
    */
   processScreenshots(analysisData) {

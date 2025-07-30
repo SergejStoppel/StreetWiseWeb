@@ -776,9 +776,20 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
         
       } catch (reportError) {
         logger.warn('Failed to generate structured reports, using legacy format:', reportError.message);
-        // Use the original rawAnalysisData as fallback for both
-        freeReport = { ...rawAnalysisData, reportType: 'free' };
-        detailedReport = { ...rawAnalysisData, reportType: 'detailed' };
+        // Use the original rawAnalysisData as fallback, but ensure they're different
+        freeReport = { 
+          ...rawAnalysisData, 
+          reportType: 'free',
+          // Limit free report content
+          violations: rawAnalysisData.violations ? rawAnalysisData.violations.slice(0, 3) : [],
+          structuredReport: null
+        };
+        detailedReport = { 
+          ...rawAnalysisData, 
+          reportType: 'detailed',
+          // Keep full content for detailed report
+          structuredReport: null
+        };
       }
 
       // Determine which report to return to user based on request
