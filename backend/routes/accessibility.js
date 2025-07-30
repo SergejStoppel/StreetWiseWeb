@@ -80,6 +80,48 @@ function validateReportData(report) {
   };
 }
 
+// Helper function to validate detailed report data
+function validateDetailedReportData(report) {
+  const validation = {
+    isValid: true,
+    errors: [],
+    warnings: [],
+    dataPresence: {}
+  };
+
+  // Check required fields
+  const requiredFields = ['analysisId', 'url', 'reportType'];
+  requiredFields.forEach(field => {
+    if (!report[field]) {
+      validation.errors.push(`Missing required field: ${field}`);
+      validation.isValid = false;
+    }
+  });
+
+  // Check data presence
+  validation.dataPresence = {
+    violations: !!(report.violations && Array.isArray(report.violations)),
+    summary: !!report.summary,
+    screenshots: !!(report.screenshot?.desktop || report.screenshot?.mobile || report.screenshot?.url),
+    seo: !!report.seo,
+    aiInsights: !!report.aiInsights,
+    metadata: !!report.metadata
+  };
+
+  // Add warnings for missing enhanced features
+  if (!validation.dataPresence.screenshots) {
+    validation.warnings.push('Screenshots data is missing or incomplete');
+  }
+  if (!validation.dataPresence.seo) {
+    validation.warnings.push('SEO analysis data is missing');
+  }
+  if (!validation.dataPresence.aiInsights) {
+    validation.warnings.push('AI insights data is missing');
+  }
+
+  return validation;
+}
+
 // Helper function to find cached analysis with retry logic
 async function findCachedAnalysis(url, cacheHours = 24, maxRetries = 2) {
   let lastError;
@@ -1015,73 +1057,168 @@ router.get('/detailed/:analysisId', extractUser, async (req, res) => {
       });
     }
 
-    logger.info('Detailed report request received', { analysisId });
+    logger.info('Detailed report request received (Database-First Approach)', { 
+      analysisId, 
+      userId: req.user?.id,
+      hasUser: !!req.user 
+    });
 
     const { language = 'en' } = req.query;
     
-    // First try to get from cache
-    let detailedReport = accessibilityAnalyzer.getDetailedReport(analysisId);
-    
-    // If not in cache, try to get from database
-    if (!detailedReport && req.user && req.user.id) {
-      logger.info('Report not in cache, checking database', { analysisId, userId: req.user.id });
+    let detailedReport = null;
+    const startTime = Date.now();
+
+    // Option C: Database-First Approach
+    // Step 1: Try database first (most reliable source of truth)
+    if (req.user && req.user.id) {
+      logger.info('Attempting database retrieval', { analysisId, userId: req.user.id });
       
       try {
-        // Query Supabase directly to get the analysis with all columns
-        const { data: dbAnalysis, error } = await supabase
-          .from('analyses')
-          .select('*')
-          .eq('id', analysisId)
-          .eq('user_id', req.user.id)
-          .single();
+        // Use the Analysis model's proper findById method
+        detailedReport = await Analysis.findById(analysisId, req.user.id);
+        
+        if (detailedReport) {
+          const retrievalTime = Date.now() - startTime;
+          logger.info('Database retrieval successful', {
+            analysisId,
+            userId: req.user.id,
+            retrievalTime,
+            hasScreenshots: !!(detailedReport.screenshot?.desktop || detailedReport.screenshot?.mobile),
+            hasSeo: !!detailedReport.seo,
+            hasAiInsights: !!detailedReport.aiInsights,
+            hasViolations: !!(detailedReport.violations && detailedReport.violations.length > 0),
+            reportType: detailedReport.reportType,
+            overallScore: detailedReport.overallScore
+          });
 
-        if (!error && dbAnalysis) {
-          // Reconstruct the detailed report from separate columns
-          detailedReport = {
-            analysisId: dbAnalysis.id,
-            url: dbAnalysis.url,
-            reportType: dbAnalysis.report_type,
-            overallScore: dbAnalysis.overall_score,
-            violations: dbAnalysis.violations,
-            summary: dbAnalysis.summary,
-            metadata: dbAnalysis.metadata,
-            screenshot: dbAnalysis.screenshots,
-            seo: dbAnalysis.seo_analysis,
-            aiInsights: dbAnalysis.ai_insights
-          };
-          logger.info('Report found in database', { analysisId });
+          // Ensure the report has the correct reportType for detailed reports
+          if (detailedReport.reportType !== 'detailed') {
+            logger.info('Converting overview report to detailed format', { 
+              analysisId, 
+              originalType: detailedReport.reportType 
+            });
+            detailedReport.reportType = 'detailed';
+          }
+
+          // Generate structured report using ReportService for consistency
+          try {
+            logger.info('Generating structured report with ReportService', { analysisId });
+            const structuredReport = await reportService.generateReport(detailedReport, {
+              user: req.user,
+              requestedReportType: 'detailed',
+              language: language
+            });
+            
+            // Add structured report for new frontend components
+            detailedReport.structuredReport = structuredReport;
+            
+            logger.info('Structured report generated successfully', { 
+              analysisId,
+              hasStructuredReport: !!structuredReport
+            });
+          } catch (reportServiceError) {
+            logger.warn('ReportService generation failed, using raw data', { 
+              analysisId, 
+              error: reportServiceError.message 
+            });
+            // Continue with raw data if ReportService fails
+          }
         }
       } catch (dbError) {
-        logger.error('Database lookup failed:', { error: dbError.message, analysisId });
+        logger.error('Database retrieval failed, trying cache fallback', { 
+          analysisId, 
+          userId: req.user.id,
+          error: dbError.message,
+          stack: dbError.stack
+        });
+      }
+    }
+
+    // Step 2: Fallback to cache if database fails or user not authenticated
+    if (!detailedReport) {
+      logger.info('Attempting cache retrieval as fallback', { analysisId });
+      
+      try {
+        detailedReport = accessibilityAnalyzer.getDetailedReport(analysisId);
+        
+        if (detailedReport) {
+          logger.info('Cache retrieval successful', { 
+            analysisId,
+            source: 'cache'
+          });
+        }
+      } catch (cacheError) {
+        logger.error('Cache retrieval also failed', { 
+          analysisId,
+          error: cacheError.message
+        });
       }
     }
     
+    // Step 3: Return 404 if neither database nor cache has the report
     if (!detailedReport) {
+      logger.warn('Report not found in database or cache', { 
+        analysisId, 
+        userId: req.user?.id,
+        totalRetrievalTime: Date.now() - startTime
+      });
+      
       return res.status(404).json({
         error: 'Report not found',
-        message: 'The requested analysis report was not found or has expired'
+        message: 'The requested analysis report was not found or has expired. Please run a new analysis.',
+        code: 'REPORT_NOT_FOUND'
       });
     }
 
-    // Note: Language-specific recommendations are now generated during analysis
-    // The detailed report already contains properly localized recommendations
-    
+    // Step 4: Validate and ensure report has all necessary data
+    const validation = validateDetailedReportData(detailedReport);
+
+    logger.info('Report data validation', {
+      analysisId,
+      validation: validation,
+      totalRetrievalTime: Date.now() - startTime
+    });
+
+    // Log warnings if any enhanced features are missing
+    if (validation.warnings.length > 0) {
+      logger.warn('Detailed report has missing enhanced features', {
+        analysisId,
+        warnings: validation.warnings,
+        dataPresence: validation.dataPresence
+      });
+    }
+
+    // Return the detailed report
     res.json({
       success: true,
       data: detailedReport,
       meta: {
         timestamp: new Date().toISOString(),
-        reportType: 'detailed'
+        reportType: 'detailed',
+        source: detailedReport.source || 'database',
+        retrievalTime: Date.now() - startTime,
+        dataValidation: validation.dataPresence,
+        warnings: validation.warnings
       }
     });
     
-    logger.info('Detailed report sent successfully', { analysisId });
+    logger.info('Detailed report sent successfully', { 
+      analysisId,
+      totalProcessingTime: Date.now() - startTime
+    });
 
   } catch (error) {
-    logger.error('Detailed report retrieval failed:', { error: error.message, analysisId: req.params.analysisId });
+    logger.error('Detailed report retrieval failed with unexpected error', { 
+      error: error.message, 
+      stack: error.stack,
+      analysisId: req.params.analysisId,
+      userId: req.user?.id
+    });
+    
     res.status(500).json({
       error: 'Internal server error',
-      message: 'Unable to retrieve detailed report. Please try again later.'
+      message: 'Unable to retrieve detailed report. Please try again later.',
+      code: 'INTERNAL_ERROR'
     });
   }
 });
