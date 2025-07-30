@@ -1,0 +1,53 @@
+## Summary of Issues Found and Fixes
+
+### Issues Identified:
+
+1. **Score Calculation Bug**: `accessibilityScore` was using wrong fallback value
+   - Fixed in accessibility.js line 954
+
+2. **Cached Reports Ignore New Report Type**: When user requests "detailed" but cache has "overview", it returns the cached "overview"
+   - Need to regenerate report with ReportService if report type differs
+
+3. **Development Mode Not Working Properly**: Even with APP_ENV=development, detailed reports require subscription
+   - Fixed ReportService to check both NODE_ENV and APP_ENV
+
+4. **Missing Subscriptions Table**: Causes warning and prevents detailed report access
+   - Created SQL script to add table
+
+5. **SEO/AI Data Not Retrieved**: transformDbRecord was looking for wrong columns
+   - Fixed to extract from analysis_data JSONB field
+
+### To Complete the Fix:
+
+1. Modify cached report handling to respect requested report type
+2. Ensure development mode allows detailed reports for authenticated users
+3. Run the subscriptions table creation script
+
+### Code Changes Needed:
+
+In `/backend/routes/accessibility.js` around line 441, change:
+```javascript
+// Add this after line 435:
+// Check if requested report type differs from cached type
+if (reportType !== cachedAnalysis.report_type && req.user) {
+  logger.info('Cached report type differs from requested, regenerating report', {
+    cachedType: cachedAnalysis.report_type,
+    requestedType: reportType,
+    analysisId: cachedAnalysis.id
+  });
+  
+  // Use ReportService to generate the appropriate report type
+  const reportService = new ReportService();
+  const regeneratedReport = await reportService.generateReport(reconstructedAnalysis, {
+    user: req.user,
+    requestedReportType: reportType,
+    language: language
+  });
+  
+  // Update the report type
+  reconstructedAnalysis.reportType = reportType;
+  reconstructedAnalysis.structuredReport = regeneratedReport;
+}
+```
+
+This will ensure that when a user requests a detailed report, they get a detailed report even if the cache has an overview report.

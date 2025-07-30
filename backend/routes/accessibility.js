@@ -734,32 +734,63 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
         });
       }
 
-      // Try to generate structured report, fallback to legacy format if it fails
-      let report = rawAnalysisData;
+      // NEW DUAL REPORT GENERATION: Generate BOTH free and detailed reports
+      logger.info('Generating dual reports (free + detailed)', {
+        analysisId: rawAnalysisData.analysisId,
+        hasUser: !!req.user,
+        userId: req.user?.id
+      });
+
+      let freeReport = rawAnalysisData;
+      let detailedReport = rawAnalysisData;
+      let freeStructuredReport = null;
+      let detailedStructuredReport = null;
       
       try {
-        logger.info('Attempting to generate structured report using ReportService', {
-          requestedType: reportType,
-          userPlan: req.user?.plan_type || 'anonymous'
-        });
-
-        const structuredReport = await reportService.generateReport(rawAnalysisData, {
+        // 1. Generate FREE report (always available)
+        logger.info('Generating free report');
+        freeStructuredReport = await reportService.generateReport(rawAnalysisData, {
           user: req.user,
-          requestedReportType: reportType,
+          requestedReportType: 'free', // Force free report
           language: language
         });
-
-        // Convert to legacy format for backward compatibility
-        report = reportService.convertToLegacyFormat(structuredReport);
+        freeReport = reportService.convertToLegacyFormat(freeStructuredReport);
+        freeReport.structuredReport = freeStructuredReport;
+        freeReport.reportType = 'free';
         
-        // Add structured report data for new frontend components
-        report.structuredReport = structuredReport;
+        // 2. Generate DETAILED report (always generate, but access controlled)
+        logger.info('Generating detailed report');
+        detailedStructuredReport = await reportService.generateReport(rawAnalysisData, {
+          user: req.user,
+          requestedReportType: 'detailed', // Force detailed report
+          language: language
+        });
+        detailedReport = reportService.convertToLegacyFormat(detailedStructuredReport);
+        detailedReport.structuredReport = detailedStructuredReport;
+        detailedReport.reportType = 'detailed';
         
-        logger.info('Structured report generated successfully');
+        logger.info('Both reports generated successfully', {
+          freeReportSize: JSON.stringify(freeReport).length,
+          detailedReportSize: JSON.stringify(detailedReport).length
+        });
+        
       } catch (reportError) {
-        logger.warn('Failed to generate structured report, using legacy format:', reportError.message);
-        // Use the original rawAnalysisData as fallback
-        report = rawAnalysisData;
+        logger.warn('Failed to generate structured reports, using legacy format:', reportError.message);
+        // Use the original rawAnalysisData as fallback for both
+        freeReport = { ...rawAnalysisData, reportType: 'free' };
+        detailedReport = { ...rawAnalysisData, reportType: 'detailed' };
+      }
+
+      // Determine which report to return to user based on request
+      let report;
+      if (reportType === 'detailed' && req.user) {
+        // User requested detailed report and is authenticated
+        report = detailedReport;
+        logger.info('Returning detailed report to user');
+      } else {
+        // Return free report for anonymous users or overview requests
+        report = freeReport;
+        logger.info('Returning free report to user');
       }
       
       // Update the cached detailed report with enhanced features
@@ -847,23 +878,39 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
         const cacheHours = isDevelopment ? 0.5 : 24; // 30 minutes in dev, 24 hours in production
         const cacheExpiresAt = new Date(Date.now() + (cacheHours * 60 * 60 * 1000));
         
-        // Prepare analysis data for database
+        // Determine payment/access status for detailed report
+        const hasDetailedAccess = req.user && (req.user.plan_type === 'premium' || req.user.plan_type === 'basic');
+        const detailedReportPaid = hasDetailedAccess || (process.env.NODE_ENV === 'development' || process.env.APP_ENV === 'development');
+        
+        // Prepare analysis data for database with DUAL REPORTS
         const analysisDataForDb = {
           url: url,
-          reportType: reportType,
+          reportType: reportType, // Keep original requested type for compatibility
           language: language,
           overallScore: report.summary?.overallScore || report.overallScore || 0,
           accessibilityScore: report.summary?.accessibilityScore || report.accessibilityScore || 0,
           seoScore: report.summary?.seoScore || report.seoScore || 0,
           performanceScore: report.summary?.performanceScore || report.performanceScore || 0,
+          
+          // Legacy field for backward compatibility
           analysisData: report,
+          
+          // NEW DUAL REPORT STORAGE
+          freeReport: freeReport,
+          detailedReport: detailedReport,
+          detailedReportPaid: detailedReportPaid,
+          hasDetailedAccess: hasDetailedAccess,
+          
           metadata: {
             ...report.metadata,
             originalAnalysisId: analysisId,
             analysisTime,
             clientIp,
             userAgent: req.get('User-Agent'),
-            hasProcessedScreenshots: !!processedScreenshots
+            hasProcessedScreenshots: !!processedScreenshots,
+            dualReportsGenerated: true,
+            freeReportSize: JSON.stringify(freeReport).length,
+            detailedReportSize: JSON.stringify(detailedReport).length
           },
           status: 'completed',
           isAnonymous: !req.user || !req.user.id,
@@ -886,10 +933,17 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
           cacheExpiresAt: analysisDataForDb.cacheExpiresAt
         });
         
-        // Use Analysis model to save with optimized structure
+        // Use Analysis model to save with DUAL REPORT structure
         const savedAnalysis = await Analysis.create({
-          ...analysisDataForDb,
-          analysisData: report
+          ...analysisDataForDb
+        });
+        
+        logger.info('Dual reports saved successfully', {
+          analysisId: analysisId,
+          databaseId: savedAnalysis.id,
+          detailedReportPaid: detailedReportPaid,
+          hasDetailedAccess: hasDetailedAccess,
+          returnedReportType: report.reportType
         });
           
         // Error handling is now done in the Analysis model
@@ -951,7 +1005,7 @@ router.post('/analyze', analysisLimiter, validateAnalysisRequest, extractUser, a
           ...report,
           // Ensure all summary scores are included at the top level for frontend compatibility
           overallScore: report.summary?.overallScore || report.overallScore || 0,
-          accessibilityScore: report.summary?.accessibilityScore || report.overallScore || 0,
+          accessibilityScore: report.summary?.accessibilityScore || report.accessibilityScore || 0,
           seoScore: report.summary?.seoScore || report.seo?.score || 0,
           performanceScore: report.summary?.performanceScore || 0
         },
@@ -1079,56 +1133,57 @@ router.get('/detailed/:analysisId', extractUser, async (req, res) => {
         
         if (detailedReport) {
           const retrievalTime = Date.now() - startTime;
+          
+          // NEW DUAL REPORT LOGIC: Check access and return appropriate report
+          const userHasAccess = detailedReport.hasDetailedAccess || 
+                               (process.env.NODE_ENV === 'development' || process.env.APP_ENV === 'development');
+          
+          let finalReport;
+          if (userHasAccess && detailedReport.detailedReport && Object.keys(detailedReport.detailedReport).length > 0) {
+            // User has access, return detailed report
+            finalReport = detailedReport.detailedReport;
+            finalReport.reportType = 'detailed';
+            logger.info('Returning detailed report to authorized user', {
+              analysisId,
+              userId: req.user.id,
+              hasDetailedAccess: detailedReport.hasDetailedAccess,
+              detailedReportPaid: detailedReport.detailedReportPaid
+            });
+          } else {
+            // User doesn't have access, return free report
+            finalReport = detailedReport.freeReport && Object.keys(detailedReport.freeReport).length > 0 
+              ? detailedReport.freeReport 
+              : detailedReport; // Fallback to legacy format
+            finalReport.reportType = 'free';
+            logger.info('Returning free report - user lacks detailed access', {
+              analysisId,
+              userId: req.user.id,
+              hasDetailedAccess: detailedReport.hasDetailedAccess,
+              detailedReportPaid: detailedReport.detailedReportPaid
+            });
+          }
+          
+          // Ensure screenshot and other shared data is included
+          finalReport.screenshot = detailedReport.screenshot;
+          finalReport.analysisId = detailedReport.analysisId;
+          finalReport.url = detailedReport.url;
+          finalReport.timestamp = detailedReport.timestamp;
+          finalReport.language = detailedReport.language;
+          
+          // Set the final report for return
+          detailedReport = finalReport;
+          
           logger.info('Database retrieval successful', {
             analysisId,
             userId: req.user.id,
             retrievalTime,
+            returnedReportType: detailedReport.reportType,
             hasScreenshots: !!(detailedReport.screenshot?.desktop || detailedReport.screenshot?.mobile),
             hasSeo: !!detailedReport.seo,
             hasAiInsights: !!detailedReport.aiInsights,
             hasViolations: !!(detailedReport.violations && detailedReport.violations.length > 0),
-            reportType: detailedReport.reportType,
-            overallScore: detailedReport.overallScore,
-            // Debug data structure
-            dataKeys: Object.keys(detailedReport),
-            summaryKeys: Object.keys(detailedReport.summary || {}),
-            screenshotStructure: detailedReport.screenshot,
-            seoKeys: Object.keys(detailedReport.seo || {}),
-            aiKeys: Object.keys(detailedReport.aiInsights || {})
+            overallScore: detailedReport.overallScore || detailedReport.summary?.overallScore
           });
-
-          // Ensure the report has the correct reportType for detailed reports
-          if (detailedReport.reportType !== 'detailed') {
-            logger.info('Converting overview report to detailed format', { 
-              analysisId, 
-              originalType: detailedReport.reportType 
-            });
-            detailedReport.reportType = 'detailed';
-          }
-
-          // Generate structured report using ReportService for consistency
-          try {
-            logger.info('Generating structured report with ReportService', { analysisId });
-            const structuredReport = await reportService.generateReport(detailedReport, {
-              user: req.user,
-              requestedReportType: 'detailed',
-              language: language
-            });
-            
-            // Add structured report for new frontend components
-            detailedReport.structuredReport = structuredReport;
-            
-            logger.info('Structured report generated successfully', { 
-              analysisId,
-              hasStructuredReport: !!structuredReport
-            });
-          } catch (reportServiceError) {
-            logger.warn('ReportService generation failed, using raw data', { 
-              analysisId, 
-              error: reportServiceError.message 
-            });
-            // Continue with raw data if ReportService fails
-          }
         }
       } catch (dbError) {
         logger.error('Database retrieval failed, trying cache fallback', { 

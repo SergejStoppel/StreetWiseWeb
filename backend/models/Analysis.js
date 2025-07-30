@@ -31,6 +31,13 @@ class Analysis {
           violations: undefined, // Remove violations from main data
           screenshot: undefined, // Remove screenshots from main data
         },
+        
+        // NEW DUAL REPORT COLUMNS
+        free_report: analysisData.freeReport || {},
+        detailed_report: analysisData.detailedReport || {},
+        detailed_report_paid: analysisData.detailedReportPaid || false,
+        has_detailed_access: analysisData.hasDetailedAccess || false,
+        
         metadata: analysisData.metadata || {},
         status: analysisData.status || 'completed'
       };
@@ -575,7 +582,13 @@ class Analysis {
       screenshot: this.formatScreenshotsForFrontend(screenshots, dbRecord.user_id, dbRecord.id),
       // Extract SEO and AI data from analysis_data JSONB field
       seo: dbRecord.analysis_data?.seo || null,
-      aiInsights: dbRecord.analysis_data?.aiInsights || null
+      aiInsights: dbRecord.analysis_data?.aiInsights || null,
+      
+      // NEW DUAL REPORT FIELDS
+      freeReport: dbRecord.free_report || {},
+      detailedReport: dbRecord.detailed_report || {},
+      detailedReportPaid: dbRecord.detailed_report_paid || false,
+      hasDetailedAccess: dbRecord.has_detailed_access || false
     };
   }
 
