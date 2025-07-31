@@ -17,10 +17,26 @@ The backend codebase is organized into the following directories within `backend
 /src
 ├── api/                  # API layer (Routes, Controllers, Middleware)
 ├── core/                 # Core business logic (Services)
-├── workers/              # Background job processors (BullMQ)
-│   ├── accessibility/
-│   ├── seo/
-│   └── performance/
+│   ├── workers/
+│   │   ├── accessibility/
+│   │   │   ├── colorContrast.worker.ts
+│   │   │   ├── aria.worker.ts
+│   │   │   ├── keyboardFocus.worker.ts
+│   │   │   └── formsAndLabels.worker.ts
+│   │   │
+│   │   ├── seo/
+│   │   │   ├── technicalSeo.worker.ts      // For robots.txt, sitemaps, canonicals
+│   │   │   ├── onPageContent.worker.ts     // For headers, meta tags, keyword analysis
+│   │   │   └── structuredData.worker.ts    // For JSON-LD, Microdata, Schema.org
+│   │   │
+│   │   ├── performance/
+│   │   │   ├── imageOptimization.worker.ts // For image sizes, formats, compression
+│   │   │   ├── assetLoading.worker.ts      // For render-blocking CSS/JS, minification
+│   │   │   └── coreWebVitals.worker.ts     // For LCP, CLS, TBT via Lighthouse
+│   │   │
+│   │   ├── fetcher.worker.ts               // Prerequisite: Fetches all site content
+│   │   ├── master.worker.ts                // Orchestrator: Kicks off all other jobs
+│   │   └── aiSummary.worker.ts
 ├── lib/                  # Shared libraries & external service clients
 ├── config/               # Environment configuration
 ├── db/                   # Database migrations and seeds

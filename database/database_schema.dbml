@@ -1,0 +1,309 @@
+// DBML for SiteCraft - A Modular Analysis Platform (v3 - Final)
+
+// --- Enums for consistent types ---
+Enum "workspace_role" {
+  "owner"
+  "admin"
+  "member"
+}
+
+Enum "analysis_status" {
+  "pending"
+  "processing"
+  "completed"
+  "failed"
+}
+
+Enum "job_status" {
+  "pending"
+  "running"
+  "completed"
+  "failed"
+}
+
+Enum "issue_severity" {
+  "critical"
+  "serious"
+  "moderate"
+  "minor"
+}
+
+Enum "subscription_status" {
+  "active"
+  "past_due"
+  "canceled"
+  "trialing"
+}
+
+Enum "report_type" {
+  "free"
+  "detailed"
+}
+
+Enum "purchase_status" {
+  "pending"
+  "succeeded"
+  "failed"
+}
+
+Enum "screenshot_type" {
+  "desktop"
+  "mobile"
+  "tablet"
+  "full_page"
+}
+
+
+// --- Group 1: Core Entities (Users, Workspaces, Websites) ---
+
+Table "users" {
+  "id" UUID [pk, note: "From Supabase auth.users"]
+  "full_name" TEXT
+  "avatar_url" TEXT
+  "email" TEXT [unique, not null]
+  "created_at" TIMESTAMPTZ [default: `now()`]
+}
+
+Table "workspaces" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "owner_id" UUID [not null]
+  "name" TEXT [not null]
+  "created_at" TIMESTAMPTZ [default: `now()`]
+  "updated_at" TIMESTAMPTZ [default: `now()`]
+}
+
+Table "workspace_members" {
+  "workspace_id" UUID [pk]
+  "user_id" UUID [pk]
+  "role" workspace_role [not null, default: "member"]
+  "created_at" TIMESTAMPTZ [default: `now()`]
+}
+
+Table "websites" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "workspace_id" UUID [not null]
+  "url" TEXT [not null]
+  "created_at" TIMESTAMPTZ [default: `now()`]
+  "updated_at" TIMESTAMPTZ [default: `now()`]
+
+  indexes {
+    (workspace_id, url) [unique]
+  }
+}
+
+
+// --- Group 2: Analysis Execution & Job Tracking ---
+
+Table "analyses" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "website_id" UUID [not null]
+  "user_id" UUID [not null, note: "User who initiated the scan"]
+  "status" analysis_status [not null, default: "pending"]
+  "overall_score" INT
+  "accessibility_score" INT
+  "seo_score" INT
+  "performance_score" INT
+  "created_at" TIMESTAMPTZ [default: `now()`]
+  "completed_at" TIMESTAMPTZ
+}
+
+Table "analysis_jobs" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "analysis_id" UUID [not null]
+  "module_id" UUID [not null]
+  "status" job_status [not null, default: "pending"]
+  "error_message" TEXT
+  "started_at" TIMESTAMPTZ
+  "completed_at" TIMESTAMPTZ
+}
+
+Table "screenshots" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "analysis_id" UUID [not null]
+  "type" screenshot_type [not null]
+  "storage_bucket" TEXT [not null]
+  "storage_path" TEXT [not null, unique]
+  "url" TEXT [not null]
+  "created_at" TIMESTAMPTZ [default: `now()`]
+}
+
+
+// --- Group 3: Rules Engine & Compliance Standards (The "Brains") ---
+
+Table "analysis_modules" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "name" TEXT [unique, not null, note: "e.g., Accessibility, SEO, Performance"]
+  "description" TEXT
+}
+
+Table "rules" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "module_id" UUID [not null]
+  "rule_key" TEXT [unique, not null, note: "e.g., WCAG_1_4_3_CONTRAST"]
+  "name" TEXT [not null, note: "e.g., Color Contrast Minimum"]
+  "description" TEXT [note: "Explains what the rule checks"]
+  "default_severity" issue_severity [not null]
+}
+
+Table "compliance_standards" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "name" TEXT [unique, not null, note: "e.g., WCAG 2.1 AA, Section 508"]
+}
+
+Table "standard_rules_mapping" {
+  "standard_id" UUID [pk]
+  "rule_id" UUID [pk]
+}
+
+
+// --- Group 4: Granular Results & Issues ---
+
+Table "accessibility_issues" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "analysis_job_id" UUID [not null]
+  "rule_id" UUID [not null]
+  "severity" issue_severity [not null]
+  "location_path" TEXT [note: "CSS selector or element path"]
+  "code_snippet" TEXT [note: "The problematic code"]
+  "message" TEXT [note: "Specific message for this instance"]
+  "fix_suggestion" TEXT [note: "Detailed explanation with code examples"]
+  "screenshot_highlight" JSONB [note: "{ screenshot_id, x, y, width, height }"]
+  "created_at" TIMESTAMPTZ [default: `now()`]
+}
+
+Table "seo_issues" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "analysis_job_id" UUID [not null]
+  "rule_id" UUID [not null]
+  "severity" issue_severity [not null]
+  "location_path" TEXT
+  "code_snippet" TEXT
+  "message" TEXT
+  "fix_suggestion" TEXT
+  "screenshot_highlight" JSONB
+  "created_at" TIMESTAMPTZ [default: `now()`]
+}
+
+Table "performance_issues" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "analysis_job_id" UUID [not null]
+  "rule_id" UUID [not null]
+  "severity" issue_severity [not null]
+  "location_path" TEXT
+  "code_snippet" TEXT
+  "message" TEXT
+  "fix_suggestion" TEXT
+  "screenshot_highlight" JSONB
+  "created_at" TIMESTAMPTZ [default: `now()`]
+}
+
+
+// --- Group 5: Billing (Subscriptions & One-Time Purchases) ---
+
+Table "plans" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "name" TEXT [unique, not null, note: "e.g., Free, Pro, Enterprise"]
+  "price_monthly" INT
+  "price_yearly" INT
+  "stripe_price_id_monthly" TEXT
+  "stripe_price_id_yearly" TEXT
+  "is_active" BOOLEAN [default: true]
+}
+
+Table "plan_features" {
+  "plan_id" UUID [pk]
+  "feature_key" TEXT [pk, note: "e.g., DETAILED_REPORTS, API_ACCESS, AUTO_FIXES"]
+}
+
+Table "subscriptions" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "workspace_id" UUID [unique, not null]
+  "plan_id" UUID [not null]
+  "stripe_subscription_id" TEXT [unique]
+  "status" subscription_status [not null]
+  "current_period_end" TIMESTAMPTZ
+  "created_at" TIMESTAMPTZ [default: `now()`]
+  "updated_at" TIMESTAMPTZ [default: `now()`]
+}
+
+Table "one_time_purchases" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "workspace_id" UUID [not null]
+  "user_id" UUID [not null]
+  "item_name" TEXT [not null, note: "e.g., 'Detailed Report Credit'"]
+  "amount" INT [not null]
+  "currency" TEXT [not null, default: "usd"]
+  "status" purchase_status [not null]
+  "stripe_charge_id" TEXT [unique]
+  "created_at" TIMESTAMPTZ [default: `now()`]
+}
+
+Table "report_credits" {
+  "workspace_id" UUID [pk]
+  "balance" INT [not null, default: 0]
+  "updated_at" TIMESTAMPTZ
+}
+
+
+// --- Group 6: Reporting & Auditing ---
+
+Table "reports" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "analysis_id" UUID [not null]
+  "generated_by_user_id" UUID [not null]
+  "type" report_type [not null]
+  "public_url_key" TEXT [unique, note: "A short key for sharing URLs"]
+  "created_at" TIMESTAMPTZ [default: `now()`]
+}
+
+Table "audit_log" {
+  "id" UUID [pk, default: `gen_random_uuid()`]
+  "workspace_id" UUID
+  "user_id" UUID
+  "action" TEXT [not null, note: "e.g., user.login, analysis.created"]
+  "details" JSONB
+  "created_at" TIMESTAMPTZ [default: `now()`]
+}
+
+
+// --- Relationships ---
+
+// Group 1
+Ref: "users"."id" < "workspaces"."owner_id" [delete: cascade]
+Ref: "workspaces"."id" < "workspace_members"."workspace_id" [delete: cascade]
+Ref: "users"."id" < "workspace_members"."user_id" [delete: cascade]
+Ref: "workspaces"."id" < "websites"."workspace_id" [delete: cascade]
+
+// Group 2
+Ref: "websites"."id" < "analyses"."website_id" [delete: cascade]
+Ref: "users"."id" < "analyses"."user_id" [delete: set null]
+Ref: "analyses"."id" < "analysis_jobs"."analysis_id" [delete: cascade]
+Ref: "analysis_modules"."id" < "analysis_jobs"."module_id" [delete: restrict]
+Ref: "analyses"."id" < "screenshots"."analysis_id" [delete: cascade]
+
+// Group 3
+Ref: "analysis_modules"."id" < "rules"."module_id" [delete: cascade]
+Ref: "compliance_standards"."id" < "standard_rules_mapping"."standard_id" [delete: cascade]
+Ref: "rules"."id" < "standard_rules_mapping"."rule_id" [delete: cascade]
+
+// Group 4
+Ref: "analysis_jobs"."id" < "accessibility_issues"."analysis_job_id" [delete: cascade]
+Ref: "rules"."id" < "accessibility_issues"."rule_id" [delete: restrict]
+Ref: "analysis_jobs"."id" < "seo_issues"."analysis_job_id" [delete: cascade]
+Ref: "rules"."id" < "seo_issues"."rule_id" [delete: restrict]
+Ref: "analysis_jobs"."id" < "performance_issues"."analysis_job_id" [delete: cascade]
+Ref: "rules"."id" < "performance_issues"."rule_id" [delete: restrict]
+
+// Group 5
+Ref: "plans"."id" < "plan_features"."plan_id" [delete: cascade]
+Ref: "workspaces"."id" - "subscriptions"."workspace_id" [delete: cascade]
+Ref: "plans"."id" < "subscriptions"."plan_id" [delete: restrict]
+Ref: "workspaces"."id" < "one_time_purchases"."workspace_id" [delete: cascade]
+Ref: "users"."id" < "one_time_purchases"."user_id" [delete: set null]
+Ref: "workspaces"."id" - "report_credits"."workspace_id" [delete: cascade]
+
+// Group 6
+Ref: "analyses"."id" < "reports"."analysis_id" [delete: cascade]
+Ref: "users"."id" < "reports"."generated_by_user_id" [delete: set null]
+Ref: "workspaces"."id" < "audit_log"."workspace_id" [delete: cascade]
+Ref: "users"."id" < "audit_log"."user_id" [delete: set null]
