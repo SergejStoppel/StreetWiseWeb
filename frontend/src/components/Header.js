@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import styled from 'styled-components';
-import { FaAccessibleIcon, FaBars, FaTimes, FaUser, FaSignOutAlt, FaTachometerAlt } from 'react-icons/fa';
+import { FaAccessibleIcon, FaBars, FaTimes, FaUser, FaSignOutAlt, FaTachometerAlt, FaCog } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import LanguageSelector from './LanguageSelector';
 import { SimpleThemeToggle } from './ThemeToggle';
@@ -542,6 +542,10 @@ const Header = () => {
                     <FaTachometerAlt />
                     Dashboard
                   </UserDropdownItem>
+                  <UserDropdownItem to="/settings" onClick={() => setIsUserDropdownOpen(false)}>
+                    <FaCog />
+                    Settings
+                  </UserDropdownItem>
                   <UserDropdownButton onClick={handleSignOut}>
                     <FaSignOutAlt />
                     Sign Out
@@ -600,6 +604,9 @@ const Header = () => {
             <>
               <MobileNavLink to="/dashboard" isActive={isActive('/dashboard')} onClick={closeMobileMenu}>
                 Dashboard
+              </MobileNavLink>
+              <MobileNavLink to="/settings" isActive={isActive('/settings')} onClick={closeMobileMenu}>
+                Settings
               </MobileNavLink>
               <UserDropdownButton onClick={() => { handleSignOut(); closeMobileMenu(); }}>
                 <FaSignOutAlt />

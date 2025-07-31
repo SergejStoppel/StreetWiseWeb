@@ -52,14 +52,40 @@ export const authenticateToken = async (
       .single();
 
     if (userError) {
-      return res.status(401).json({ 
-        success: false,
-        message: 'User not found in database',
-        timestamp: new Date().toISOString(),
-      });
+      // If user doesn't exist in our database, create them
+      if (userError.code === 'PGRST116') {
+        console.log(`Creating missing user record for ${user.email}`);
+        
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert({
+            id: user.id,
+            email: user.email!,
+            full_name: user.user_metadata?.full_name || '',
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          return res.status(500).json({ 
+            success: false,
+            message: 'Failed to create user record',
+            timestamp: new Date().toISOString(),
+          });
+        }
+
+        req.user = newUser;
+      } else {
+        return res.status(401).json({ 
+          success: false,
+          message: 'User not found in database',
+          timestamp: new Date().toISOString(),
+        });
+      }
+    } else {
+      req.user = userData;
     }
 
-    req.user = userData;
     next();
   } catch (error) {
     console.error('Auth middleware error:', error);

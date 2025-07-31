@@ -36,7 +36,7 @@ if (envConfig.isDevelopment && envConfig.DEBUG) {
       console.log('🧪 Testing Supabase client connectivity...');
       
       // Test with a simple Supabase client call
-      const { data, error } = await supabase.from('user_profiles').select('count').limit(1);
+      const { data, error } = await supabase.from('users').select('count').limit(1);
       
       if (error) {
         console.error('❌ Supabase client test failed:', error.message);

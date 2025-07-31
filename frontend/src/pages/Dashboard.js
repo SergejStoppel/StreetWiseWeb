@@ -210,7 +210,7 @@ const Dashboard = () => {
 
   console.log('🏠 Dashboard: Component rendered', {
     user: user ? { id: user.id, email: user.email } : null,
-    userProfile: userProfile ? { id: userProfile.id, name: userProfile.first_name } : null,
+    userProfile: userProfile ? { id: userProfile.id, name: userProfile.full_name } : null,
     loading,
     error,
     timestamp: new Date().toISOString()
