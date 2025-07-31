@@ -1,0 +1,39 @@
+# Development Dockerfile
+FROM node:18-alpine
+
+# Install development dependencies for Puppeteer
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    python3 \
+    make \
+    g++ \
+    && rm -rf /var/cache/apk/*
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev dependencies)
+RUN npm install
+
+# Create logs directory
+RUN mkdir -p logs
+
+# Set Puppeteer environment variables
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
+# Expose port
+EXPOSE 3001
+
+# Volume for source code (enables hot reload)
+VOLUME ["/app/src"]
+
+# Start development server
+CMD ["npm", "run", "dev"]
