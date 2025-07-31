@@ -1,13 +1,12 @@
-# Use Node.js for development
-FROM node:18-bullseye
+FROM node:18-alpine
 
-# Create app directory
+# Set working directory
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies with legacy peer deps to resolve conflicts
+# Install dependencies including dev dependencies
 RUN npm install --legacy-peer-deps
 
 # Copy source code
@@ -16,5 +15,5 @@ COPY . .
 # Expose port
 EXPOSE 3000
 
-# Start the development server
+# Development command with hot reload
 CMD ["npm", "start"]
