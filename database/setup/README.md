@@ -14,7 +14,9 @@ Run the scripts in the following order:
 6. **06_reporting_audit_tables.sql** - Report generation and audit logging
 7. **07_functions.sql** - Utility functions for common operations
 8. **08_triggers.sql** - Automated actions and data integrity triggers
-9. **09_rls_policies.sql** - Row Level Security policies for multi-tenancy
+9. **09_auth_sync.sql** - Authentication synchronization and user management
+10. **10_rls_policies.sql** - Row Level Security policies for multi-tenancy
+11. **11_seed_data.sql** - Essential seed data (analysis modules, rules, compliance standards)
 
 ## Running the Scripts
 
@@ -31,6 +33,11 @@ for script in database/setup/*.sql; do
   psql -h localhost -U your_user -d your_database -f "$script"
 done
 ```
+
+**Important**: The seed data script (11_seed_data.sql) is essential for the analysis engine to function. It populates:
+- Analysis modules (Accessibility, SEO, Performance)  
+- Analysis rules based on industry standards (axe-core, WCAG, Core Web Vitals)
+- Compliance standard mappings
 
 ### Option 3: Using Supabase CLI
 ```bash
