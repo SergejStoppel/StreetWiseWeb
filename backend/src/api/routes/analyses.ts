@@ -1,5 +1,7 @@
 import express from 'express';
 import { ApiResponse } from '@/types';
+import { createAnalysis } from '@/lib/db/analysis';
+import { masterQueue } from '@/lib/queue/master';
 
 const router = express.Router();
 
@@ -21,22 +23,34 @@ const router = express.Router();
  *               websiteId:
  *                 type: string
  *                 format: uuid
- *               analysisTypes:
- *                 type: array
- *                 items:
- *                   type: string
- *                   enum: [accessibility, seo, performance]
  *     responses:
  *       201:
  *         description: Analysis started
  */
-router.post('/', (req, res) => {
-  const response: ApiResponse = {
-    success: false,
-    message: 'Analysis endpoints not yet implemented',
-    timestamp: new Date().toISOString(),
-  };
-  res.status(501).json(response);
+router.post('/', async (req, res, next) => {
+  try {
+    const { websiteId } = req.body;
+    // @ts-ignore
+    const userId = req.user.id;
+
+    const analysis = await createAnalysis(websiteId, userId);
+
+    await masterQueue.add('master-analysis-job', { 
+      analysisId: analysis.id, 
+      websiteId, 
+      userId 
+    });
+
+    const response: ApiResponse = {
+      success: true,
+      message: 'Analysis started successfully',
+      data: analysis,
+      timestamp: new Date().toISOString(),
+    };
+    res.status(201).json(response);
+  } catch (error) {
+    next(error);
+  }
 });
 
 /**

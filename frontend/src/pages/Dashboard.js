@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
-import { analysisAPI } from '../services/api';
+import { analysisAPI, websiteAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { FaGlobe, FaCalendar, FaChartLine, FaExternalLinkAlt, FaTrash } from 'react-icons/fa';
 
@@ -207,6 +207,39 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [websites, setWebsites] = useState([]);
+  const [selectedWebsite, setSelectedWebsite] = useState('');
+
+  useEffect(() => {
+    const fetchWebsites = async () => {
+      try {
+        const response = await websiteAPI.getWebsites();
+        setWebsites(response.data);
+        if (response.data.length > 0) {
+          setSelectedWebsite(response.data[0].id);
+        }
+      } catch (error) {
+        console.error('Error fetching websites:', error);
+      }
+    };
+
+    fetchWebsites();
+  }, []);
+
+  const handleStartAnalysis = async () => {
+    if (!selectedWebsite) {
+      alert('Please select a website to analyze.');
+      return;
+    }
+
+    try {
+      const response = await analysisAPI.startAnalysis(selectedWebsite);
+      navigate(`/results/${response.data.id}`);
+    } catch (error) {
+      console.error('Error starting analysis:', error);
+      alert('Failed to start analysis');
+    }
+  };
 
   console.log('🏠 Dashboard: Component rendered', {
     user: user ? { id: user.id, email: user.email } : null,
@@ -419,6 +452,17 @@ const Dashboard = () => {
           Here's an overview of your accessibility analyses.
         </Subtitle>
       </Header>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <select value={selectedWebsite} onChange={(e) => setSelectedWebsite(e.target.value)} style={{ marginRight: '1rem' }}>
+          {websites.map((website) => (
+            <option key={website.id} value={website.id}>
+              {website.url}
+            </option>
+          ))}
+        </select>
+        <button onClick={handleStartAnalysis}>Start Analysis</button>
+      </div>
 
       {error && (
         <ErrorMessage>

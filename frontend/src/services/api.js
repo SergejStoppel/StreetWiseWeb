@@ -261,38 +261,7 @@ export const accessibilityAPI = {
     }
   },
 
-  generatePDF: async (analysisId, reportData, language = 'en') => {
-    try {
-      // Try the new cached PDF endpoint first
-      return await accessibilityAPI.downloadPDF(analysisId, language);
-    } catch (error) {
-      // Fallback to legacy endpoint if needed
-      try {
-        const response = await api.post('/api/accessibility/generate-pdf', {
-          analysisId,
-          reportData,
-          language
-        }, {
-          responseType: 'blob'
-        });
-        
-        // Create blob and download link
-        const blob = new Blob([response.data], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `accessibility-report-${analysisId}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        
-        return { success: true };
-      } catch (legacyError) {
-        throw legacyError;
-      }
-    }
-  },
+  
 
   getHealth: async () => {
     try {
@@ -314,6 +283,15 @@ export const accessibilityAPI = {
 };
 
 export const analysisAPI = {
+  startAnalysis: async (websiteId) => {
+    try {
+      const response = await api.post('/api/analyses', { websiteId });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Get user's analysis history
   getHistory: async (options = {}) => {
     try {
@@ -388,6 +366,17 @@ export const analysisAPI = {
       throw error;
     }
   }
+};
+
+export const websiteAPI = {
+  getWebsites: async () => {
+    try {
+      const response = await api.get('/api/workspaces/websites');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default api;

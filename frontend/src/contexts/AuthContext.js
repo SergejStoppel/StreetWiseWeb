@@ -675,7 +675,7 @@ export function AuthProvider({ children }) {
       free: {
         analysesPerMonth: 5,
         projectsMax: 2,
-        features: ['basic_analysis', 'pdf_export']
+        features: ['basic_analysis']
       }
     };
 
