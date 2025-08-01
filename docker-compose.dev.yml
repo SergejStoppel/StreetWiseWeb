@@ -39,14 +39,11 @@ services:
       - REACT_APP_ENV=development
       - REACT_APP_SUPABASE_URL=${DEV_SUPABASE_URL}
       - REACT_APP_SUPABASE_ANON_KEY=${DEV_SUPABASE_ANON_KEY}
-      - HOST=0.0.0.0
+      - NODE_OPTIONS=--max-old-space-size=4096
     env_file:
       - .env
     volumes:
-      - ./frontend/src:/app/src
-      - ./frontend/public:/app/public
-      - ./frontend/package.json:/app/package.json
-      - ./frontend/tsconfig.json:/app/tsconfig.json
+      - ./frontend:/app
       - /app/node_modules
     networks:
       - sitecraft-network
