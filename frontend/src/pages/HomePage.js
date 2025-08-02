@@ -20,7 +20,7 @@ import {
   FaPlay
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-import { accessibilityAPI } from '../services/api';
+import { accessibilityAPI, analysisAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -722,7 +722,7 @@ const HomePage = () => {
     // Test backend connectivity first
     try {
       console.log('🔍 Testing backend connectivity...');
-      const healthResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/health`);
+      const healthResponse = await accessibilityAPI.getHealth();
       console.log('🏥 Health check response:', {
         status: healthResponse.status,
         statusText: healthResponse.statusText,
@@ -737,7 +737,7 @@ const HomePage = () => {
     try {
       toast.info('Starting analysis...', { autoClose: 2000 });
       
-      const result = await accessibilityAPI.analyzeWebsite(fullUrl, 'overview', i18n.language);
+      const result = await analysisAPI.startPublicAnalysis(fullUrl);
       
       console.log('🔍 Analysis result structure:', {
         result: !!result,

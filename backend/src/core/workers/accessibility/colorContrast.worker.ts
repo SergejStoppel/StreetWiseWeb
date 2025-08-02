@@ -1,59 +1,265 @@
-
 import { Job, Worker } from 'bullmq';
+import * as axe from 'axe-core';
+import { JSDOM } from 'jsdom';
 import { config } from '@/config';
 import { createLogger } from '@/config/logger';
 import { supabase } from '@/config/supabase';
 import { AppError } from '@/types';
-import * as axe from 'axe-core';
 
 const logger = createLogger('color-contrast-worker');
 
-async function getHtmlContent(analysisId: string, userId: string): Promise<string> {
-  const { data, error } = await supabase.storage
-    .from('analysis_assets')
-    .download(`${userId}/${analysisId}/index.html`);
-
-  if (error) {
-    throw new AppError('Failed to download HTML content', 500, true, error);
-  }
-
-  return data.text();
+interface ColorContrastJobData {
+  analysisId: string;
+  workspaceId: string;
+  websiteId: string;
+  userId: string;
+  assetPath: string;
+  metadata: any;
 }
 
-export const colorContrastWorker = new Worker('color-contrast', async (job: Job) => {
-  const { analysisId, userId } = job.data;
-  logger.info(`Analyzing color contrast for analysisId: ${analysisId}`);
+interface AxeViolation {
+  id: string;
+  impact: 'minor' | 'moderate' | 'serious' | 'critical';
+  description: string;
+  help: string;
+  helpUrl: string;
+  nodes: Array<{
+    html: string;
+    target: string[];
+    failureSummary?: string;
+    any: Array<{
+      id: string;
+      message: string;
+      data: any;
+    }>;
+  }>;
+}
+
+async function updateJobStatus(analysisId: string, moduleId: string, status: 'processing' | 'completed' | 'failed', errorMessage?: string) {
+  const updateData: any = { 
+    status,
+    ...(status === 'processing' ? { started_at: new Date().toISOString() } : {}),
+    ...(status === 'completed' || status === 'failed' ? { completed_at: new Date().toISOString() } : {}),
+    ...(errorMessage ? { error_message: errorMessage } : {})
+  };
+
+  const { error } = await supabase
+    .from('analysis_jobs')
+    .update(updateData)
+    .eq('analysis_id', analysisId)
+    .eq('module_id', moduleId);
+
+  if (error) {
+    logger.error('Failed to update job status', { error, analysisId, moduleId, status });
+  }
+}
+
+async function getRuleId(ruleKey: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('rules')
+    .select('id')
+    .eq('rule_key', ruleKey)
+    .single();
+
+  if (error || !data) {
+    logger.warn('Rule not found in database', { ruleKey, error });
+    return null;
+  }
+
+  return data.id;
+}
+
+async function getModuleAndJobId(analysisId: string): Promise<{ moduleId: string; jobId: string } | null> {
+  // Get the accessibility module ID
+  const { data: module } = await supabase
+    .from('analysis_modules')
+    .select('id')
+    .eq('name', 'Accessibility')
+    .single();
+
+  if (!module) {
+    logger.error('Accessibility module not found');
+    return null;
+  }
+
+  // Get the job ID for this analysis and module
+  const { data: job } = await supabase
+    .from('analysis_jobs')
+    .select('id')
+    .eq('analysis_id', analysisId)
+    .eq('module_id', module.id)
+    .single();
+
+  if (!job) {
+    logger.error('Analysis job not found', { analysisId, moduleId: module.id });
+    return null;
+  }
+
+  return { moduleId: module.id, jobId: job.id };
+}
+
+function mapAxeImpactToSeverity(impact: string): 'low' | 'medium' | 'high' | 'critical' {
+  switch (impact) {
+    case 'minor':
+      return 'low';
+    case 'moderate':
+      return 'medium';
+    case 'serious':
+      return 'high';
+    case 'critical':
+      return 'critical';
+    default:
+      return 'medium';
+  }
+}
+
+async function downloadHtmlFromStorage(workspaceId: string, analysisId: string): Promise<string> {
+  const htmlPath = `${workspaceId}/${analysisId}/html/index.html`;
+  
+  const { data, error } = await supabase.storage
+    .from('analysis_assets')
+    .download(htmlPath);
+
+  if (error || !data) {
+    throw new AppError('Failed to download HTML from storage', 500, true, error);
+  }
+
+  // Convert blob to text
+  const text = await data.text();
+  return text;
+}
+
+export const colorContrastWorker = new Worker('color-contrast', async (job: Job<ColorContrastJobData>) => {
+  const { analysisId, workspaceId, assetPath, metadata } = job.data;
+  
+  logger.info('Starting color contrast analysis', { 
+    analysisId, 
+    workspaceId,
+    assetPath 
+  });
+
+  let moduleJobInfo: { moduleId: string; jobId: string } | null = null;
 
   try {
-    const html = await getHtmlContent(analysisId, userId);
+    // Get module and job IDs
+    moduleJobInfo = await getModuleAndJobId(analysisId);
+    if (!moduleJobInfo) {
+      throw new AppError('Failed to get module and job information', 500);
+    }
 
-    const results = await axe.run(html, {
-      runOnly: {
-        type: 'rule',
-        values: ['color-contrast'],
-      },
+    // Update job status to processing
+    await updateJobStatus(analysisId, moduleJobInfo.moduleId, 'processing');
+
+    // Download HTML from storage
+    logger.info('Downloading HTML from storage', { workspaceId, analysisId });
+    const html = await downloadHtmlFromStorage(workspaceId, analysisId);
+
+    // Create virtual DOM for axe-core
+    const dom = new JSDOM(html, {
+      url: metadata?.url || 'http://localhost',
+      pretendToBeVisual: true,
+      resources: 'usable'
     });
 
-    const issues = results.violations.map((violation) => ({
-      analysis_job_id: job.id,
-      rule_id: 'd1b4d42a-2c2c-4b2c-8b2c-2c2c2c2c2c2c', // Replace with actual rule ID from DB
-      severity: violation.impact,
-      location_path: violation.nodes.map((node) => node.target).join(', '),
-      code_snippet: violation.nodes.map((node) => node.html).join('\n'),
-      message: violation.help,
-      fix_suggestion: violation.helpUrl,
-    }));
+    const { window } = dom;
+    const { document } = window;
 
-    if (issues.length > 0) {
-      const { error } = await supabase.from('accessibility_issues').insert(issues);
-      if (error) {
-        throw new AppError('Failed to insert accessibility issues', 500, true, error);
+    // Configure axe-core to only run color contrast rules
+    const axeConfig = {
+      rules: {
+        'color-contrast': { enabled: true },
+        'color-contrast-enhanced': { enabled: true }
+      },
+      runOnly: ['color-contrast', 'color-contrast-enhanced']
+    };
+
+    // Run axe-core analysis
+    logger.info('Running axe-core color contrast analysis');
+    const results = await axe.run(document.documentElement, axeConfig);
+
+    logger.info('Axe-core analysis complete', {
+      violations: results.violations.length,
+      passes: results.passes.length,
+      incomplete: results.incomplete.length
+    });
+
+    // Process violations and store in database
+    const issuePromises = [];
+
+    for (const violation of results.violations as AxeViolation[]) {
+      // Get the rule ID from our database
+      const ruleId = await getRuleId(violation.id);
+      
+      if (!ruleId) {
+        logger.warn('Skipping violation - rule not found in database', { 
+          ruleKey: violation.id 
+        });
+        continue;
+      }
+
+      // Process each node that violated the rule
+      for (const node of violation.nodes) {
+        const issue = {
+          analysis_job_id: moduleJobInfo.jobId,
+          rule_id: ruleId,
+          severity: mapAxeImpactToSeverity(violation.impact),
+          location_path: node.target.join(' > '),
+          code_snippet: node.html,
+          message: node.failureSummary || violation.help,
+          fix_suggestion: `${violation.description}\n\nHow to fix:\n${violation.help}\n\nFor more information: ${violation.helpUrl}`
+        };
+
+        issuePromises.push(
+          supabase
+            .from('accessibility_issues')
+            .insert([issue])
+            .then(({ error }) => {
+              if (error) {
+                logger.error('Failed to insert accessibility issue', { 
+                  error, 
+                  ruleId: violation.id 
+                });
+              }
+            })
+        );
       }
     }
 
-    logger.info(`Successfully analyzed color contrast for analysisId: ${analysisId}`);
+    // Wait for all issues to be inserted
+    await Promise.all(issuePromises);
+
+    // Update job status to completed
+    await updateJobStatus(analysisId, moduleJobInfo.moduleId, 'completed');
+
+    logger.info('Color contrast analysis completed successfully', {
+      analysisId,
+      violationsFound: results.violations.length,
+      issuesCreated: issuePromises.length
+    });
+
+    // Clean up
+    dom.window.close();
+
+    return {
+      success: true,
+      violationsFound: results.violations.length,
+      passesFound: results.passes.length,
+      incompleteFound: results.incomplete.length
+    };
+
   } catch (error) {
-    logger.error(`Error analyzing color contrast for analysisId: ${analysisId}`, error);
+    logger.error('Error in color contrast worker', {
+      error: error.message,
+      stack: error.stack,
+      analysisId,
+      workspaceId
+    });
+
+    // Update job status to failed
+    if (moduleJobInfo) {
+      await updateJobStatus(analysisId, moduleJobInfo.moduleId, 'failed', error.message);
+    }
+
     throw error;
   }
 }, {
@@ -61,4 +267,18 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job)
     host: config.redis.host,
     port: config.redis.port,
   },
+  concurrency: 5, // Can process multiple analyses concurrently
+  defaultJobOptions: {
+    attempts: 2,
+    backoff: {
+      type: 'exponential',
+      delay: 5000
+    }
+  }
+});
+
+// Graceful shutdown
+process.on('SIGTERM', async () => {
+  logger.info('SIGTERM received, closing color contrast worker...');
+  await colorContrastWorker.close();
 });

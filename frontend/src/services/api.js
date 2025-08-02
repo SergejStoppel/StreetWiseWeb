@@ -265,7 +265,7 @@ export const accessibilityAPI = {
 
   getHealth: async () => {
     try {
-      const response = await api.get('/api/accessibility/health');
+      const response = await api.get('/api/health/status');
       return response.data;
     } catch (error) {
       throw error;
@@ -283,6 +283,14 @@ export const accessibilityAPI = {
 };
 
 export const analysisAPI = {
+  startPublicAnalysis: async (url) => {
+    try {
+      const response = await api.post('/api/analyses/public', { url });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
   startAnalysis: async (websiteId) => {
     try {
       const response = await api.post('/api/analyses', { websiteId });
