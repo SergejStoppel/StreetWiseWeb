@@ -25,20 +25,36 @@ interface ExtractedAssets {
 }
 
 async function updateAnalysisStatus(analysisId: string, status: 'processing' | 'completed' | 'failed') {
-  const { error } = await supabase
+  logger.info('Updating analysis status', { analysisId, status });
+  
+  const { data, error } = await supabase
     .from('analyses')
     .update({ status, ...(status === 'completed' ? { completed_at: new Date().toISOString() } : {}) })
-    .eq('id', analysisId);
+    .eq('id', analysisId)
+    .select();
 
   if (error) {
-    throw new AppError('Failed to update analysis status', 500, true, error);
+    logger.error('Failed to update analysis status', {
+      error: error.message,
+      errorCode: error.code,
+      errorDetails: error.details,
+      analysisId,
+      status
+    });
+    throw new AppError(`Failed to update analysis status: ${error.message}`, 500, true, error);
   }
+
+  logger.info('Analysis status updated successfully', {
+    analysisId,
+    status,
+    data
+  });
 }
 
-async function updateAnalysisJobStatus(analysisId: string, moduleId: string, status: 'processing' | 'completed' | 'failed', errorMessage?: string) {
+async function updateAnalysisJobStatus(analysisId: string, moduleId: string, status: 'running' | 'completed' | 'failed', errorMessage?: string) {
   const updateData: any = { 
     status,
-    ...(status === 'processing' ? { started_at: new Date().toISOString() } : {}),
+    ...(status === 'running' ? { started_at: new Date().toISOString() } : {}),
     ...(status === 'completed' || status === 'failed' ? { completed_at: new Date().toISOString() } : {}),
     ...(errorMessage ? { error_message: errorMessage } : {})
   };
@@ -144,35 +160,90 @@ async function captureScreenshots(page: Page, workspaceId: string, analysisId: s
   const screenshots = [];
   const basePath = `${workspaceId}/${analysisId}/screenshots`;
 
-  // Desktop screenshot
-  await page.setViewport({ width: 1920, height: 1080 });
-  const desktopScreenshot = await page.screenshot({ type: 'jpeg', quality: 85 });
-  const desktopPath = `${basePath}/desktop.jpg`;
-  await supabase.storage.from('analysis_assets').upload(desktopPath, desktopScreenshot);
-  screenshots.push({ type: 'desktop', path: desktopPath });
+  try {
+    logger.info('Starting screenshot capture', { basePath });
 
-  // Mobile screenshot
-  await page.setViewport({ width: 375, height: 667, isMobile: true });
-  const mobileScreenshot = await page.screenshot({ type: 'jpeg', quality: 85 });
-  const mobilePath = `${basePath}/mobile.jpg`;
-  await supabase.storage.from('analysis_assets').upload(mobilePath, mobileScreenshot);
-  screenshots.push({ type: 'mobile', path: mobilePath });
+    // Desktop screenshot with timeout
+    logger.info('Capturing desktop screenshot');
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.waitForTimeout(500); // Allow viewport to settle
+    const desktopScreenshot = await Promise.race([
+      page.screenshot({ type: 'jpeg', quality: 85 }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Desktop screenshot timeout')), 10000))
+    ]);
+    const desktopPath = `${basePath}/desktop.jpg`;
+    const { error: desktopError } = await supabase.storage.from('analysis_assets').upload(desktopPath, desktopScreenshot);
+    if (desktopError) {
+      logger.warn('Failed to upload desktop screenshot', { error: desktopError.message });
+    } else {
+      screenshots.push({ type: 'desktop', path: desktopPath });
+      logger.info('Desktop screenshot captured and uploaded');
+    }
 
-  // Tablet screenshot
-  await page.setViewport({ width: 768, height: 1024 });
-  const tabletScreenshot = await page.screenshot({ type: 'jpeg', quality: 85 });
-  const tabletPath = `${basePath}/tablet.jpg`;
-  await supabase.storage.from('analysis_assets').upload(tabletPath, tabletScreenshot);
-  screenshots.push({ type: 'tablet', path: tabletPath });
+    // Mobile screenshot with timeout
+    logger.info('Capturing mobile screenshot');
+    await page.setViewport({ width: 375, height: 667, isMobile: true });
+    await page.waitForTimeout(500);
+    const mobileScreenshot = await Promise.race([
+      page.screenshot({ type: 'jpeg', quality: 85 }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Mobile screenshot timeout')), 10000))
+    ]);
+    const mobilePath = `${basePath}/mobile.jpg`;
+    const { error: mobileError } = await supabase.storage.from('analysis_assets').upload(mobilePath, mobileScreenshot);
+    if (mobileError) {
+      logger.warn('Failed to upload mobile screenshot', { error: mobileError.message });
+    } else {
+      screenshots.push({ type: 'mobile', path: mobilePath });
+      logger.info('Mobile screenshot captured and uploaded');
+    }
 
-  // Full page screenshot
-  await page.setViewport({ width: 1920, height: 1080 });
-  const fullPageScreenshot = await page.screenshot({ type: 'jpeg', quality: 85, fullPage: true });
-  const fullPagePath = `${basePath}/full-page.jpg`;
-  await supabase.storage.from('analysis_assets').upload(fullPagePath, fullPageScreenshot);
-  screenshots.push({ type: 'full_page', path: fullPagePath });
+    // Tablet screenshot with timeout
+    logger.info('Capturing tablet screenshot');
+    await page.setViewport({ width: 768, height: 1024 });
+    await page.waitForTimeout(500);
+    const tabletScreenshot = await Promise.race([
+      page.screenshot({ type: 'jpeg', quality: 85 }),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Tablet screenshot timeout')), 10000))
+    ]);
+    const tabletPath = `${basePath}/tablet.jpg`;
+    const { error: tabletError } = await supabase.storage.from('analysis_assets').upload(tabletPath, tabletScreenshot);
+    if (tabletError) {
+      logger.warn('Failed to upload tablet screenshot', { error: tabletError.message });
+    } else {
+      screenshots.push({ type: 'tablet', path: tabletPath });
+      logger.info('Tablet screenshot captured and uploaded');
+    }
 
-  return screenshots;
+    // Full page screenshot with timeout - this one often hangs
+    logger.info('Capturing full page screenshot');
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.waitForTimeout(500);
+    try {
+      const fullPageScreenshot = await Promise.race([
+        page.screenshot({ type: 'jpeg', quality: 85, fullPage: true }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Full page screenshot timeout')), 15000))
+      ]);
+      const fullPagePath = `${basePath}/full-page.jpg`;
+      const { error: fullPageError } = await supabase.storage.from('analysis_assets').upload(fullPagePath, fullPageScreenshot);
+      if (fullPageError) {
+        logger.warn('Failed to upload full page screenshot', { error: fullPageError.message });
+      } else {
+        screenshots.push({ type: 'full_page', path: fullPagePath });
+        logger.info('Full page screenshot captured and uploaded');
+      }
+    } catch (fullPageError) {
+      logger.warn('Full page screenshot failed, skipping', { error: fullPageError.message });
+      // Continue without full page screenshot
+    }
+
+    logger.info('Screenshot capture completed', { count: screenshots.length });
+    return screenshots;
+
+  } catch (error) {
+    logger.error('Screenshot capture failed', { error: error.message });
+    // Return any screenshots we managed to capture
+    return screenshots;
+  }
 }
 
 export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobData>) => {
@@ -193,7 +264,7 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
       .single();
       
     if (fetcherModule) {
-      await updateAnalysisJobStatus(analysisId, fetcherModule.id, 'processing');
+      await updateAnalysisJobStatus(analysisId, fetcherModule.id, 'running');
     }
 
     // Get the target URL
@@ -355,61 +426,134 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
     logger.info('Capturing screenshots');
     const screenshots = await captureScreenshots(page, workspaceId, analysisId);
 
-    // Store all assets in Supabase Storage
+    // Store all assets in Supabase Storage with timeout protection
     const basePath = `${workspaceId}/${analysisId}`;
     
-    // Store HTML
-    await supabase.storage
-      .from('analysis_assets')
-      .upload(`${basePath}/html/index.html`, assets.html, {
-        contentType: 'text/html',
-        upsert: true
-      });
+    logger.info('Starting asset storage', { basePath });
+    
+    // Store HTML with timeout
+    logger.info('Storing HTML content');
+    try {
+      const { error: htmlError } = await Promise.race([
+        supabase.storage
+          .from('analysis_assets')
+          .upload(`${basePath}/html/index.html`, assets.html, {
+            contentType: 'text/html',
+            upsert: true
+          }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('HTML upload timeout')), 10000))
+      ]);
+      if (htmlError) {
+        logger.error('Failed to store HTML', { error: htmlError.message });
+        throw new AppError(`Failed to store HTML: ${htmlError.message}`, 500);
+      }
+      logger.info('HTML stored successfully');
+    } catch (error) {
+      logger.error('HTML storage failed', { error: error.message });
+      throw error;
+    }
 
-    // Store CSS files
+    // Store CSS files with timeout
+    logger.info('Storing CSS files', { count: assets.css.length });
     for (let i = 0; i < assets.css.length; i++) {
       if (assets.css[i]) {
-        await supabase.storage
-          .from('analysis_assets')
-          .upload(`${basePath}/css/styles-${i}.css`, assets.css[i], {
-            contentType: 'text/css',
-            upsert: true
-          });
+        try {
+          const { error: cssError } = await Promise.race([
+            supabase.storage
+              .from('analysis_assets')
+              .upload(`${basePath}/css/styles-${i}.css`, assets.css[i], {
+                contentType: 'text/css',
+                upsert: true
+              }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('CSS upload timeout')), 5000))
+          ]);
+          if (cssError) {
+            logger.warn(`Failed to store CSS file ${i}`, { error: cssError.message });
+          } else {
+            logger.info(`CSS file ${i} stored successfully`);
+          }
+        } catch (error) {
+          logger.warn(`CSS file ${i} storage failed`, { error: error.message });
+          // Continue with other files
+        }
       }
     }
 
-    // Store JS files
+    // Store JS files with timeout
+    logger.info('Storing JS files', { count: assets.js.length });
     for (let i = 0; i < assets.js.length; i++) {
       if (assets.js[i]) {
-        await supabase.storage
-          .from('analysis_assets')
-          .upload(`${basePath}/js/script-${i}.js`, assets.js[i], {
-            contentType: 'application/javascript',
-            upsert: true
-          });
+        try {
+          const { error: jsError } = await Promise.race([
+            supabase.storage
+              .from('analysis_assets')
+              .upload(`${basePath}/js/script-${i}.js`, assets.js[i], {
+                contentType: 'application/javascript',
+                upsert: true
+              }),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('JS upload timeout')), 5000))
+          ]);
+          if (jsError) {
+            logger.warn(`Failed to store JS file ${i}`, { error: jsError.message });
+          } else {
+            logger.info(`JS file ${i} stored successfully`);
+          }
+        } catch (error) {
+          logger.warn(`JS file ${i} storage failed`, { error: error.message });
+          // Continue with other files
+        }
       }
     }
 
-    // Store meta files
+    // Store meta files with timeout
     if (robots) {
-      await supabase.storage
-        .from('analysis_assets')
-        .upload(`${basePath}/meta/robots.txt`, robots, {
-          contentType: 'text/plain',
-          upsert: true
-        });
+      logger.info('Storing robots.txt');
+      try {
+        const { error: robotsError } = await Promise.race([
+          supabase.storage
+            .from('analysis_assets')
+            .upload(`${basePath}/meta/robots.txt`, robots, {
+              contentType: 'text/plain',
+              upsert: true
+            }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Robots.txt upload timeout')), 5000))
+        ]);
+        if (robotsError) {
+          logger.warn('Failed to store robots.txt', { error: robotsError.message });
+        } else {
+          logger.info('robots.txt stored successfully');
+        }
+      } catch (error) {
+        logger.warn('robots.txt storage failed', { error: error.message });
+      }
     }
 
     if (sitemap) {
-      await supabase.storage
-        .from('analysis_assets')
-        .upload(`${basePath}/meta/sitemap.xml`, sitemap, {
-          contentType: 'application/xml',
-          upsert: true
-        });
+      logger.info('Storing sitemap.xml');
+      try {
+        const { error: sitemapError } = await Promise.race([
+          supabase.storage
+            .from('analysis_assets')
+            .upload(`${basePath}/meta/sitemap.xml`, sitemap, {
+              contentType: 'application/xml',
+              upsert: true
+            }),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Sitemap.xml upload timeout')), 5000))
+        ]);
+        if (sitemapError) {
+          logger.warn('Failed to store sitemap.xml', { error: sitemapError.message });
+        } else {
+          logger.info('sitemap.xml stored successfully');
+        }
+      } catch (error) {
+        logger.warn('sitemap.xml storage failed', { error: error.message });
+      }
     }
 
+    logger.info('Asset storage phase completed');
+
     // Store metadata about what was captured
+    logger.info('Storing metadata');
     const metadata = {
       url: targetUrl,
       capturedAt: new Date().toISOString(),
@@ -423,23 +567,50 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
       }
     };
 
-    await supabase.storage
-      .from('analysis_assets')
-      .upload(`${basePath}/meta/metadata.json`, JSON.stringify(metadata, null, 2), {
-        contentType: 'application/json',
-        upsert: true
-      });
+    try {
+      const { error: metadataError } = await Promise.race([
+        supabase.storage
+          .from('analysis_assets')
+          .upload(`${basePath}/meta/metadata.json`, JSON.stringify(metadata, null, 2), {
+            contentType: 'application/json',
+            upsert: true
+          }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Metadata upload timeout')), 5000))
+      ]);
+      if (metadataError) {
+        logger.warn('Failed to store metadata', { error: metadataError.message });
+      } else {
+        logger.info('Metadata stored successfully');
+      }
+    } catch (error) {
+      logger.warn('Metadata storage failed', { error: error.message });
+    }
 
-    // Insert screenshot records into database
-    const screenshotRecords = screenshots.map(screenshot => ({
-      analysis_id: analysisId,
-      type: screenshot.type,
-      storage_bucket: 'analysis_assets',
-      storage_path: screenshot.path,
-      url: targetUrl
-    }));
+    // Insert screenshot records into database with timeout
+    if (screenshots.length > 0) {
+      logger.info('Inserting screenshot records', { count: screenshots.length });
+      const screenshotRecords = screenshots.map(screenshot => ({
+        analysis_id: analysisId,
+        type: screenshot.type,
+        storage_bucket: 'analysis_assets',
+        storage_path: screenshot.path,
+        url: targetUrl
+      }));
 
-    await supabase.from('screenshots').insert(screenshotRecords);
+      try {
+        const { error: screenshotError } = await Promise.race([
+          supabase.from('screenshots').insert(screenshotRecords),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('Screenshot insert timeout')), 5000))
+        ]);
+        if (screenshotError) {
+          logger.warn('Failed to insert screenshot records', { error: screenshotError.message });
+        } else {
+          logger.info('Screenshot records inserted successfully');
+        }
+      } catch (error) {
+        logger.warn('Screenshot record insertion failed', { error: error.message });
+      }
+    }
 
     // Update job status
     if (fetcherModule) {
@@ -500,7 +671,9 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
       delay: 3000
     },
     removeOnComplete: 10,
-    removeOnFail: 10
+    removeOnFail: 10,
+    // Add job timeout to prevent infinite hanging
+    jobTimeout: 120000 // 2 minutes total timeout
   }
 });
 

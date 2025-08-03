@@ -34,10 +34,6 @@ i18n
       requestOptions: {
         cache: 'no-cache'
       },
-      // Add error handling for failed loads
-      loadPath: function(lngs, namespaces) {
-        return '/locales/{{lng}}/{{ns}}.json';
-      },
       allowMultiLoading: false,
       crossDomain: false
     },

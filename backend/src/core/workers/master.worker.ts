@@ -82,8 +82,17 @@ async function waitForFetcherCompletion(fetcherJobId: string): Promise<FetcherRe
     throw new AppError('Fetcher job not found', 500);
   }
 
-  // Wait for the fetcher job to complete with proper queueEvents parameter
-  const result = await fetcherJob.waitUntilFinished(fetcherQueueEvents);
+  logger.info('Waiting for fetcher job completion', { fetcherJobId });
+
+  // Wait for the fetcher job to complete with timeout
+  const result = await Promise.race([
+    fetcherJob.waitUntilFinished(fetcherQueueEvents),
+    new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('Fetcher job timeout - took longer than 3 minutes')), 180000)
+    )
+  ]);
+  
+  logger.info('Fetcher job completed', { fetcherJobId, success: result?.success });
   
   if (!result || !result.success) {
     throw new AppError('Fetcher job failed', 500);
@@ -179,34 +188,65 @@ export const masterWorker = new Worker('master-analysis', async (job: Job<Master
 
     logger.info('Fetcher completed successfully', { 
       analysisId, 
-      assetPath: fetcherResult.assetPath 
+      assetPath: fetcherResult.assetPath,
+      metadata: fetcherResult.metadata 
     });
 
     // Step 3: Enqueue all analyzer jobs in parallel
     const analyzerJobPromises = [];
     
+    logger.info('Starting to enqueue analyzer jobs', {
+      analysisId,
+      availableAnalyzers: Object.keys(analyzerQueues)
+    });
+    
     for (const [analyzerName, queue] of Object.entries(analyzerQueues)) {
       logger.info(`Enqueuing ${analyzerName} analyzer`, { analysisId });
       
-      const jobPromise = queue.add(`analyze-${analyzerName}`, {
-        analysisId,
-        workspaceId,
-        websiteId,
-        userId,
-        assetPath: fetcherResult.assetPath,
-        metadata: fetcherResult.metadata
-      });
-      
-      analyzerJobPromises.push(jobPromise);
+      try {
+        const jobPromise = queue.add(`analyze-${analyzerName}`, {
+          analysisId,
+          workspaceId,
+          websiteId,
+          userId,
+          assetPath: fetcherResult.assetPath,
+          metadata: fetcherResult.metadata
+        }, {
+          removeOnComplete: false, // Keep for debugging
+          removeOnFail: false,
+          attempts: 2,
+          backoff: {
+            type: 'exponential',
+            delay: 2000
+          }
+        });
+        
+        analyzerJobPromises.push(jobPromise);
+        logger.info(`${analyzerName} analyzer job enqueued`, { analysisId });
+      } catch (error) {
+        logger.error(`Failed to enqueue ${analyzerName} analyzer`, {
+          error: error.message,
+          analysisId
+        });
+        // Continue with other analyzers
+      }
     }
 
     // Wait for all analyzer jobs to be enqueued
-    await Promise.all(analyzerJobPromises);
+    const enqueuedJobs = await Promise.allSettled(analyzerJobPromises);
+    const successfulJobs = enqueuedJobs.filter(result => result.status === 'fulfilled').length;
+    const failedJobs = enqueuedJobs.filter(result => result.status === 'rejected').length;
 
-    logger.info('All analyzer jobs enqueued successfully', { 
+    logger.info('Analyzer job enqueuing completed', { 
       analysisId,
-      analyzerCount: analyzerJobPromises.length 
+      totalAttempted: analyzerJobPromises.length,
+      successful: successfulJobs,
+      failed: failedJobs
     });
+
+    if (successfulJobs === 0) {
+      throw new AppError('Failed to enqueue any analyzer jobs', 500);
+    }
 
     // Update analysis status to processing (analyzers are now running)
     await supabase
@@ -218,11 +258,17 @@ export const masterWorker = new Worker('master-analysis', async (job: Job<Master
     // Each analyzer will update its own status and the analysis status
     // will be updated by monitoring the analyzer job completions
 
+    logger.info('Master worker completed successfully', {
+      analysisId,
+      assetPath: fetcherResult.assetPath,
+      analyzersEnqueued: successfulJobs
+    });
+
     return {
       success: true,
       analysisId,
       assetPath: fetcherResult.assetPath,
-      analyzersEnqueued: Object.keys(analyzerQueues).length
+      analyzersEnqueued: successfulJobs
     };
 
   } catch (error) {

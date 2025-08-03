@@ -36,10 +36,10 @@ interface AxeViolation {
   }>;
 }
 
-async function updateJobStatus(analysisId: string, moduleId: string, status: 'processing' | 'completed' | 'failed', errorMessage?: string) {
+async function updateJobStatus(analysisId: string, moduleId: string, status: 'running' | 'completed' | 'failed', errorMessage?: string) {
   const updateData: any = { 
     status,
-    ...(status === 'processing' ? { started_at: new Date().toISOString() } : {}),
+    ...(status === 'running' ? { started_at: new Date().toISOString() } : {}),
     ...(status === 'completed' || status === 'failed' ? { completed_at: new Date().toISOString() } : {}),
     ...(errorMessage ? { error_message: errorMessage } : {})
   };
@@ -71,22 +71,22 @@ async function getRuleId(ruleKey: string): Promise<string | null> {
 }
 
 async function getModuleAndJobId(analysisId: string): Promise<{ moduleId: string; jobId: string } | null> {
-  // Get the accessibility module ID
+  // Get the color contrast module ID - should match the module name in the database
   const { data: module, error: moduleError } = await supabase
     .from('analysis_modules')
     .select('id')
-    .eq('name', 'Accessibility')
+    .eq('name', 'Color Contrast')
     .single();
 
   if (moduleError || !module) {
-    logger.error('Accessibility module not found', { 
+    logger.error('Color Contrast module not found', { 
       error: moduleError,
       moduleError: moduleError?.message 
     });
     return null;
   }
 
-  logger.info('Found Accessibility module', { moduleId: module.id });
+  logger.info('Found Color Contrast module', { moduleId: module.id });
 
   // Get the job ID for this analysis and module
   const { data: job, error: jobError } = await supabase
@@ -147,13 +147,34 @@ function mapAxeImpactToSeverity(impact: string): 'low' | 'medium' | 'high' | 'cr
 async function downloadHtmlFromStorage(workspaceId: string, analysisId: string): Promise<string> {
   const htmlPath = `${workspaceId}/${analysisId}/html/index.html`;
   
+  logger.info('Attempting to download HTML from storage', {
+    htmlPath,
+    workspaceId,
+    analysisId
+  });
+  
   const { data, error } = await supabase.storage
     .from('analysis_assets')
     .download(htmlPath);
 
-  if (error || !data) {
-    throw new AppError('Failed to download HTML from storage', 500, true, error);
+  if (error) {
+    logger.error('Storage download error', {
+      error: error.message,
+      htmlPath,
+      errorCode: error.statusCode || 'unknown'
+    });
+    throw new AppError(`Failed to download HTML from storage: ${error.message}`, 500, true, error);
   }
+
+  if (!data) {
+    logger.error('No data returned from storage', { htmlPath });
+    throw new AppError('No data returned from storage download', 500, true);
+  }
+
+  logger.info('Successfully downloaded HTML from storage', {
+    htmlPath,
+    dataSize: data.size
+  });
 
   // Convert blob to text
   const text = await data.text();
@@ -178,8 +199,8 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
       throw new AppError('Failed to get module and job information', 500);
     }
 
-    // Update job status to processing
-    await updateJobStatus(analysisId, moduleJobInfo.moduleId, 'processing');
+    // Update job status to running
+    await updateJobStatus(analysisId, moduleJobInfo.moduleId, 'running');
 
     // Download HTML from storage
     logger.info('Downloading HTML from storage', { workspaceId, analysisId });
