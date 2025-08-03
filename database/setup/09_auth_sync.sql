@@ -4,7 +4,11 @@
 -- Function to handle new user creation from auth
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
+DECLARE
+  user_workspace_id UUID;
+  workspace_name TEXT;
 BEGIN
+  -- Insert user record
   INSERT INTO public.users (id, email, full_name, created_at)
   VALUES (
     NEW.id,
@@ -12,6 +16,13 @@ BEGIN
     COALESCE(NEW.raw_user_meta_data->>'full_name', ''),
     NOW()
   );
+  
+  -- Create personal workspace for the new user
+  workspace_name := COALESCE(NEW.raw_user_meta_data->>'full_name', split_part(NEW.email, '@', 1)) || '''s Workspace';
+  
+  -- Use the existing function to create workspace with owner
+  SELECT create_workspace_with_owner(NEW.id, workspace_name) INTO user_workspace_id;
+  
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;

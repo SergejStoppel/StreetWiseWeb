@@ -33,14 +33,22 @@ i18n
       loadPath: '/locales/{{lng}}/{{ns}}.json',
       requestOptions: {
         cache: 'no-cache'
-      }
+      },
+      // Add error handling for failed loads
+      loadPath: function(lngs, namespaces) {
+        return '/locales/{{lng}}/{{ns}}.json';
+      },
+      allowMultiLoading: false,
+      crossDomain: false
     },
     
-    // Language detection configuration
+    // Language detection configuration - fallback gracefully in incognito mode
     detection: {
       order: ['localStorage', 'navigator', 'htmlTag'],
       caches: ['localStorage'],
       lookupLocalStorage: 'streetwiseweb-language',
+      // Fallback gracefully if localStorage is not available (incognito mode)
+      excludeCacheFor: [],
     },
     
     // React configuration
@@ -64,7 +72,60 @@ i18n
     debug: false,
   });
 
-// Preload critical namespaces for instant loading
-i18n.loadNamespaces(['navigation', 'common', 'homepage', 'forms']);
+// Safe localStorage access for incognito mode
+const safeLocalStorage = {
+  getItem: (key) => {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      console.warn('localStorage not available, using fallback');
+      return null;
+    }
+  },
+  setItem: (key, value) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn('localStorage not available, skipping cache');
+    }
+  }
+};
+
+// Override localStorage for i18n if needed
+if (typeof Storage !== 'undefined') {
+  try {
+    localStorage.setItem('test', 'test');
+    localStorage.removeItem('test');
+  } catch (e) {
+    console.warn('localStorage restricted, i18n will use memory cache only');
+  }
+}
+
+// Add error handling to i18n initialization
+i18n.on('failedLoading', (lng, ns, msg) => {
+  console.warn(`Failed to load translation ${lng}/${ns}:`, msg);
+});
+
+i18n.on('loaded', (loaded) => {
+  console.log('i18n loaded:', Object.keys(loaded));
+});
+
+// Preload critical namespaces for instant loading with timeout
+const loadCriticalNamespaces = async () => {
+  try {
+    await Promise.race([
+      i18n.loadNamespaces(['navigation', 'common', 'homepage', 'forms']),
+      new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Translation load timeout')), 3000)
+      )
+    ]);
+    console.log('✅ Critical namespaces preloaded successfully');
+  } catch (error) {
+    console.warn('⚠️ Failed to preload critical namespaces:', error.message);
+    // Continue anyway - the app should still work with default text
+  }
+};
+
+loadCriticalNamespaces();
 
 export default i18n;

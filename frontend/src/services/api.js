@@ -300,6 +300,15 @@ export const analysisAPI = {
     }
   },
 
+  startAnalysisWithUrl: async (url) => {
+    try {
+      const response = await api.post('/api/analyses', { url });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Get user's analysis history
   getHistory: async (options = {}) => {
     try {
@@ -319,8 +328,8 @@ export const analysisAPI = {
   // Get recent analyses
   getRecent: async (limit = 5) => {
     try {
-      debugLog(`📊 API: Making request to /api/analysis/recent?limit=${limit}`);
-      const response = await api.get(`/api/analysis/recent?limit=${limit}`);
+      debugLog(`📊 API: Making request to /api/analyses/recent?limit=${limit}`);
+      const response = await api.get(`/api/analyses/recent?limit=${limit}`);
       debugLog('✅ API: getRecent response received', response.data);
       return response.data;
     } catch (error) {
@@ -332,8 +341,8 @@ export const analysisAPI = {
   // Get specific analysis by ID
   getById: async (analysisId) => {
     try {
-      debugLog(`📊 API: Making request to /api/analysis/${analysisId}`);
-      const response = await api.get(`/api/analysis/${analysisId}`);
+      debugLog(`📊 API: Making request to /api/analyses/${analysisId}`);
+      const response = await api.get(`/api/analyses/${analysisId}`);
       debugLog('✅ API: getById response received', response.data);
       return response.data;
     } catch (error) {
@@ -345,8 +354,8 @@ export const analysisAPI = {
   // Get analysis statistics
   getStats: async () => {
     try {
-      debugLog('📊 API: Making request to /api/analysis/stats');
-      const response = await api.get('/api/analysis/stats');
+      debugLog('📊 API: Making request to /api/analyses/stats');
+      const response = await api.get('/api/analyses/stats');
       debugLog('✅ API: getStats response received', response.data);
       return response.data;
     } catch (error) {
@@ -358,7 +367,7 @@ export const analysisAPI = {
   // Delete analysis
   delete: async (analysisId) => {
     try {
-      const response = await api.delete(`/api/analysis/${analysisId}`);
+      const response = await api.delete(`/api/analyses/${analysisId}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -368,7 +377,7 @@ export const analysisAPI = {
   // Search analyses by URL
   search: async (term, limit = 10) => {
     try {
-      const response = await api.get(`/api/analysis/search/${encodeURIComponent(term)}?limit=${limit}`);
+      const response = await api.get(`/api/analyses/search/${encodeURIComponent(term)}?limit=${limit}`);
       return response.data;
     } catch (error) {
       throw error;

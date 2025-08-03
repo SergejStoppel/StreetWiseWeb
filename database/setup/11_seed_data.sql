@@ -3,6 +3,7 @@
 
 -- Insert analysis modules
 INSERT INTO analysis_modules (name, description) VALUES
+('Fetcher', 'Website asset extraction and storage - HTML, CSS, JS, screenshots, and metadata'),
 ('Accessibility', 'Web Content Accessibility Guidelines (WCAG) compliance checks - 65+ comprehensive rules'),
 ('SEO', 'Search Engine Optimization and technical analysis - 25+ comprehensive rules'),
 ('Performance', 'Website performance and Core Web Vitals measurement - 20+ comprehensive rules');
@@ -21,6 +22,7 @@ INSERT INTO compliance_standards (name) VALUES
 -- Get module and standard IDs for rules insertion
 DO $$
 DECLARE
+    fetcher_module_id UUID;
     accessibility_module_id UUID;
     seo_module_id UUID;
     performance_module_id UUID;
@@ -30,6 +32,7 @@ DECLARE
     cwv_standard_id UUID;
 BEGIN
     -- Get module IDs
+    SELECT id INTO fetcher_module_id FROM analysis_modules WHERE name = 'Fetcher';
     SELECT id INTO accessibility_module_id FROM analysis_modules WHERE name = 'Accessibility';
     SELECT id INTO seo_module_id FROM analysis_modules WHERE name = 'SEO';
     SELECT id INTO performance_module_id FROM analysis_modules WHERE name = 'Performance';

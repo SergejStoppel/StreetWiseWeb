@@ -1,4 +1,4 @@
-import { Job, Worker, Queue } from 'bullmq';
+import { Job, Worker, Queue, QueueEvents } from 'bullmq';
 import { config } from '@/config';
 import { createLogger } from '@/config/logger';
 import { supabase } from '@/config/supabase';
@@ -7,6 +7,14 @@ import { colorContrastQueue } from '@/lib/queue/colorContrast';
 import { AppError } from '@/types';
 
 const logger = createLogger('master-worker');
+
+// Create queue events for job completion monitoring
+const fetcherQueueEvents = new QueueEvents('fetcher', {
+  connection: {
+    host: config.redis.host,
+    port: config.redis.port,
+  },
+});
 
 interface MasterJobData {
   analysisId: string;
@@ -41,16 +49,29 @@ const analyzerQueues = {
 };
 
 async function createAnalysisJob(analysisId: string, moduleId: string) {
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('analysis_jobs')
     .insert([{
       analysis_id: analysisId,
       module_id: moduleId,
       status: 'pending'
-    }]);
+    }])
+    .select();
 
   if (error) {
-    logger.error('Failed to create analysis job record', { error, analysisId, moduleId });
+    logger.error('Failed to create analysis job record', { 
+      error, 
+      analysisId, 
+      moduleId,
+      errorMessage: error.message,
+      errorCode: error.code
+    });
+  } else {
+    logger.info('Created analysis job', {
+      analysisId,
+      moduleId,
+      jobId: data?.[0]?.id
+    });
   }
 }
 
@@ -61,8 +82,8 @@ async function waitForFetcherCompletion(fetcherJobId: string): Promise<FetcherRe
     throw new AppError('Fetcher job not found', 500);
   }
 
-  // Wait for the fetcher job to complete
-  const result = await fetcherJob.waitUntilFinished(fetcherQueue.events);
+  // Wait for the fetcher job to complete with proper queueEvents parameter
+  const result = await fetcherJob.waitUntilFinished(fetcherQueueEvents);
   
   if (!result || !result.success) {
     throw new AppError('Fetcher job failed', 500);
@@ -84,14 +105,37 @@ export const masterWorker = new Worker('master-analysis', async (job: Job<Master
 
   try {
     // Step 1: Create analysis job records for all modules
-    const { data: modules } = await supabase
+    const { data: modules, error: modulesError } = await supabase
       .from('analysis_modules')
       .select('id, name');
 
+    if (modulesError) {
+      logger.error('Failed to fetch analysis modules', { 
+        error: modulesError,
+        errorMessage: modulesError.message 
+      });
+      throw new Error('Failed to fetch analysis modules');
+    }
+
+    logger.info('Fetched analysis modules', { 
+      moduleCount: modules?.length || 0,
+      modules: modules?.map(m => ({ id: m.id, name: m.name }))
+    });
+
     if (modules) {
+      logger.info('Creating analysis jobs for all modules', { 
+        analysisId,
+        moduleCount: modules.length 
+      });
+      
       for (const module of modules) {
         await createAnalysisJob(analysisId, module.id);
       }
+      
+      logger.info('All analysis jobs created successfully', { 
+        analysisId,
+        moduleCount: modules.length 
+      });
     }
 
     // Step 2: Enqueue fetcher job and wait for completion
@@ -164,9 +208,15 @@ export const masterWorker = new Worker('master-analysis', async (job: Job<Master
       analyzerCount: analyzerJobPromises.length 
     });
 
+    // Update analysis status to processing (analyzers are now running)
+    await supabase
+      .from('analyses')
+      .update({ status: 'processing' })
+      .eq('id', analysisId);
+
     // Note: We don't wait for analyzers to complete here
     // Each analyzer will update its own status and the analysis status
-    // will be updated by a separate process or the final AI summary worker
+    // will be updated by monitoring the analyzer job completions
 
     return {
       success: true,
@@ -199,19 +249,28 @@ export const masterWorker = new Worker('master-analysis', async (job: Job<Master
   concurrency: 10, // Can handle multiple analyses concurrently
 });
 
-// Monitor for completed analyses to update overall status
-masterWorker.on('completed', async (job) => {
-  const { analysisId } = job.data;
+// Analysis completion monitoring will be handled by analyzer workers
+// Each analyzer worker will check if all jobs are complete after finishing
+export async function checkAndUpdateAnalysisCompletion(analysisId: string) {
+  logger.info('Checking analysis completion status', { analysisId });
   
   // Check if all analyzer jobs are complete
   const { data: jobs } = await supabase
     .from('analysis_jobs')
-    .select('status')
+    .select('status, analysis_modules!inner(name)')
     .eq('analysis_id', analysisId);
     
-  if (jobs) {
-    const allComplete = jobs.every(j => j.status === 'completed' || j.status === 'failed');
-    const hasFailures = jobs.some(j => j.status === 'failed');
+  if (jobs && jobs.length > 0) {
+    // Exclude fetcher jobs from completion check (fetcher completes before analyzers)
+    const analyzerJobs = jobs.filter(j => j.analysis_modules.name !== 'Fetcher');
+    
+    if (analyzerJobs.length === 0) {
+      logger.warn('No analyzer jobs found for analysis', { analysisId });
+      return;
+    }
+    
+    const allComplete = analyzerJobs.every(j => j.status === 'completed' || j.status === 'failed');
+    const hasFailures = analyzerJobs.some(j => j.status === 'failed');
     
     if (allComplete) {
       const finalStatus = hasFailures ? 'completed_with_errors' : 'completed';
@@ -224,13 +283,23 @@ masterWorker.on('completed', async (job) => {
         })
         .eq('id', analysisId);
         
-      logger.info('Analysis completed', { analysisId, finalStatus });
+      logger.info('Analysis completed', { 
+        analysisId, 
+        finalStatus,
+        totalJobs: jobs.length,
+        analyzerJobs: analyzerJobs.length,
+        completedJobs: analyzerJobs.filter(j => j.status === 'completed').length,
+        failedJobs: analyzerJobs.filter(j => j.status === 'failed').length
+      });
     }
   }
-});
+}
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   logger.info('SIGTERM received, closing master worker...');
-  await masterWorker.close();
+  await Promise.all([
+    masterWorker.close(),
+    fetcherQueueEvents.close()
+  ]);
 });

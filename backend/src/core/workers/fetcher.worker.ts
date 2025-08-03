@@ -215,9 +215,10 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
 
     logger.info('Launching browser for URL', { targetUrl });
 
-    // Launch browser with optimized settings
+    // Launch browser with highly optimized settings for Docker containers
     browser = await puppeteer.launch({
-      headless: true,
+      headless: 'new',
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
@@ -225,37 +226,119 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
         '--disable-accelerated-2d-canvas',
         '--no-first-run',
         '--no-zygote',
-        '--single-process',
-        '--disable-gpu'
-      ]
+        '--disable-gpu',
+        '--disable-web-security',
+        '--disable-features=IsolateOrigins',
+        '--disable-site-isolation-trials',
+        '--memory-pressure-off',
+        '--max_old_space_size=4096',
+        '--disable-background-timer-throttling',
+        '--disable-renderer-backgrounding',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-features=TranslateUI',
+        '--disable-background-networking',
+        '--disable-background-sync',
+        '--disable-component-extensions-with-background-pages'
+      ],
+      timeout: 30000,
+      protocolTimeout: 30000
     });
 
     const page = await browser.newPage();
     
+    // Configure page settings for better reliability
+    await page.setDefaultTimeout(15000);
+    await page.setDefaultNavigationTimeout(15000);
+    
     // Set user agent to identify as our crawler
     await page.setUserAgent('SiteCraft-Analyzer/1.0 (Web Accessibility Analysis Bot)');
     
-    // Block unnecessary resources for performance
+    // Set viewport for consistent rendering
+    await page.setViewport({ width: 1920, height: 1080 });
+    
+    // Block unnecessary resources for performance and reliability
     await page.setRequestInterception(true);
     page.on('request', (request) => {
       const resourceType = request.resourceType();
-      // Still load CSS and JS for accurate analysis, but block media
-      if (['font', 'media'].includes(resourceType)) {
+      const url = request.url();
+      
+      // Block problematic resource types that can cause issues
+      if (['font', 'media', 'websocket'].includes(resourceType)) {
+        request.abort();
+      } else if (url.includes('google-analytics') || url.includes('facebook.com') || url.includes('doubleclick')) {
+        // Block tracking scripts that can cause timeouts
         request.abort();
       } else {
         request.continue();
       }
     });
 
-    // Navigate to the page
-    logger.info('Navigating to target URL');
-    await page.goto(targetUrl, { 
-      waitUntil: 'networkidle2',
-      timeout: config.analysis.timeout || 30000
+    // Handle page errors gracefully
+    page.on('error', (error) => {
+      logger.warn('Page error occurred', { error: error.message, targetUrl });
     });
 
-    // Wait for any dynamic content to load
-    await page.waitForTimeout(2000);
+    page.on('pageerror', (error) => {
+      logger.warn('Page script error occurred', { error: error.message, targetUrl });
+    });
+
+    // Navigate to the page with robust error handling
+    logger.info('Navigating to target URL');
+    
+    let navigationSuccess = false;
+    try {
+      const response = await page.goto(targetUrl, { 
+        waitUntil: 'domcontentloaded',
+        timeout: 15000
+      });
+
+      if (response && response.ok()) {
+        navigationSuccess = true;
+        logger.info('Navigation successful', { 
+          status: response.status(),
+          targetUrl 
+        });
+      } else {
+        logger.warn('Navigation returned non-OK response', { 
+          status: response?.status(),
+          targetUrl 
+        });
+      }
+
+      // Wait for dynamic content but don't block on errors
+      try {
+        await page.waitForTimeout(2000);
+      } catch (waitError) {
+        logger.warn('Wait timeout error', { error: waitError.message });
+      }
+
+    } catch (navigationError) {
+      logger.error('Navigation failed', { 
+        error: navigationError.message,
+        targetUrl 
+      });
+      
+      // Try one more time with a simpler approach
+      try {
+        logger.info('Retrying navigation with simpler settings');
+        await page.goto(targetUrl, { 
+          waitUntil: 'load',
+          timeout: 10000
+        });
+        navigationSuccess = true;
+        await page.waitForTimeout(1000);
+      } catch (retryError) {
+        logger.error('Navigation retry failed', { 
+          error: retryError.message,
+          targetUrl 
+        });
+        throw new AppError(`Failed to navigate to ${targetUrl}: ${navigationError.message}`, 500);
+      }
+    }
+
+    if (!navigationSuccess) {
+      throw new AppError(`Failed to load page: ${targetUrl}`, 500);
+    }
 
     // Extract all assets
     logger.info('Extracting page assets');
@@ -408,14 +491,16 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
     host: config.redis.host,
     port: config.redis.port,
   },
-  concurrency: config.analysis.maxConcurrentAnalyses || 5,
-  // Add retry logic for transient failures
+  concurrency: 1, // Reduce concurrency for Docker resource constraints
+  // Reduced retry logic for faster failure handling
   defaultJobOptions: {
-    attempts: 3,
+    attempts: 2,
     backoff: {
       type: 'exponential',
-      delay: 5000
-    }
+      delay: 3000
+    },
+    removeOnComplete: 10,
+    removeOnFail: 10
   }
 });
 

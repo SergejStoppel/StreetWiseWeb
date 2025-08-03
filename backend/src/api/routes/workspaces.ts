@@ -1,9 +1,59 @@
 import express from 'express';
 import { ApiResponse } from '@/types';
+import { authenticateToken, AuthRequest } from '@/api/middleware/auth';
+import { supabase } from '@/config/supabase';
 
 const router = express.Router();
 
-// TODO: Add authentication middleware
+/**
+ * @swagger
+ * /api/workspaces/websites:
+ *   get:
+ *     summary: Get websites in user's workspaces
+ *     tags: [Workspaces]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of websites
+ */
+router.get('/websites', authenticateToken, async (req: AuthRequest, res, next) => {
+  try {
+    const userId = req.user!.id;
+
+    // Get user's workspaces and their websites
+    const { data: websites, error } = await supabase
+      .from('websites')
+      .select(`
+        id,
+        url,
+        name,
+        created_at,
+        workspaces!inner (
+          id,
+          name,
+          owner_id
+        )
+      `)
+      .eq('workspaces.owner_id', userId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    const response: ApiResponse = {
+      success: true,
+      message: 'Websites retrieved successfully',
+      data: websites || [],
+      timestamp: new Date().toISOString(),
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * @swagger

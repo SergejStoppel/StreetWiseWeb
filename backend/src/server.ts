@@ -19,6 +19,8 @@ import analysisRoutes from '@/api/routes/analyses';
 import reportRoutes from '@/api/routes/reports';
 import billingRoutes from '@/api/routes/billing';
 import healthRoutes from '@/api/routes/health';
+import debugRoutes from '@/api/routes/debug';
+import testAnalysisRoutes from '@/api/routes/test-analysis';
 
 const logger = createLogger('server');
 
@@ -108,6 +110,8 @@ class Server {
     this.app.use('/api/reports', reportRoutes);
     this.app.use('/api/billing', billingRoutes);
     this.app.use('/api/health', healthRoutes);
+    this.app.use('/api/debug', debugRoutes);
+    this.app.use('/api/test-analysis', testAnalysisRoutes);
 
     // API documentation (in development)
     if (isDevelopment) {
@@ -203,12 +207,20 @@ class Server {
   private async initializeServices(): Promise<void> {
     logger.info('Initializing services...');
 
-    // TODO: Initialize database connection
-    // TODO: Initialize Redis connection for queues
-    // TODO: Initialize storage client
-    // TODO: Initialize metrics collection
-    // TODO: Run database migrations if needed
-    // TODO: Seed database if in development mode
+    // Initialize BullMQ workers for analysis pipeline
+    try {
+      // Import and start workers
+      const { masterWorker } = await import('@/core/workers/master.worker');
+      const { fetcherWorker } = await import('@/core/workers/fetcher.worker');
+      const { colorContrastWorker } = await import('@/core/workers/accessibility/colorContrast.worker');
+      
+      logger.info('BullMQ workers initialized successfully', {
+        workers: ['master', 'fetcher', 'colorContrast']
+      });
+    } catch (error) {
+      logger.error('Failed to initialize workers', { error: error.message });
+      throw error;
+    }
 
     logger.info('Services initialized successfully');
   }
@@ -216,10 +228,22 @@ class Server {
   private async cleanup(): Promise<void> {
     logger.info('Starting cleanup...');
 
-    // TODO: Close database connections
-    // TODO: Close Redis connections
-    // TODO: Stop background jobs
-    // TODO: Clean up temporary files
+    try {
+      // Close BullMQ workers
+      const { masterWorker } = await import('@/core/workers/master.worker');
+      const { fetcherWorker } = await import('@/core/workers/fetcher.worker');  
+      const { colorContrastWorker } = await import('@/core/workers/accessibility/colorContrast.worker');
+      
+      await Promise.all([
+        masterWorker.close(),
+        fetcherWorker.close(),
+        colorContrastWorker.close()
+      ]);
+      
+      logger.info('BullMQ workers closed successfully');
+    } catch (error) {
+      logger.warn('Error closing workers', { error: error.message });
+    }
 
     logger.info('Cleanup completed');
   }

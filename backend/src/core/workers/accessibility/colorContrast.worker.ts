@@ -5,6 +5,7 @@ import { config } from '@/config';
 import { createLogger } from '@/config/logger';
 import { supabase } from '@/config/supabase';
 import { AppError } from '@/types';
+import { checkAndUpdateAnalysisCompletion } from '@/core/workers/master.worker';
 
 const logger = createLogger('color-contrast-worker');
 
@@ -71,29 +72,59 @@ async function getRuleId(ruleKey: string): Promise<string | null> {
 
 async function getModuleAndJobId(analysisId: string): Promise<{ moduleId: string; jobId: string } | null> {
   // Get the accessibility module ID
-  const { data: module } = await supabase
+  const { data: module, error: moduleError } = await supabase
     .from('analysis_modules')
     .select('id')
     .eq('name', 'Accessibility')
     .single();
 
-  if (!module) {
-    logger.error('Accessibility module not found');
+  if (moduleError || !module) {
+    logger.error('Accessibility module not found', { 
+      error: moduleError,
+      moduleError: moduleError?.message 
+    });
     return null;
   }
 
+  logger.info('Found Accessibility module', { moduleId: module.id });
+
   // Get the job ID for this analysis and module
-  const { data: job } = await supabase
+  const { data: job, error: jobError } = await supabase
     .from('analysis_jobs')
     .select('id')
     .eq('analysis_id', analysisId)
     .eq('module_id', module.id)
     .single();
 
-  if (!job) {
-    logger.error('Analysis job not found', { analysisId, moduleId: module.id });
+  if (jobError || !job) {
+    logger.error('Analysis job not found', { 
+      analysisId, 
+      moduleId: module.id,
+      error: jobError,
+      jobError: jobError?.message,
+      code: jobError?.code
+    });
+    
+    // Let's also check what jobs exist for this analysis
+    const { data: allJobs } = await supabase
+      .from('analysis_jobs')
+      .select('id, module_id, status')
+      .eq('analysis_id', analysisId);
+      
+    logger.error('All jobs for this analysis', {
+      analysisId,
+      jobCount: allJobs?.length || 0,
+      jobs: allJobs
+    });
+    
     return null;
   }
+
+  logger.info('Found analysis job', { 
+    analysisId, 
+    moduleId: module.id, 
+    jobId: job.id 
+  });
 
   return { moduleId: module.id, jobId: job.id };
 }
@@ -237,6 +268,9 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
       issuesCreated: issuePromises.length
     });
 
+    // Check if all analysis jobs are complete
+    await checkAndUpdateAnalysisCompletion(analysisId);
+
     // Clean up
     dom.window.close();
 
@@ -259,6 +293,9 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
     if (moduleJobInfo) {
       await updateJobStatus(analysisId, moduleJobInfo.moduleId, 'failed', error.message);
     }
+
+    // Check if all analysis jobs are complete (even with failures)
+    await checkAndUpdateAnalysisCompletion(analysisId);
 
     throw error;
   }

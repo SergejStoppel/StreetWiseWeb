@@ -29,6 +29,7 @@ import { ThemeProvider } from './theme/ThemeContext';
 import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import DetailedReportPage from './pages/DetailedReportPage';
+import ResultsPage from './pages/ResultsPage';
 import './styles/globals.css';
 
 const AppContainer = styled.div`
@@ -72,6 +73,7 @@ function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+                <Route path="/results" element={<ResultsPage />} />
                 <Route path="/results/:id" element={<ProtectedRoute><DetailedReportPage /></ProtectedRoute>} />
               </Routes>
           </MainContent>
