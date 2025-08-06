@@ -71,22 +71,22 @@ async function getRuleId(ruleKey: string): Promise<string | null> {
 }
 
 async function getModuleAndJobId(analysisId: string): Promise<{ moduleId: string; jobId: string } | null> {
-  // Get the color contrast module ID - should match the module name in the database
+  // Get the accessibility module ID - should match the module name in the database
   const { data: module, error: moduleError } = await supabase
     .from('analysis_modules')
     .select('id')
-    .eq('name', 'Color Contrast')
+    .eq('name', 'Accessibility')
     .single();
 
   if (moduleError || !module) {
-    logger.error('Color Contrast module not found', { 
+    logger.error('Accessibility module not found', { 
       error: moduleError,
       moduleError: moduleError?.message 
     });
     return null;
   }
 
-  logger.info('Found Color Contrast module', { moduleId: module.id });
+  logger.info('Found Accessibility module', { moduleId: module.id });
 
   // Get the job ID for this analysis and module
   const { data: job, error: jobError } = await supabase
@@ -154,7 +154,7 @@ async function downloadHtmlFromStorage(workspaceId: string, analysisId: string):
   });
   
   const { data, error } = await supabase.storage
-    .from('analysis_assets')
+    .from('analysis-assets')
     .download(htmlPath);
 
   if (error) {

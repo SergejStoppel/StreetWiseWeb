@@ -60,7 +60,7 @@ router.get('/latest', async (req, res) => {
     // Check storage assets
     const assetPath = `${analysis.id}`;
     const { data: storageFiles, error: storageError } = await supabase.storage
-      .from('analysis_assets')
+      .from('analysis-assets')
       .list(assetPath, { limit: 100 });
 
     const result = {

@@ -201,13 +201,13 @@ export const accessibilityAPI = {
     try {
       debugLog('🚀 API Call Starting:', {
         baseURL: API_BASE_URL,
-        endpoint: '/api/accessibility/analyze',
-        payload: { url, reportType, language },
+        endpoint: '/api/analyses/public',
+        payload: { url },
         timestamp: new Date().toISOString()
       });
       
-      debugLog('📡 Making POST request to /api/accessibility/analyze...');
-      const response = await api.post('/api/accessibility/analyze', { url, reportType, language });
+      debugLog('📡 Making POST request to /api/analyses/public...');
+      const response = await api.post('/api/analyses/public', { url });
       
       debugLog('✅ API Response Received:', {
         status: response.status,

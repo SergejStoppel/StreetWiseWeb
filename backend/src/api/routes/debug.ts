@@ -78,7 +78,7 @@ router.get('/analysis-pipeline', async (req, res) => {
     if (analyses && analyses.length > 0) {
       try {
         const { data: files, error: filesError } = await supabase.storage
-          .from('analysis_assets')
+          .from('analysis-assets')
           .list('', { limit: 10 });
 
         diagnostics.checks.storageFiles = {

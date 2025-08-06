@@ -217,10 +217,13 @@ const ResultsPage = () => {
       try {
         const parsedResult = JSON.parse(storedResult);
         setAnalysisData(parsedResult);
-        setLoading(false);
         
-        // Note: We have the basic analysis data from sessionStorage
-        // The detailed report page will fetch additional data when needed
+        // If we have an analysis ID, start polling for updates
+        if (parsedResult?.id) {
+          pollForResults(parsedResult.id);
+        } else {
+          setLoading(false);
+        }
       } catch (parseError) {
         console.error('Failed to parse stored analysis result:', parseError);
         setError('Failed to load analysis results');
@@ -231,6 +234,57 @@ const ResultsPage = () => {
       setLoading(false);
     }
   }, []);
+
+  const pollForResults = async (analysisId) => {
+    let attempts = 0;
+    const maxAttempts = 60; // Poll for up to 5 minutes (5 second intervals)
+    
+    const poll = async () => {
+      try {
+        attempts++;
+        console.log(`Polling attempt ${attempts}/${maxAttempts} for analysis ${analysisId}`);
+        
+        const response = await analysisAPI.getById(analysisId);
+        if (response.success && response.data) {
+          const updatedData = response.data;
+          setAnalysisData(updatedData);
+          
+          // Check if analysis is complete
+          if (updatedData.status === 'completed' || updatedData.status === 'failed' || updatedData.status === 'completed_with_errors') {
+            console.log('Analysis completed with status:', updatedData.status);
+            setLoading(false);
+            return;
+          }
+          
+          // Continue polling if still processing and haven't exceeded max attempts
+          if (attempts < maxAttempts && (updatedData.status === 'pending' || updatedData.status === 'processing')) {
+            setTimeout(poll, 5000); // Poll every 5 seconds
+          } else {
+            console.log('Max polling attempts reached or unexpected status');
+            setLoading(false);
+          }
+        } else {
+          if (attempts < maxAttempts) {
+            setTimeout(poll, 5000);
+          } else {
+            setError('Analysis results not available. Please try again.');
+            setLoading(false);
+          }
+        }
+      } catch (fetchError) {
+        console.warn(`Polling attempt ${attempts} failed:`, fetchError);
+        if (attempts < maxAttempts) {
+          setTimeout(poll, 5000);
+        } else {
+          setError('Failed to fetch analysis results. Please try again.');
+          setLoading(false);
+        }
+      }
+    };
+    
+    // Start polling immediately
+    poll();
+  };
 
   const fetchAnalysisData = async (analysisId) => {
     try {

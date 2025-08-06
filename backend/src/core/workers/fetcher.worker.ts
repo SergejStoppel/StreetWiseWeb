@@ -172,7 +172,7 @@ async function captureScreenshots(page: Page, workspaceId: string, analysisId: s
       new Promise((_, reject) => setTimeout(() => reject(new Error('Desktop screenshot timeout')), 10000))
     ]);
     const desktopPath = `${basePath}/desktop.jpg`;
-    const { error: desktopError } = await supabase.storage.from('analysis_assets').upload(desktopPath, desktopScreenshot);
+    const { error: desktopError } = await supabase.storage.from('analysis-assets').upload(desktopPath, desktopScreenshot);
     if (desktopError) {
       logger.warn('Failed to upload desktop screenshot', { error: desktopError.message });
     } else {
@@ -189,7 +189,7 @@ async function captureScreenshots(page: Page, workspaceId: string, analysisId: s
       new Promise((_, reject) => setTimeout(() => reject(new Error('Mobile screenshot timeout')), 10000))
     ]);
     const mobilePath = `${basePath}/mobile.jpg`;
-    const { error: mobileError } = await supabase.storage.from('analysis_assets').upload(mobilePath, mobileScreenshot);
+    const { error: mobileError } = await supabase.storage.from('analysis-assets').upload(mobilePath, mobileScreenshot);
     if (mobileError) {
       logger.warn('Failed to upload mobile screenshot', { error: mobileError.message });
     } else {
@@ -206,7 +206,7 @@ async function captureScreenshots(page: Page, workspaceId: string, analysisId: s
       new Promise((_, reject) => setTimeout(() => reject(new Error('Tablet screenshot timeout')), 10000))
     ]);
     const tabletPath = `${basePath}/tablet.jpg`;
-    const { error: tabletError } = await supabase.storage.from('analysis_assets').upload(tabletPath, tabletScreenshot);
+    const { error: tabletError } = await supabase.storage.from('analysis-assets').upload(tabletPath, tabletScreenshot);
     if (tabletError) {
       logger.warn('Failed to upload tablet screenshot', { error: tabletError.message });
     } else {
@@ -224,7 +224,7 @@ async function captureScreenshots(page: Page, workspaceId: string, analysisId: s
         new Promise((_, reject) => setTimeout(() => reject(new Error('Full page screenshot timeout')), 15000))
       ]);
       const fullPagePath = `${basePath}/full-page.jpg`;
-      const { error: fullPageError } = await supabase.storage.from('analysis_assets').upload(fullPagePath, fullPageScreenshot);
+      const { error: fullPageError } = await supabase.storage.from('analysis-assets').upload(fullPagePath, fullPageScreenshot);
       if (fullPageError) {
         logger.warn('Failed to upload full page screenshot', { error: fullPageError.message });
       } else {
@@ -436,7 +436,7 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
     try {
       const { error: htmlError } = await Promise.race([
         supabase.storage
-          .from('analysis_assets')
+          .from('analysis-assets')
           .upload(`${basePath}/html/index.html`, assets.html, {
             contentType: 'text/html',
             upsert: true
@@ -460,7 +460,7 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
         try {
           const { error: cssError } = await Promise.race([
             supabase.storage
-              .from('analysis_assets')
+              .from('analysis-assets')
               .upload(`${basePath}/css/styles-${i}.css`, assets.css[i], {
                 contentType: 'text/css',
                 upsert: true
@@ -486,7 +486,7 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
         try {
           const { error: jsError } = await Promise.race([
             supabase.storage
-              .from('analysis_assets')
+              .from('analysis-assets')
               .upload(`${basePath}/js/script-${i}.js`, assets.js[i], {
                 contentType: 'application/javascript',
                 upsert: true
@@ -511,7 +511,7 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
       try {
         const { error: robotsError } = await Promise.race([
           supabase.storage
-            .from('analysis_assets')
+            .from('analysis-assets')
             .upload(`${basePath}/meta/robots.txt`, robots, {
               contentType: 'text/plain',
               upsert: true
@@ -533,7 +533,7 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
       try {
         const { error: sitemapError } = await Promise.race([
           supabase.storage
-            .from('analysis_assets')
+            .from('analysis-assets')
             .upload(`${basePath}/meta/sitemap.xml`, sitemap, {
               contentType: 'application/xml',
               upsert: true
@@ -570,7 +570,7 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
     try {
       const { error: metadataError } = await Promise.race([
         supabase.storage
-          .from('analysis_assets')
+          .from('analysis-assets')
           .upload(`${basePath}/meta/metadata.json`, JSON.stringify(metadata, null, 2), {
             contentType: 'application/json',
             upsert: true
@@ -592,7 +592,7 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
       const screenshotRecords = screenshots.map(screenshot => ({
         analysis_id: analysisId,
         type: screenshot.type,
-        storage_bucket: 'analysis_assets',
+        storage_bucket: 'analysis-assets',
         storage_path: screenshot.path,
         url: targetUrl
       }));

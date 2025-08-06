@@ -16,10 +16,8 @@ services:
     env_file:
       - .env
     volumes:
-      - ./backend/src:/app/src
-      - ./backend/package.json:/app/package.json
-      - ./backend/tsconfig.json:/app/tsconfig.json
       - /app/node_modules
+      # Volume mounting disabled to prevent WSL2 EIO errors
     depends_on:
       - redis
     networks:
@@ -41,6 +39,7 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3000
+      - HOST=0.0.0.0
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
       - REACT_APP_API_URL=http://localhost:3005
@@ -51,8 +50,8 @@ services:
     env_file:
       - .env
     volumes:
-      - ./frontend:/app
       - /app/node_modules
+      # Volume mounting disabled to prevent WSL2 EIO errors
     networks:
       - sitecraft-network
     command: npm start

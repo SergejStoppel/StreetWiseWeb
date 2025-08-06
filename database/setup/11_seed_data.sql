@@ -115,8 +115,10 @@ BEGIN
     (accessibility_module_id, 'ACC_KBD_07_KEYBOARD_SHORTCUTS', 'Keyboard Shortcuts Conflict', 'Custom shortcuts should not conflict with assistive technology', 'moderate'),
     (accessibility_module_id, 'ACC_KBD_08_ACCESS_KEY_DUPLICATE', 'Duplicate Access Keys', 'Access keys must be unique within a page', 'moderate');
 
-    -- Color & Visual Design (7 rules)
+    -- Color & Visual Design (9 rules) - Including axe-core compatible rule keys
     INSERT INTO rules (module_id, rule_key, name, description, default_severity) VALUES
+    (accessibility_module_id, 'color-contrast', 'Color Contrast (Minimum)', 'Text must have sufficient contrast against background (WCAG AA)', 'critical'),
+    (accessibility_module_id, 'color-contrast-enhanced', 'Color Contrast (Enhanced)', 'Text must have enhanced contrast against background (WCAG AAA)', 'serious'),
     (accessibility_module_id, 'ACC_CLR_01_TEXT_CONTRAST_RATIO', 'Low Text Contrast Ratio', 'Text must have sufficient contrast against background', 'critical'),
     (accessibility_module_id, 'ACC_CLR_02_LARGE_TEXT_CONTRAST', 'Low Large Text Contrast', 'Large text needs adequate contrast ratio', 'serious'),
     (accessibility_module_id, 'ACC_CLR_03_NON_TEXT_CONTRAST', 'Low Non-Text Contrast', 'UI components need sufficient contrast', 'serious'),
@@ -226,7 +228,7 @@ BEGIN
         'ACC_FRM_01_LABEL_MISSING', 'ACC_FRM_04_FIELDSET_LEGEND_MISSING', 'ACC_FRM_06_ERROR_IDENTIFICATION',
         'ACC_ARIA_01_ROLE_INVALID', 'ACC_ARIA_02_REQUIRED_ATTR_MISSING', 'ACC_ARIA_03_INVALID_ATTR_VALUE',
         'ACC_KBD_01_FOCUS_VISIBLE', 'ACC_KBD_02_KEYBOARD_TRAP', 'ACC_KBD_04_INTERACTIVE_NOT_FOCUSABLE',
-        'ACC_CLR_01_TEXT_CONTRAST_RATIO', 'ACC_CLR_02_LARGE_TEXT_CONTRAST', 'ACC_CLR_04_COLOR_ONLY_MEANING',
+        'color-contrast', 'color-contrast-enhanced', 'ACC_CLR_01_TEXT_CONTRAST_RATIO', 'ACC_CLR_02_LARGE_TEXT_CONTRAST', 'ACC_CLR_04_COLOR_ONLY_MEANING',
         'ACC_TBL_01_HEADER_MISSING', 'ACC_TBL_03_SCOPE_MISSING'
     );
 
@@ -243,7 +245,7 @@ BEGIN
         'ACC_IMG_01_ALT_TEXT_MISSING', 'ACC_MED_01_VIDEO_CAPTIONS', 'ACC_MED_02_AUDIO_TRANSCRIPT',
         'ACC_STR_04_PAGE_LANG_MISSING', 'ACC_STR_06_PAGE_TITLE_MISSING', 'ACC_STR_08_SKIP_LINK_MISSING',
         'ACC_FRM_01_LABEL_MISSING', 'ACC_FRM_06_ERROR_IDENTIFICATION', 'ACC_KBD_01_FOCUS_VISIBLE',
-        'ACC_KBD_02_KEYBOARD_TRAP', 'ACC_CLR_01_TEXT_CONTRAST_RATIO', 'ACC_TBL_01_HEADER_MISSING'
+        'ACC_KBD_02_KEYBOARD_TRAP', 'color-contrast', 'ACC_CLR_01_TEXT_CONTRAST_RATIO', 'ACC_TBL_01_HEADER_MISSING'
     );
 
     -- Map performance rules to Core Web Vitals
