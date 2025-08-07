@@ -3,7 +3,8 @@ import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
 import { analysisAPI, websiteAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import { FaGlobe, FaCalendar, FaChartLine, FaExternalLinkAlt, FaTrash, FaDesktop, FaMobile } from 'react-icons/fa';
+import { FaGlobe, FaCalendar, FaChartLine, FaExternalLinkAlt, FaTrash } from 'react-icons/fa';
+import ScreenshotCard from '../components/ScreenshotCard';
 
 const DashboardContainer = styled.div`
   min-height: 80vh;
@@ -151,30 +152,42 @@ const ActionButton = styled.button`
 `;
 
 const ScoreGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  display: flex;
+  align-items: center;
   gap: var(--spacing-md);
   margin-top: var(--spacing-md);
+  flex-wrap: wrap;
+  width: 100%;
 `;
 
 const ScoreItem = styled.div`
   text-align: center;
+  flex: 1;
+  min-width: 100px;
 `;
 
 const ScoreValue = styled.div`
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: ${props => {
     if (props.score >= 80) return 'var(--color-success)';
     if (props.score >= 60) return 'var(--color-warning)';
     return 'var(--color-error)';
   }};
+  
+  @media (min-width: 1200px) {
+    font-size: var(--font-size-3xl);
+  }
 `;
 
 const ScoreLabel = styled.div`
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   margin-top: var(--spacing-xs);
+  
+  @media (min-width: 1200px) {
+    font-size: var(--font-size-base);
+  }
 `;
 
 const LoadingSpinner = styled.div`
@@ -191,98 +204,9 @@ const EmptyState = styled.div`
   color: var(--color-text-secondary);
 `;
 
-const ScreenshotSection = styled.div`
-  margin-top: var(--spacing-md);
-  padding-top: var(--spacing-md);
-  border-top: 1px solid var(--color-border-secondary);
-`;
 
-const ScreenshotGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-sm);
-`;
 
-const ScreenshotCard = styled.div`
-  position: relative;
-  border-radius: var(--border-radius-md);
-  overflow: hidden;
-  background: var(--color-surface-secondary);
-  border: 1px solid var(--color-border-primary);
-  aspect-ratio: 3/2;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  
-  &:hover {
-    transform: scale(1.02);
-    box-shadow: var(--shadow-md);
-  }
-`;
 
-const ScreenshotImage = styled.img`
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-`;
-
-const ScreenshotOverlay = styled.div`
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
-  color: white;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-`;
-
-const ScreenshotModal = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: var(--spacing-xl);
-`;
-
-const ScreenshotModalContent = styled.div`
-  max-width: 90vw;
-  max-height: 90vh;
-  position: relative;
-`;
-
-const ScreenshotModalImage = styled.img`
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: var(--border-radius-md);
-`;
-
-const ScreenshotModalClose = styled.button`
-  position: absolute;
-  top: -40px;
-  right: 0;
-  background: none;
-  border: none;
-  color: white;
-  font-size: var(--font-size-xl);
-  cursor: pointer;
-  padding: var(--spacing-sm);
-  
-  &:hover {
-    opacity: 0.7;
-  }
-`;
 
 const ErrorMessage = styled.div`
   background-color: var(--color-error-light, #fee);
@@ -302,7 +226,7 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const [websites, setWebsites] = useState([]);
   const [selectedWebsite, setSelectedWebsite] = useState('');
-  const [selectedScreenshot, setSelectedScreenshot] = useState(null);
+
 
   useEffect(() => {
     const fetchWebsites = async () => {
@@ -530,60 +454,7 @@ const Dashboard = () => {
     });
   };
 
-  const getScreenshotUrl = (screenshot) => {
-    if (!screenshot) return null;
-    const baseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://iywlcimloohmgjhjptoj.supabase.co';
-    const url = `${baseUrl}/storage/v1/object/public/${screenshot.storage_bucket}/${screenshot.storage_path}`;
-    console.log('🖼️ Dashboard: Screenshot URL constructed:', {
-      baseUrl,
-      bucket: screenshot.storage_bucket,
-      path: screenshot.storage_path,
-      fullUrl: url
-    });
-    return url;
-  };
 
-  const openScreenshotModal = (screenshot) => {
-    setSelectedScreenshot(screenshot);
-  };
-
-  const closeScreenshotModal = () => {
-    setSelectedScreenshot(null);
-  };
-
-  const renderScreenshots = (screenshots) => {
-    console.log('🖼️ Dashboard: Rendering screenshots:', { screenshots });
-    if (!screenshots || screenshots.length === 0) {
-      console.log('🖼️ Dashboard: No screenshots to render');
-      return null;
-    }
-
-    return (
-      <ScreenshotSection>
-        <div style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-secondary)', marginBottom: 'var(--spacing-sm)' }}>
-          Screenshots
-        </div>
-        <ScreenshotGrid>
-          {screenshots.map((screenshot) => (
-            <ScreenshotCard 
-              key={screenshot.id} 
-              onClick={() => openScreenshotModal(screenshot)}
-            >
-              <ScreenshotImage
-                src={getScreenshotUrl(screenshot)}
-                alt={`${screenshot.type} screenshot`}
-                loading="lazy"
-              />
-              <ScreenshotOverlay>
-                {screenshot.type === 'desktop' ? <FaDesktop /> : <FaMobile />}
-                {screenshot.type}
-              </ScreenshotOverlay>
-            </ScreenshotCard>
-          ))}
-        </ScreenshotGrid>
-      </ScreenshotSection>
-    );
-  };
 
   if (loading) {
     return (
@@ -701,28 +572,17 @@ const Dashboard = () => {
                     </ScoreValue>
                     <ScoreLabel>Performance</ScoreLabel>
                   </ScoreItem>
+                  
+                  {/* Screenshots in the same row */}
+                  <ScreenshotCard screenshots={analysis.screenshots} />
                 </ScoreGrid>
-                
-                {/* Add screenshots section */}
-                {renderScreenshots(analysis.screenshots)}
               </AnalysisCard>
             ))}
           </AnalysisList>
         )}
       </AnalysisHistorySection>
 
-      {/* Screenshot Modal */}
-      {selectedScreenshot && (
-        <ScreenshotModal onClick={closeScreenshotModal}>
-          <ScreenshotModalContent onClick={(e) => e.stopPropagation()}>
-            <ScreenshotModalClose onClick={closeScreenshotModal}>×</ScreenshotModalClose>
-            <ScreenshotModalImage
-              src={getScreenshotUrl(selectedScreenshot)}
-              alt={`${selectedScreenshot.type} screenshot`}
-            />
-          </ScreenshotModalContent>
-        </ScreenshotModal>
-      )}
+
     </DashboardContainer>
   );
 };

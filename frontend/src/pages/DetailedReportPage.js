@@ -17,13 +17,12 @@ import {
   FaInfoCircle,
   FaImage,
   FaCode,
-  FaGlobe,
-  FaDesktop,
-  FaMobile
+  FaGlobe
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { analysisAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ScreenshotCard from '../components/ScreenshotCard';
 
 const ReportContainer = styled.div`
   min-height: calc(100vh - 160px);
@@ -132,6 +131,45 @@ const ScoreLabel = styled.div`
   align-items: center;
   justify-content: center;
   gap: var(--spacing-sm);
+`;
+
+const ScoreAndScreenshotRow = styled.div`
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+  flex-wrap: wrap;
+  width: 100%;
+`;
+
+const CompactScoreItem = styled.div`
+  text-align: center;
+  flex: 1;
+  min-width: 100px;
+`;
+
+const CompactScoreValue = styled.div`
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: ${props => {
+    if (props.$score >= 80) return 'var(--color-success)';
+    if (props.$score >= 60) return 'var(--color-warning)';
+    return 'var(--color-error)';
+  }};
+  
+  @media (min-width: 1200px) {
+    font-size: var(--font-size-3xl);
+  }
+`;
+
+const CompactScoreLabel = styled.div`
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  margin-top: var(--spacing-xs);
+  
+  @media (min-width: 1200px) {
+    font-size: var(--font-size-base);
+  }
 `;
 
 const Section = styled.div`
@@ -299,118 +337,7 @@ const ErrorState = styled.div`
   color: var(--color-error);
 `;
 
-const ScreenshotsSection = styled(Section)`
-  margin-top: var(--spacing-xl);
-`;
 
-const ScreenshotsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: var(--spacing-lg);
-`;
-
-const ScreenshotCard = styled.div`
-  background: var(--color-surface-primary);
-  border: 1px solid var(--color-border-secondary);
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-  }
-`;
-
-const ScreenshotImage = styled.img`
-  width: 100%;
-  height: auto;
-  display: block;
-`;
-
-const ScreenshotInfo = styled.div`
-  padding: var(--spacing-md);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  background: var(--color-surface-secondary);
-`;
-
-const ScreenshotTypeIcon = styled.div`
-  color: var(--color-interactive-primary);
-  font-size: var(--font-size-lg);
-`;
-
-const ScreenshotTypeName = styled.span`
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  text-transform: capitalize;
-`;
-
-const ScreenshotModal = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.95);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: var(--spacing-xl);
-`;
-
-const ScreenshotModalContent = styled.div`
-  max-width: 95vw;
-  max-height: 95vh;
-  position: relative;
-  background: white;
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-xl);
-`;
-
-const ScreenshotModalImage = styled.img`
-  width: 100%;
-  height: auto;
-  display: block;
-`;
-
-const ScreenshotModalHeader = styled.div`
-  padding: var(--spacing-lg);
-  background: var(--color-surface-secondary);
-  display: flex;
-  justify-content: between;
-  align-items: center;
-  gap: var(--spacing-md);
-`;
-
-const ScreenshotModalTitle = styled.h3`
-  margin: 0;
-  color: var(--color-text-primary);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  flex: 1;
-`;
-
-const ScreenshotModalClose = styled.button`
-  background: none;
-  border: none;
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-xl);
-  cursor: pointer;
-  padding: var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  transition: all var(--transition-fast);
-  
-  &:hover {
-    background: var(--color-surface-tertiary);
-    color: var(--color-text-primary);
-  }
-`;
 
 const DetailedReportPage = () => {
   const { id } = useParams();
@@ -418,7 +345,7 @@ const DetailedReportPage = () => {
   const [analysis, setAnalysis] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedScreenshot, setSelectedScreenshot] = useState(null);
+
   const { t } = useTranslation(['results', 'common']);
 
   useEffect(() => {
@@ -454,84 +381,7 @@ const DetailedReportPage = () => {
     }
   };
 
-  const getScreenshotUrl = (screenshot) => {
-    if (!screenshot) return null;
-    const baseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://iywlcimloohmgjhjptoj.supabase.co';
-    return `${baseUrl}/storage/v1/object/public/${screenshot.storage_bucket}/${screenshot.storage_path}`;
-  };
 
-  const openScreenshotModal = (screenshot) => {
-    setSelectedScreenshot(screenshot);
-  };
-
-  const closeScreenshotModal = () => {
-    setSelectedScreenshot(null);
-  };
-
-  const getScreenshotTypeIcon = (type) => {
-    switch (type) {
-      case 'desktop': return <FaDesktop />;
-      case 'mobile': return <FaMobile />;
-      default: return <FaImage />;
-    }
-  };
-
-  const renderScreenshots = (screenshots) => {
-    if (!screenshots || screenshots.length === 0) {
-      return (
-        <ScreenshotsSection>
-          <SectionHeader>
-            <SectionTitle>
-              <FaImage />
-              Screenshots
-              <IssueCount $count={0}>0</IssueCount>
-            </SectionTitle>
-          </SectionHeader>
-          <SectionContent>
-            <EmptyState>
-              <FaImage size={48} style={{ color: 'var(--color-text-tertiary)', marginBottom: 'var(--spacing-md)' }} />
-              <h3>No Screenshots Available</h3>
-              <p>Screenshots were not captured for this analysis.</p>
-            </EmptyState>
-          </SectionContent>
-        </ScreenshotsSection>
-      );
-    }
-
-    return (
-      <ScreenshotsSection>
-        <SectionHeader>
-          <SectionTitle>
-            <FaImage />
-            Screenshots
-            <IssueCount $count={screenshots.length}>{screenshots.length}</IssueCount>
-          </SectionTitle>
-        </SectionHeader>
-        <SectionContent>
-          <ScreenshotsGrid>
-            {screenshots.map((screenshot) => (
-              <ScreenshotCard 
-                key={screenshot.id} 
-                onClick={() => openScreenshotModal(screenshot)}
-              >
-                <ScreenshotImage
-                  src={getScreenshotUrl(screenshot)}
-                  alt={`${screenshot.type} screenshot of ${analysis.websites?.url || 'website'}`}
-                  loading="lazy"
-                />
-                <ScreenshotInfo>
-                  <ScreenshotTypeIcon>
-                    {getScreenshotTypeIcon(screenshot.type)}
-                  </ScreenshotTypeIcon>
-                  <ScreenshotTypeName>{screenshot.type}</ScreenshotTypeName>
-                </ScreenshotInfo>
-              </ScreenshotCard>
-            ))}
-          </ScreenshotsGrid>
-        </SectionContent>
-      </ScreenshotsSection>
-    );
-  };
 
   const renderIssues = (issues, type) => {
     if (!issues || issues.length === 0) {
@@ -642,41 +492,42 @@ const DetailedReportPage = () => {
               {analysis.created_at ? new Date(analysis.created_at).toLocaleDateString() : 'Unknown Date'}
             </AnalysisDate>
           </WebsiteInfo>
+          
+          <ScoreAndScreenshotRow>
+            <CompactScoreItem>
+              <CompactScoreValue $score={scores.overall}>
+                {scores.overall}/100
+              </CompactScoreValue>
+              <CompactScoreLabel>Overall</CompactScoreLabel>
+            </CompactScoreItem>
+            
+            <CompactScoreItem>
+              <CompactScoreValue $score={scores.accessibility}>
+                {scores.accessibility}/100
+              </CompactScoreValue>
+              <CompactScoreLabel>Accessibility</CompactScoreLabel>
+            </CompactScoreItem>
+            
+            <CompactScoreItem>
+              <CompactScoreValue $score={scores.seo}>
+                {scores.seo}/100
+              </CompactScoreValue>
+              <CompactScoreLabel>SEO</CompactScoreLabel>
+            </CompactScoreItem>
+            
+            <CompactScoreItem>
+              <CompactScoreValue $score={scores.performance}>
+                {scores.performance}/100
+              </CompactScoreValue>
+              <CompactScoreLabel>Performance</CompactScoreLabel>
+            </CompactScoreItem>
+            
+            {/* Screenshots in the same row */}
+            {analysis.screenshots && analysis.screenshots.length > 0 && (
+              <ScreenshotCard screenshots={analysis.screenshots} />
+            )}
+          </ScoreAndScreenshotRow>
         </Header>
-
-        <ScoresOverview>
-          <ScoreCard>
-            <ScoreValue $score={scores.overall}>{scores.overall}/100</ScoreValue>
-            <ScoreLabel>
-              <FaCheckCircle />
-              Overall Score
-            </ScoreLabel>
-          </ScoreCard>
-          
-          <ScoreCard>
-            <ScoreValue $score={scores.accessibility}>{scores.accessibility}/100</ScoreValue>
-            <ScoreLabel>
-              <FaAccessibleIcon />
-              Accessibility
-            </ScoreLabel>
-          </ScoreCard>
-          
-          <ScoreCard>
-            <ScoreValue $score={scores.seo}>{scores.seo}/100</ScoreValue>
-            <ScoreLabel>
-              <FaSearch />
-              SEO
-            </ScoreLabel>
-          </ScoreCard>
-          
-          <ScoreCard>
-            <ScoreValue $score={scores.performance}>{scores.performance}/100</ScoreValue>
-            <ScoreLabel>
-              <FaRocket />
-              Performance
-            </ScoreLabel>
-          </ScoreCard>
-        </ScoresOverview>
 
         <Section>
           <SectionHeader>
@@ -722,29 +573,9 @@ const DetailedReportPage = () => {
             {renderIssues(issues.performance, 'performance')}
           </SectionContent>
         </Section>
-
-        {/* Screenshots Section */}
-        {renderScreenshots(analysis.screenshots)}
       </ContentContainer>
 
-      {/* Screenshot Modal */}
-      {selectedScreenshot && (
-        <ScreenshotModal onClick={closeScreenshotModal}>
-          <ScreenshotModalContent onClick={(e) => e.stopPropagation()}>
-            <ScreenshotModalHeader>
-              <ScreenshotModalTitle>
-                {getScreenshotTypeIcon(selectedScreenshot.type)}
-                {selectedScreenshot.type} Screenshot
-              </ScreenshotModalTitle>
-              <ScreenshotModalClose onClick={closeScreenshotModal}>×</ScreenshotModalClose>
-            </ScreenshotModalHeader>
-            <ScreenshotModalImage
-              src={getScreenshotUrl(selectedScreenshot)}
-              alt={`${selectedScreenshot.type} screenshot of ${analysis.websites?.url || 'website'}`}
-            />
-          </ScreenshotModalContent>
-        </ScreenshotModal>
-      )}
+
     </ReportContainer>
   );
 };

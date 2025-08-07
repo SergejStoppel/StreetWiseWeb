@@ -10,14 +10,12 @@ import {
   FaExclamationTriangle,
   FaTimes,
   FaSpinner,
-  FaEye,
-  FaImage,
-  FaDesktop,
-  FaMobile
+  FaEye
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
 import { analysisAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ScreenshotDisplay from '../components/ScreenshotDisplay';
 
 const ResultsContainer = styled.div`
   min-height: calc(100vh - 160px);
@@ -205,104 +203,13 @@ const EmptyState = styled.div`
   color: var(--color-text-secondary);
 `;
 
-const ScreenshotsSection = styled.div`
-  padding: var(--spacing-xl);
-  background: var(--color-surface-secondary);
-  border-top: 1px solid var(--color-border-secondary);
-`;
 
-const ScreenshotsTitle = styled.h3`
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing-md);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-`;
-
-const ScreenshotsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--spacing-md);
-`;
-
-const ScreenshotCard = styled.div`
-  background: var(--color-surface-primary);
-  border: 1px solid var(--color-border-secondary);
-  border-radius: var(--border-radius-lg);
-  overflow: hidden;
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-  }
-`;
-
-const ScreenshotImage = styled.img`
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-`;
-
-const ScreenshotInfo = styled.div`
-  padding: var(--spacing-sm);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  background: var(--color-surface-secondary);
-`;
-
-const ScreenshotModal = styled.div`
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.9);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: var(--spacing-xl);
-`;
-
-const ScreenshotModalContent = styled.div`
-  max-width: 90vw;
-  max-height: 90vh;
-  position: relative;
-`;
-
-const ScreenshotModalImage = styled.img`
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-  border-radius: var(--border-radius-md);
-`;
-
-const ScreenshotModalClose = styled.button`
-  position: absolute;
-  top: -40px;
-  right: 0;
-  background: none;
-  border: none;
-  color: white;
-  font-size: var(--font-size-xl);
-  cursor: pointer;
-  padding: var(--spacing-sm);
-  
-  &:hover {
-    opacity: 0.7;
-  }
-`;
 
 const ResultsPage = () => {
   const [analysisData, setAnalysisData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedScreenshot, setSelectedScreenshot] = useState(null);
+
   const navigate = useNavigate();
   const { t } = useTranslation(['results', 'common']);
 
@@ -475,62 +382,7 @@ const ResultsPage = () => {
     }
   };
 
-  const getScreenshotUrl = (screenshot) => {
-    if (!screenshot) return null;
-    const baseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://iywlcimloohmgjhjptoj.supabase.co';
-    return `${baseUrl}/storage/v1/object/public/${screenshot.storage_bucket}/${screenshot.storage_path}`;
-  };
 
-  const openScreenshotModal = (screenshot) => {
-    setSelectedScreenshot(screenshot);
-  };
-
-  const closeScreenshotModal = () => {
-    setSelectedScreenshot(null);
-  };
-
-  const getScreenshotTypeIcon = (type) => {
-    switch (type) {
-      case 'desktop': return <FaDesktop />;
-      case 'mobile': return <FaMobile />;
-      default: return <FaImage />;
-    }
-  };
-
-  const renderScreenshots = (screenshots) => {
-    if (!screenshots || screenshots.length === 0) {
-      return null;
-    }
-
-    return (
-      <ScreenshotsSection>
-        <ScreenshotsTitle>
-          <FaImage />
-          Screenshots ({screenshots.length})
-        </ScreenshotsTitle>
-        <ScreenshotsGrid>
-          {screenshots.map((screenshot) => (
-            <ScreenshotCard 
-              key={screenshot.id} 
-              onClick={() => openScreenshotModal(screenshot)}
-            >
-              <ScreenshotImage
-                src={getScreenshotUrl(screenshot)}
-                alt={`${screenshot.type} screenshot`}
-                loading="lazy"
-              />
-              <ScreenshotInfo>
-                {getScreenshotTypeIcon(screenshot.type)}
-                <span style={{ fontSize: 'var(--font-size-sm)', fontWeight: 'var(--font-weight-medium)', textTransform: 'capitalize' }}>
-                  {screenshot.type}
-                </span>
-              </ScreenshotInfo>
-            </ScreenshotCard>
-          ))}
-        </ScreenshotsGrid>
-      </ScreenshotsSection>
-    );
-  };
 
   // Extract URL from website data or use a placeholder
   const websiteUrl = analysisData.websites?.url || analysisData.url || 'Unknown Website';
@@ -563,6 +415,11 @@ const ResultsPage = () => {
                 Analysis ID: {analysisData.id?.slice(0, 8)}...
               </div>
             </AnalysisInfo>
+            
+            {/* Screenshots in Header */}
+            {analysisData.screenshots && analysisData.screenshots.length > 0 && (
+              <ScreenshotDisplay screenshots={analysisData.screenshots} />
+            )}
           </CardHeader>
 
           <ScoresGrid>
@@ -599,8 +456,7 @@ const ResultsPage = () => {
             </ScoreCard>
           </ScoresGrid>
 
-          {/* Screenshots Section */}
-          {renderScreenshots(analysisData.screenshots)}
+
 
           <ActionsSection>
             <ActionButton className="primary" onClick={handleViewDetailedReport}>
@@ -615,18 +471,7 @@ const ResultsPage = () => {
         </ResultCard>
       </ContentContainer>
 
-      {/* Screenshot Modal */}
-      {selectedScreenshot && (
-        <ScreenshotModal onClick={closeScreenshotModal}>
-          <ScreenshotModalContent onClick={(e) => e.stopPropagation()}>
-            <ScreenshotModalClose onClick={closeScreenshotModal}>×</ScreenshotModalClose>
-            <ScreenshotModalImage
-              src={getScreenshotUrl(selectedScreenshot)}
-              alt={`${selectedScreenshot.type} screenshot`}
-            />
-          </ScreenshotModalContent>
-        </ScreenshotModal>
-      )}
+
     </ResultsContainer>
   );
 };
