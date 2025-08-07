@@ -67,12 +67,12 @@ router.get('/latest', async (req, res) => {
       analysis: {
         id: analysis.id,
         status: analysis.status,
-        url: analysis.websites?.url,
+        url: (analysis.websites as any)?.url,
         created_at: analysis.created_at,
         completed_at: analysis.completed_at
       },
       jobs: analysis.analysis_jobs.map(job => ({
-        module: job.analysis_modules?.name,
+        module: (job.analysis_modules as any)?.name,
         status: job.status,
         error: job.error_message,
         started_at: job.started_at,

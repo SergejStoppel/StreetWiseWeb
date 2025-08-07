@@ -151,11 +151,13 @@ router.post('/public', async (req, res, next) => {
     
     // First, get or create a system user for public analyses
     let systemUser;
-    const { data: existingUser } = await supabase
+    const { data: existingUsers } = await supabase
       .from('users')
       .select('id')
       .eq('email', 'system@sitecraft.public')
-      .single();
+      .limit(1);
+      
+    const existingUser = existingUsers?.[0];
 
     if (existingUser) {
       systemUser = existingUser;
@@ -175,24 +177,27 @@ router.post('/public', async (req, res, next) => {
     }
 
     // Now get or create the public workspace
-    const { data: existingWorkspace } = await supabase
+    const { data: existingWorkspaces } = await supabase
       .from('workspaces')
       .select('id')
       .eq('name', 'Public Analyses')
-      .single();
+      .limit(1);
+      
+    const existingWorkspace = existingWorkspaces?.[0];
 
     if (existingWorkspace) {
       publicWorkspace = existingWorkspace;
     } else {
       // Create public workspace with system user as owner
-      const { data: newWorkspace, error: workspaceError } = await supabase
+      const { data: newWorkspaces, error: workspaceError } = await supabase
         .from('workspaces')
         .insert({ 
           name: 'Public Analyses',
           owner_id: systemUser.id
         })
-        .select()
-        .single();
+        .select();
+        
+      const newWorkspace = newWorkspaces?.[0];
 
       if (workspaceError) {
         throw workspaceError;
@@ -201,26 +206,38 @@ router.post('/public', async (req, res, next) => {
     }
 
     // Create website record with public workspace
-    const { data: website, error: websiteError } = await supabase
+    let { data: websites, error: websiteError } = await supabase
       .from('websites')
       .insert({ url, workspace_id: publicWorkspace.id })
-      .select()
-      .single();
+      .select();
+      
+    let website = websites?.[0];
 
     if (websiteError) {
       // Handle potential duplicate URL error gracefully
       if (websiteError.code === '23505') {
-        const { data: existingWebsite, error: existingWebsiteError } = await supabase
+        const { data: existingWebsites, error: existingWebsiteError } = await supabase
           .from('websites')
           .select('id')
           .eq('url', url)
           .is('workspace_id', null)
-          .single();
+          .limit(1);
+          
+        const existingWebsite = existingWebsites?.[0];
         if (existingWebsiteError) throw existingWebsiteError;
         website = existingWebsite;
       } else {
         throw websiteError;
       }
+    }
+
+    if (!website || !website.id) {
+      logger.error('Website creation/retrieval failed', { website, url });
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to create or retrieve website record',
+        timestamp: new Date().toISOString(),
+      });
     }
 
     const analysis = await createAnalysis(website.id, null); // No user for public analyses

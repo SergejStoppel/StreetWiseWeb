@@ -156,7 +156,7 @@ router.post('/signup', async (req, res) => {
       const response: ApiResponse = {
         success: false,
         message: 'Validation failed',
-        errors: error.errors,
+        error: error.errors.map(e => e.message).join(', '),
         timestamp: new Date().toISOString(),
       };
       return res.status(400).json(response);
@@ -286,7 +286,7 @@ router.post('/signin', async (req, res) => {
       const response: ApiResponse = {
         success: false,
         message: 'Validation failed',
-        errors: error.errors,
+        error: error.errors.map(e => e.message).join(', '),
         timestamp: new Date().toISOString(),
       };
       return res.status(400).json(response);
@@ -404,7 +404,7 @@ router.post('/forgot-password', async (req, res) => {
       const response: ApiResponse = {
         success: false,
         message: 'Validation failed',
-        errors: error.errors,
+        error: error.errors.map(e => e.message).join(', '),
         timestamp: new Date().toISOString(),
       };
       return res.status(400).json(response);
@@ -483,7 +483,7 @@ router.post('/reset-password', async (req, res) => {
       const response: ApiResponse = {
         success: false,
         message: 'Validation failed',
-        errors: error.errors,
+        error: error.errors.map(e => e.message).join(', '),
         timestamp: new Date().toISOString(),
       };
       return res.status(400).json(response);
@@ -658,7 +658,7 @@ router.put('/profile', authenticateToken, async (req: AuthRequest, res) => {
       const response: ApiResponse = {
         success: false,
         message: 'Validation failed',
-        errors: error.errors,
+        error: error.errors.map(e => e.message).join(', '),
         timestamp: new Date().toISOString(),
       };
       return res.status(400).json(response);
@@ -736,7 +736,7 @@ router.put('/password', authenticateToken, async (req: AuthRequest, res) => {
       const response: ApiResponse = {
         success: false,
         message: 'Validation failed',
-        errors: error.errors,
+        error: error.errors.map(e => e.message).join(', '),
         timestamp: new Date().toISOString(),
       };
       return res.status(400).json(response);
@@ -851,7 +851,7 @@ router.post('/resend-confirmation', async (req, res) => {
       const response: ApiResponse = {
         success: false,
         message: 'Validation failed',
-        errors: error.errors,
+        error: error.errors.map(e => e.message).join(', '),
         timestamp: new Date().toISOString(),
       };
       return res.status(400).json(response);

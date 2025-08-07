@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>ARIA Test Page</title>
+</head>
+<body>
+    <h1>ARIA Violations Test</h1>
+    
+    <!-- Invalid ARIA role -->
+    <div role="fake-role">This should trigger aria-allowed-role violation</div>
+    
+    <!-- Missing aria-label on interactive element -->
+    <button aria-expanded="false"></button>
+    
+    <!-- Invalid ARIA attribute -->
+    <div aria-fake="true">This should trigger aria-valid-attr violation</div>
+    
+    <!-- Missing required ARIA attributes -->
+    <div role="button"></div>
+    
+    <!-- Invalid ARIA attribute value -->
+    <div aria-hidden="maybe">This should trigger aria-valid-attr-value violation</div>
+    
+    <!-- Empty button without accessible name -->
+    <button></button>
+    
+    <!-- Input without label -->
+    <input type="text" role="textbox">
+</body>
+</html>

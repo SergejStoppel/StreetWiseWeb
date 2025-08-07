@@ -49,7 +49,7 @@ export const config: AppConfig = {
     url: process.env.REDIS_URL || '',
     host: process.env.REDIS_HOST || 'localhost',
     port: parseInt(process.env.REDIS_PORT || '6379', 10),
-    password: process.env.REDIS_PASSWORD,
+    password: process.env.REDIS_PASSWORD || undefined,
   },
 
   stripe: {
@@ -77,7 +77,7 @@ export const config: AppConfig = {
 
   logging: {
     level: getEnvVarWithFallback('DEV_LOG_LEVEL', 'PROD_LOG_LEVEL', 'info'),
-    file: process.env.LOG_FILE,
+    file: process.env.LOG_FILE || undefined,
   },
 };
 

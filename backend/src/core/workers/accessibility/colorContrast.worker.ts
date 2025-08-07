@@ -207,9 +207,9 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
         waitUntil: 'networkidle2',
         timeout: 20000
       });
-    } catch (navigationError) {
+    } catch (navigationError: any) {
       logger.warn('Initial navigation failed, retrying', { 
-        error: navigationError.message,
+        error: navigationError?.message || 'Unknown navigation error',
         targetUrl 
       });
       
@@ -230,7 +230,7 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
     });
 
     // Wait for axe to be available
-    await page.waitForFunction(() => typeof (window as any).axe !== 'undefined', { timeout: 10000 });
+    await page.waitForFunction(() => typeof (globalThis as any).axe !== 'undefined', { timeout: 10000 });
     logger.info('Axe-core loaded successfully');
 
     // Run axe-core analysis focusing on color contrast
@@ -247,7 +247,7 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
       };
 
       // Run axe analysis
-      return (window as any).axe.run(document, axeConfig);
+      return (globalThis as any).axe.run(globalThis.document, axeConfig);
     });
 
     logger.info('Axe-core analysis complete', {
@@ -320,17 +320,17 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
       incompleteFound: results.incomplete.length
     };
 
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Error in color contrast worker', {
-      error: error.message,
-      stack: error.stack,
+      error: error?.message || 'Unknown error',
+      stack: error?.stack,
       analysisId,
       workspaceId
     });
 
     // Update job status to failed
     if (moduleJobInfo) {
-      await updateJobStatus(analysisId, moduleJobInfo.moduleId, 'failed', error.message);
+      await updateJobStatus(analysisId, moduleJobInfo.moduleId, 'failed', error?.message || 'Unknown error');
     }
 
     // Check if all analysis jobs are complete (even with failures)
@@ -347,16 +347,7 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
     host: config.redis.host,
     port: config.redis.port,
   },
-  concurrency: 3, // Can process multiple analyses concurrently
-  defaultJobOptions: {
-    attempts: 2,
-    backoff: {
-      type: 'exponential',
-      delay: 5000
-    },
-    removeOnComplete: 10,
-    removeOnFail: 10
-  }
+  concurrency: 3 // Can process multiple analyses concurrently
 });
 
 // Graceful shutdown

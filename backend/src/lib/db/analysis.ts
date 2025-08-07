@@ -8,12 +8,11 @@ export async function createAnalysis(websiteId: string, userId: string) {
     .insert([
       { website_id: websiteId, user_id: userId, status: 'pending' }
     ])
-    .select()
-    .single();
+    .select();
 
   if (error) {
-    throw new AppError('Failed to create analysis in database', 500, true, error);
+    throw new AppError('Failed to create analysis in database', 500, true, error.message);
   }
 
-  return data;
+  return data?.[0];
 }

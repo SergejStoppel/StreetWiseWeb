@@ -8,7 +8,7 @@ const logger = createLogger('debug-route');
 // Diagnostic endpoint to check analysis pipeline health
 router.get('/analysis-pipeline', async (req, res) => {
   try {
-    const diagnostics = {
+    const diagnostics: any = {
       timestamp: new Date().toISOString(),
       checks: {}
     };
@@ -112,7 +112,7 @@ router.get('/analysis-pipeline', async (req, res) => {
     };
 
     // Overall health assessment
-    const hasErrors = Object.values(diagnostics.checks).some(check => check.status === 'error');
+    const hasErrors = Object.values(diagnostics.checks).some((check: any) => check.status === 'error');
     diagnostics.overallHealth = hasErrors ? 'unhealthy' : 'healthy';
 
     res.json({

@@ -38,7 +38,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction): 
     });
 
     // Call original end method
-    originalEnd.call(this, chunk, encoding, callback);
+    return originalEnd.call(this, chunk, encoding, callback);
   };
 
   next();

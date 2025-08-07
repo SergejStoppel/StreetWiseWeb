@@ -32,7 +32,7 @@ async function updateAnalysisStatus(analysisId: string, status: 'processing' | '
       analysisId,
       status
     });
-    throw new AppError(`Failed to update analysis status: ${error.message}`, 500, true, error);
+    throw new AppError(`Failed to update analysis status: ${error.message}`, 500, true, error.message);
   }
 
   logger.info('Analysis status updated successfully', {
@@ -79,7 +79,7 @@ async function captureScreenshots(page: Page, workspaceId: string, analysisId: s
     const desktopPath = `${basePath}/desktop.jpg`;
     const { error: desktopError } = await supabase.storage
       .from('analysis-assets')
-      .upload(desktopPath, desktopScreenshot, { upsert: true });
+      .upload(desktopPath, desktopScreenshot as any, { upsert: true });
     
     if (desktopError) {
       logger.warn('Failed to upload desktop screenshot', { error: desktopError.message });
@@ -99,7 +99,7 @@ async function captureScreenshots(page: Page, workspaceId: string, analysisId: s
     const mobilePath = `${basePath}/mobile.jpg`;
     const { error: mobileError } = await supabase.storage
       .from('analysis-assets')
-      .upload(mobilePath, mobileScreenshot, { upsert: true });
+      .upload(mobilePath, mobileScreenshot as any, { upsert: true });
     
     if (mobileError) {
       logger.warn('Failed to upload mobile screenshot', { error: mobileError.message });
@@ -324,16 +324,7 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
     host: config.redis.host,
     port: config.redis.port,
   },
-  concurrency: 2, // Reduced concurrency for resource management
-  defaultJobOptions: {
-    attempts: 2,
-    backoff: {
-      type: 'exponential',
-      delay: 3000
-    },
-    removeOnComplete: 10,
-    removeOnFail: 10
-  }
+  concurrency: 2 // Reduced concurrency for resource management
 });
 
 // Graceful shutdown

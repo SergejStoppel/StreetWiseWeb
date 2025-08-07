@@ -4,6 +4,7 @@ import { createLogger } from '@/config/logger';
 import { supabase } from '@/config/supabase';
 import { fetcherQueue } from '@/lib/queue/fetcher';
 import { colorContrastQueue } from '@/lib/queue/colorContrast';
+import { ariaQueue } from '@/lib/queue/aria';
 import { AppError } from '@/types';
 
 const logger = createLogger('master-worker');
@@ -33,8 +34,8 @@ interface FetcherResult {
 // Queue instances for all analyzer workers
 const analyzerQueues = {
   colorContrast: colorContrastQueue,
+  aria: ariaQueue,
   // TODO: Add other analyzer queues as they are implemented
-  // aria: ariaQueue,
   // forms: formsQueue,
   // keyboard: keyboardQueue,
   // altText: altTextQueue,
@@ -49,15 +50,16 @@ const analyzerQueues = {
 };
 
 // Map module names to their corresponding workers (only include implemented ones)
+// Now supports multiple workers per module
 const moduleToWorkerMap = {
-  'Fetcher': null, // Handled separately in the fetcher step
-  'Accessibility': 'colorContrast',
+  'Fetcher': [], // Handled separately in the fetcher step
+  'Accessibility': ['colorContrast', 'aria'], // Multiple workers for accessibility
   // TODO: Add these as workers are implemented
-  // 'SEO': 'technicalSeo',
-  // 'Performance': 'coreWebVitals'
+  // 'SEO': ['technicalSeo', 'onPageSeo'],
+  // 'Performance': ['coreWebVitals', 'imageOptimization']
 };
 
-async function createAnalysisJob(analysisId: string, moduleId: string) {
+async function createAnalysisJob(analysisId: string, moduleId: string, workerName?: string) {
   const { data, error } = await supabase
     .from('analysis_jobs')
     .insert([{
@@ -72,15 +74,19 @@ async function createAnalysisJob(analysisId: string, moduleId: string) {
       error, 
       analysisId, 
       moduleId,
+      workerName,
       errorMessage: error.message,
       errorCode: error.code
     });
+    throw error;
   } else {
     logger.info('Created analysis job', {
       analysisId,
       moduleId,
-      jobId: data?.[0]?.id
+      jobId: data?.[0]?.id,
+      workerName
     });
+    return data?.[0]?.id;
   }
 }
 
@@ -213,13 +219,21 @@ export const masterWorker = new Worker('master-analysis', async (job: Job<Master
     const analyzerJobPromises = [];
     
     // Get implemented modules again for analyzer enqueuing
-    const implementedAnalyzerModules = Object.entries(moduleToWorkerMap)
-      .filter(([moduleName, workerName]) => workerName !== null && analyzerQueues[workerName])
-      .map(([moduleName, workerName]) => ({ moduleName, workerName }));
+    const implementedAnalyzerModules = [];
+    
+    for (const [moduleName, workerNames] of Object.entries(moduleToWorkerMap)) {
+      if (Array.isArray(workerNames) && workerNames.length > 0) {
+        for (const workerName of workerNames) {
+          if (analyzerQueues[workerName]) {
+            implementedAnalyzerModules.push({ moduleName, workerName });
+          }
+        }
+      }
+    }
     
     logger.info('Starting to enqueue analyzer jobs for implemented modules', {
       analysisId,
-      implementedAnalyzers: implementedAnalyzerModules.map(m => m.workerName)
+      implementedAnalyzers: implementedAnalyzerModules.map(m => `${m.moduleName}:${m.workerName}`)
     });
     
     for (const { moduleName, workerName } of implementedAnalyzerModules) {
@@ -227,6 +241,16 @@ export const masterWorker = new Worker('master-analysis', async (job: Job<Master
       logger.info(`Enqueuing ${workerName} analyzer for ${moduleName} module`, { analysisId });
       
       try {
+        const jobOptions = {
+          removeOnComplete: false, // Keep for debugging
+          removeOnFail: false,
+          attempts: workerName === 'aria' ? 1 : 2, // Reduce ARIA retries
+          backoff: {
+            type: 'exponential',
+            delay: 2000
+          }
+        };
+
         const jobPromise = queue.add(`analyze-${workerName}`, {
           analysisId,
           workspaceId,
@@ -234,15 +258,7 @@ export const masterWorker = new Worker('master-analysis', async (job: Job<Master
           userId,
           assetPath: fetcherResult.assetPath,
           metadata: fetcherResult.metadata
-        }, {
-          removeOnComplete: false, // Keep for debugging
-          removeOnFail: false,
-          attempts: 2,
-          backoff: {
-            type: 'exponential',
-            delay: 2000
-          }
-        });
+        }, jobOptions);
         
         analyzerJobPromises.push(jobPromise);
         logger.info(`${workerName} analyzer job enqueued for ${moduleName}`, { analysisId });
@@ -331,12 +347,21 @@ export async function checkAndUpdateAnalysisCompletion(analysisId: string) {
     
   if (jobs && jobs.length > 0) {
     // Exclude fetcher jobs from completion check (fetcher completes before analyzers)
-    const analyzerJobs = jobs.filter(j => j.analysis_modules.name !== 'Fetcher');
+    const analyzerJobs = jobs.filter(j => (j as any).analysis_modules.name !== 'Fetcher');
     
     if (analyzerJobs.length === 0) {
       logger.warn('No analyzer jobs found for analysis', { analysisId });
       return;
     }
+    
+    logger.info('Analyzer job status check', {
+      analysisId,
+      totalJobs: analyzerJobs.length,
+      jobStatuses: analyzerJobs.map(job => ({
+        module: (job as any).analysis_modules.name,
+        status: job.status
+      }))
+    });
     
     const allComplete = analyzerJobs.every(j => j.status === 'completed' || j.status === 'failed');
     const hasFailures = analyzerJobs.some(j => j.status === 'failed');

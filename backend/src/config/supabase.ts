@@ -26,18 +26,20 @@ export const supabase = createClient(
 );
 
 // Test the connection
-supabase
-  .from('users')
-  .select('count', { count: 'exact', head: true })
-  .then(({ count, error }) => {
+(async () => {
+  try {
+    const { count, error } = await supabase
+      .from('users')
+      .select('count', { count: 'exact', head: true });
+      
     if (error) {
       logger.error('Failed to connect to Supabase', { error: error.message });
     } else {
       logger.info('Successfully connected to Supabase', { tableCount: count });
     }
-  })
-  .catch((err) => {
-    logger.error('Supabase connection test failed', { error: err.message });
-  });
+  } catch (err: any) {
+    logger.error('Supabase connection test failed', { error: err?.message || 'Unknown error' });
+  }
+})();
 
 export default supabase;

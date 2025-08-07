@@ -9,14 +9,17 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install all dependencies (including dev deps for building)
+RUN npm ci
 
 # Copy source code
 COPY . .
 
 # Build the application
 RUN npm run build
+
+# Clean install production dependencies only
+RUN rm -rf node_modules && npm ci --omit=dev
 
 # Production stage
 FROM node:18-alpine AS production
