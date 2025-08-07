@@ -503,15 +503,70 @@ router.get('/:id', async (req, res, next) => {
       logger.error('Failed to fetch performance issues', { error: performanceError });
     }
 
-    // Calculate scores based on issues found
+    // Calculate total issues for summary
     const totalAccessibilityIssues = accessibilityIssues?.length || 0;
     const totalSeoIssues = seoIssues?.length || 0;
     const totalPerformanceIssues = performanceIssues?.length || 0;
 
-    // Simple scoring algorithm (can be improved)
-    const accessibilityScore = Math.max(0, 100 - (totalAccessibilityIssues * 5));
-    const seoScore = Math.max(0, 100 - (totalSeoIssues * 5));
-    const performanceScore = Math.max(0, 100 - (totalPerformanceIssues * 5));
+    // Improved scoring algorithm that groups similar issues
+    const calculateImprovedScore = (issues, type) => {
+      if (!issues || issues.length === 0) return 100;
+      
+      // Group issues by rule and message for similar violations
+      const groupedIssues = new Map();
+      
+      issues.forEach(issue => {
+        const ruleKey = issue.rules?.rule_key || 'unknown';
+        const message = issue.message || 'No message';
+        
+        // Create a key that groups similar issues
+        const groupKey = `${ruleKey}:${message}`;
+        
+        if (!groupedIssues.has(groupKey)) {
+          groupedIssues.set(groupKey, {
+            rule: issue.rules,
+            message: issue.message,
+            severity: issue.severity,
+            occurrences: []
+          });
+        }
+        
+        groupedIssues.get(groupKey).occurrences.push({
+          location: issue.location_path,
+          code: issue.code_snippet,
+          fix: issue.fix_suggestion
+        });
+      });
+      
+      // Calculate score based on unique issue groups, not total count
+      let totalDeduction = 0;
+      
+      groupedIssues.forEach(group => {
+        const occurrenceCount = group.occurrences.length;
+        let baseDeduction;
+        
+        // Base deduction per unique issue type
+        switch (group.severity) {
+          case 'critical': baseDeduction = 15; break;
+          case 'serious': baseDeduction = 10; break;
+          case 'moderate': baseDeduction = 6; break;
+          case 'minor': baseDeduction = 3; break;
+          default: baseDeduction = 5; break;
+        }
+        
+        // Add small penalty for multiple occurrences (logarithmic to avoid over-penalizing)
+        const occurrencePenalty = occurrenceCount > 1 ? Math.log2(occurrenceCount) : 0;
+        const totalDeductionForGroup = baseDeduction + occurrencePenalty;
+        
+        totalDeduction += totalDeductionForGroup;
+      });
+      
+      return Math.max(0, Math.round(100 - totalDeduction));
+    };
+
+    const accessibilityScore = calculateImprovedScore(accessibilityIssues, 'accessibility');
+    const seoScore = calculateImprovedScore(seoIssues, 'seo');
+    const performanceScore = calculateImprovedScore(performanceIssues, 'performance');
     const overallScore = Math.round((accessibilityScore + seoScore + performanceScore) / 3);
 
     // Update scores in database if analysis is completed
@@ -527,6 +582,45 @@ router.get('/:id', async (req, res, next) => {
         .eq('id', id);
     }
 
+    // Group issues for better display
+    const groupIssues = (issues) => {
+      if (!issues || issues.length === 0) return [];
+      
+      const groupedIssues = new Map();
+      
+      issues.forEach(issue => {
+        const ruleKey = issue.rules?.rule_key || 'unknown';
+        const message = issue.message || 'No message';
+        const groupKey = `${ruleKey}:${message}`;
+        
+        if (!groupedIssues.has(groupKey)) {
+          groupedIssues.set(groupKey, {
+            id: groupKey,
+            rule: issue.rules,
+            message: issue.message,
+            severity: issue.severity,
+            description: issue.rules?.description,
+            occurrences: [],
+            count: 0
+          });
+        }
+        
+        const group = groupedIssues.get(groupKey);
+        group.occurrences.push({
+          location: issue.location_path,
+          code: issue.code_snippet,
+          fix: issue.fix_suggestion,
+          original_issue: issue
+        });
+        group.count = group.occurrences.length;
+      });
+      
+      return Array.from(groupedIssues.values()).sort((a, b) => {
+        const severityOrder = { critical: 4, serious: 3, moderate: 2, minor: 1 };
+        return (severityOrder[b.severity] || 0) - (severityOrder[a.severity] || 0);
+      });
+    };
+
     // Prepare response data
     const responseData = {
       ...analysis,
@@ -540,6 +634,11 @@ router.get('/:id', async (req, res, next) => {
         accessibility: accessibilityIssues || [],
         seo: seoIssues || [],
         performance: performanceIssues || []
+      },
+      groupedIssues: {
+        accessibility: groupIssues(accessibilityIssues),
+        seo: groupIssues(seoIssues),
+        performance: groupIssues(performanceIssues)
       },
       summary: {
         totalIssues: totalAccessibilityIssues + totalSeoIssues + totalPerformanceIssues,
