@@ -302,6 +302,13 @@ router.get('/recent', authenticateToken, async (req: AuthRequest, res, next) => 
         websites (
           id,
           url
+        ),
+        screenshots (
+          id,
+          type,
+          storage_bucket,
+          storage_path,
+          url
         )
       `)
       .eq('user_id', userId)
@@ -559,6 +566,254 @@ router.get('/:id', async (req, res, next) => {
     res.status(200).json(response);
   } catch (error) {
     logger.error('Error fetching analysis', { error: error.message, analysisId: req.params.id });
+    next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /api/analyses/{id}:
+ *   delete:
+ *     summary: Delete analysis with all related data and assets
+ *     tags: [Analyses]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Analysis deleted successfully
+ *       404:
+ *         description: Analysis not found
+ *       403:
+ *         description: Unauthorized to delete this analysis
+ */
+router.delete('/:id', authenticateToken, async (req: AuthRequest, res, next) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user!.id;
+    
+    logger.info('Starting analysis deletion', { analysisId: id, userId });
+
+    // First, verify the analysis exists and belongs to the user
+    const { data: analysis, error: analysisError } = await supabase
+      .from('analyses')
+      .select(`
+        *,
+        websites (
+          id,
+          workspace_id,
+          workspaces (
+            owner_id
+          )
+        )
+      `)
+      .eq('id', id)
+      .single();
+
+    if (analysisError || !analysis) {
+      logger.warn('Analysis not found for deletion', { analysisId: id, error: analysisError });
+      const response: ApiResponse = {
+        success: false,
+        message: 'Analysis not found',
+        timestamp: new Date().toISOString(),
+      };
+      return res.status(404).json(response);
+    }
+
+    // Check if user owns the analysis (either directly or through workspace)
+    const userOwnsAnalysis = analysis.user_id === userId || 
+      analysis.websites?.workspaces?.owner_id === userId;
+
+    if (!userOwnsAnalysis) {
+      logger.warn('Unauthorized deletion attempt', { 
+        analysisId: id, 
+        userId, 
+        analysisUserId: analysis.user_id,
+        workspaceOwnerId: analysis.websites?.workspaces?.owner_id 
+      });
+      const response: ApiResponse = {
+        success: false,
+        message: 'Unauthorized to delete this analysis',
+        timestamp: new Date().toISOString(),
+      };
+      return res.status(403).json(response);
+    }
+
+    logger.info('User authorized to delete analysis', { analysisId: id, userId });
+
+    // Get all analysis jobs for this analysis to clean up related data
+    const { data: analysisJobs, error: jobsError } = await supabase
+      .from('analysis_jobs')
+      .select('id')
+      .eq('analysis_id', id);
+
+    if (jobsError) {
+      logger.error('Failed to get analysis jobs', { error: jobsError, analysisId: id });
+    }
+
+    const jobIds = analysisJobs?.map(job => job.id) || [];
+    logger.info('Found analysis jobs to clean up', { analysisId: id, jobCount: jobIds.length });
+
+    // Delete related data in correct order (foreign key constraints)
+    const deletionSteps = [];
+
+    // 1. Delete accessibility issues
+    if (jobIds.length > 0) {
+      deletionSteps.push(
+        supabase
+          .from('accessibility_issues')
+          .delete()
+          .in('analysis_job_id', jobIds)
+      );
+    }
+
+    // 2. Delete SEO issues
+    if (jobIds.length > 0) {
+      deletionSteps.push(
+        supabase
+          .from('seo_issues')
+          .delete()
+          .in('analysis_job_id', jobIds)
+      );
+    }
+
+    // 3. Delete performance issues
+    if (jobIds.length > 0) {
+      deletionSteps.push(
+        supabase
+          .from('performance_issues')
+          .delete()
+          .in('analysis_job_id', jobIds)
+      );
+    }
+
+    // 4. Delete screenshots and their storage files
+    const { data: screenshots } = await supabase
+      .from('screenshots')
+      .select('storage_bucket, storage_path')
+      .eq('analysis_id', id);
+
+    if (screenshots && screenshots.length > 0) {
+      logger.info('Deleting screenshots from storage', { 
+        analysisId: id, 
+        screenshotCount: screenshots.length 
+      });
+
+      // Delete files from storage
+      for (const screenshot of screenshots) {
+        try {
+          const { error: storageError } = await supabase.storage
+            .from(screenshot.storage_bucket)
+            .remove([screenshot.storage_path]);
+          
+          if (storageError) {
+            logger.warn('Failed to delete screenshot from storage', { 
+              error: storageError, 
+              path: screenshot.storage_path 
+            });
+          }
+        } catch (storageErr) {
+          logger.warn('Storage deletion error', { error: storageErr, path: screenshot.storage_path });
+        }
+      }
+
+      // Delete screenshot records
+      deletionSteps.push(
+        supabase
+          .from('screenshots')
+          .delete()
+          .eq('analysis_id', id)
+      );
+    }
+
+    // 5. Delete analysis assets from storage (metadata, etc.)
+    if (analysis.websites?.workspace_id) {
+      const assetPath = `${analysis.websites.workspace_id}/${id}`;
+      
+      try {
+        // List all files in the analysis folder
+        const { data: files, error: listError } = await supabase.storage
+          .from('analysis-assets')
+          .list(`${analysis.websites.workspace_id}/${id}`);
+
+        if (!listError && files && files.length > 0) {
+          const filePaths = files.map(file => `${assetPath}/${file.name}`);
+          logger.info('Deleting analysis assets from storage', { 
+            analysisId: id, 
+            assetCount: filePaths.length 
+          });
+
+          const { error: storageError } = await supabase.storage
+            .from('analysis-assets')
+            .remove(filePaths);
+
+          if (storageError) {
+            logger.warn('Failed to delete some analysis assets', { error: storageError });
+          }
+        }
+      } catch (storageErr) {
+        logger.warn('Failed to clean up analysis assets', { error: storageErr, assetPath });
+      }
+    }
+
+    // 6. Delete analysis jobs
+    if (jobIds.length > 0) {
+      deletionSteps.push(
+        supabase
+          .from('analysis_jobs')
+          .delete()
+          .eq('analysis_id', id)
+      );
+    }
+
+    // 7. Finally, delete the analysis record
+    deletionSteps.push(
+      supabase
+        .from('analyses')
+        .delete()
+        .eq('id', id)
+    );
+
+    // Execute all deletion steps
+    logger.info('Executing deletion steps', { analysisId: id, stepCount: deletionSteps.length });
+    
+    const results = await Promise.allSettled(deletionSteps);
+    const failures = results.filter(result => result.status === 'rejected');
+    
+    if (failures.length > 0) {
+      logger.error('Some deletion steps failed', { 
+        analysisId: id, 
+        failures: failures.map(f => f.reason) 
+      });
+      // Continue anyway - partial cleanup is better than none
+    }
+
+    logger.info('Analysis deletion completed', { 
+      analysisId: id, 
+      userId,
+      stepCount: deletionSteps.length,
+      failureCount: failures.length 
+    });
+
+    const response: ApiResponse = {
+      success: true,
+      message: 'Analysis and all related data deleted successfully',
+      timestamp: new Date().toISOString(),
+    };
+
+    res.status(200).json(response);
+  } catch (error) {
+    logger.error('Error deleting analysis', { 
+      error: error.message, 
+      analysisId: req.params.id,
+      userId: req.user?.id 
+    });
     next(error);
   }
 });
