@@ -529,20 +529,21 @@ router.get('/:id', async (req, res, next) => {
     const calculateImprovedScore = (issues, type) => {
       if (!issues || issues.length === 0) return 100;
       
-      // Group issues by rule and message for similar violations
+      // Group issues primarily by rule for better consolidation
       const groupedIssues = new Map();
       
       issues.forEach(issue => {
         const ruleKey = issue.rules?.rule_key || 'unknown';
-        const message = issue.message || 'No message';
+        const ruleName = issue.rules?.name || 'Unknown Rule';
+        const severity = issue.severity;
         
-        // Create a key that groups similar issues
-        const groupKey = `${ruleKey}:${message}`;
+        // Create a key that groups by rule and severity (not message)
+        const groupKey = `${ruleKey}:${severity}`;
         
         if (!groupedIssues.has(groupKey)) {
           groupedIssues.set(groupKey, {
             rule: issue.rules,
-            message: issue.message,
+            message: issue.message, // Use first message as representative
             severity: issue.severity,
             occurrences: []
           });
@@ -551,7 +552,8 @@ router.get('/:id', async (req, res, next) => {
         groupedIssues.get(groupKey).occurrences.push({
           location: issue.location_path,
           code: issue.code_snippet,
-          fix: issue.fix_suggestion
+          fix: issue.fix_suggestion,
+          message: issue.message // Keep individual messages for each occurrence
         });
       });
       
@@ -607,14 +609,16 @@ router.get('/:id', async (req, res, next) => {
       
       issues.forEach(issue => {
         const ruleKey = issue.rules?.rule_key || 'unknown';
-        const message = issue.message || 'No message';
-        const groupKey = `${ruleKey}:${message}`;
+        const severity = issue.severity;
+        
+        // Group by rule and severity for better consolidation
+        const groupKey = `${ruleKey}:${severity}`;
         
         if (!groupedIssues.has(groupKey)) {
           groupedIssues.set(groupKey, {
             id: groupKey,
             rule: issue.rules,
-            message: issue.message,
+            message: issue.message, // Use first message as representative
             severity: issue.severity,
             description: issue.rules?.description,
             occurrences: [],
@@ -627,6 +631,7 @@ router.get('/:id', async (req, res, next) => {
           location: issue.location_path,
           code: issue.code_snippet,
           fix: issue.fix_suggestion,
+          message: issue.message, // Keep individual messages for each occurrence
           original_issue: issue
         });
         group.count = group.occurrences.length;
