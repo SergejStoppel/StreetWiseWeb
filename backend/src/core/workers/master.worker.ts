@@ -48,6 +48,15 @@ const analyzerQueues = {
   // aiSummary: aiSummaryQueue
 };
 
+// Map module names to their corresponding workers (only include implemented ones)
+const moduleToWorkerMap = {
+  'Fetcher': null, // Handled separately in the fetcher step
+  'Accessibility': 'colorContrast',
+  // TODO: Add these as workers are implemented
+  // 'SEO': 'technicalSeo',
+  // 'Performance': 'coreWebVitals'
+};
+
 async function createAnalysisJob(analysisId: string, moduleId: string) {
   const { data, error } = await supabase
     .from('analysis_jobs')
@@ -132,18 +141,26 @@ export const masterWorker = new Worker('master-analysis', async (job: Job<Master
     });
 
     if (modules) {
-      logger.info('Creating analysis jobs for all modules', { 
+      // Filter modules to only include those with implemented workers
+      const implementedModules = modules.filter(module => 
+        moduleToWorkerMap.hasOwnProperty(module.name)
+      );
+      
+      logger.info('Creating analysis jobs for implemented modules only', { 
         analysisId,
-        moduleCount: modules.length 
+        totalModules: modules.length,
+        implementedModules: implementedModules.length,
+        implementedNames: implementedModules.map(m => m.name),
+        skippedNames: modules.filter(m => !moduleToWorkerMap.hasOwnProperty(m.name)).map(m => m.name)
       });
       
-      for (const module of modules) {
+      for (const module of implementedModules) {
         await createAnalysisJob(analysisId, module.id);
       }
       
-      logger.info('All analysis jobs created successfully', { 
+      logger.info('Analysis jobs created for implemented modules', { 
         analysisId,
-        moduleCount: modules.length 
+        moduleCount: implementedModules.length 
       });
     }
 
@@ -192,19 +209,25 @@ export const masterWorker = new Worker('master-analysis', async (job: Job<Master
       metadata: fetcherResult.metadata 
     });
 
-    // Step 3: Enqueue all analyzer jobs in parallel
+    // Step 3: Enqueue analyzer jobs for implemented modules only
     const analyzerJobPromises = [];
     
-    logger.info('Starting to enqueue analyzer jobs', {
+    // Get implemented modules again for analyzer enqueuing
+    const implementedAnalyzerModules = Object.entries(moduleToWorkerMap)
+      .filter(([moduleName, workerName]) => workerName !== null && analyzerQueues[workerName])
+      .map(([moduleName, workerName]) => ({ moduleName, workerName }));
+    
+    logger.info('Starting to enqueue analyzer jobs for implemented modules', {
       analysisId,
-      availableAnalyzers: Object.keys(analyzerQueues)
+      implementedAnalyzers: implementedAnalyzerModules.map(m => m.workerName)
     });
     
-    for (const [analyzerName, queue] of Object.entries(analyzerQueues)) {
-      logger.info(`Enqueuing ${analyzerName} analyzer`, { analysisId });
+    for (const { moduleName, workerName } of implementedAnalyzerModules) {
+      const queue = analyzerQueues[workerName];
+      logger.info(`Enqueuing ${workerName} analyzer for ${moduleName} module`, { analysisId });
       
       try {
-        const jobPromise = queue.add(`analyze-${analyzerName}`, {
+        const jobPromise = queue.add(`analyze-${workerName}`, {
           analysisId,
           workspaceId,
           websiteId,
@@ -222,9 +245,9 @@ export const masterWorker = new Worker('master-analysis', async (job: Job<Master
         });
         
         analyzerJobPromises.push(jobPromise);
-        logger.info(`${analyzerName} analyzer job enqueued`, { analysisId });
+        logger.info(`${workerName} analyzer job enqueued for ${moduleName}`, { analysisId });
       } catch (error) {
-        logger.error(`Failed to enqueue ${analyzerName} analyzer`, {
+        logger.error(`Failed to enqueue ${workerName} analyzer for ${moduleName}`, {
           error: error.message,
           analysisId
         });

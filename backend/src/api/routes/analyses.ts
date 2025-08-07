@@ -301,8 +301,7 @@ router.get('/recent', authenticateToken, async (req: AuthRequest, res, next) => 
         completed_at,
         websites (
           id,
-          url,
-          name
+          url
         )
       `)
       .eq('user_id', userId)
@@ -386,8 +385,7 @@ router.get('/:id', async (req, res, next) => {
         *,
         websites (
           id,
-          url,
-          name
+          url
         ),
         analysis_jobs (
           id,

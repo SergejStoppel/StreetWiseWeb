@@ -1,6 +1,6 @@
 import { Job, Worker } from 'bullmq';
+import puppeteer, { Browser, Page } from 'puppeteer';
 import * as axe from 'axe-core';
-import { JSDOM } from 'jsdom';
 import { config } from '@/config';
 import { createLogger } from '@/config/logger';
 import { supabase } from '@/config/supabase';
@@ -71,7 +71,7 @@ async function getRuleId(ruleKey: string): Promise<string | null> {
 }
 
 async function getModuleAndJobId(analysisId: string): Promise<{ moduleId: string; jobId: string } | null> {
-  // Get the accessibility module ID - should match the module name in the database
+  // Get the accessibility module ID
   const { data: module, error: moduleError } = await supabase
     .from('analysis_modules')
     .select('id')
@@ -101,22 +101,8 @@ async function getModuleAndJobId(analysisId: string): Promise<{ moduleId: string
       analysisId, 
       moduleId: module.id,
       error: jobError,
-      jobError: jobError?.message,
-      code: jobError?.code
+      jobError: jobError?.message
     });
-    
-    // Let's also check what jobs exist for this analysis
-    const { data: allJobs } = await supabase
-      .from('analysis_jobs')
-      .select('id, module_id, status')
-      .eq('analysis_id', analysisId);
-      
-    logger.error('All jobs for this analysis', {
-      analysisId,
-      jobCount: allJobs?.length || 0,
-      jobs: allJobs
-    });
-    
     return null;
   }
 
@@ -129,68 +115,51 @@ async function getModuleAndJobId(analysisId: string): Promise<{ moduleId: string
   return { moduleId: module.id, jobId: job.id };
 }
 
-function mapAxeImpactToSeverity(impact: string): 'low' | 'medium' | 'high' | 'critical' {
+function mapAxeImpactToSeverity(impact: string): 'minor' | 'moderate' | 'serious' | 'critical' {
   switch (impact) {
     case 'minor':
-      return 'low';
+      return 'minor';
     case 'moderate':
-      return 'medium';
+      return 'moderate';
     case 'serious':
-      return 'high';
+      return 'serious';
     case 'critical':
       return 'critical';
     default:
-      return 'medium';
+      return 'moderate';
   }
 }
 
-async function downloadHtmlFromStorage(workspaceId: string, analysisId: string): Promise<string> {
-  const htmlPath = `${workspaceId}/${analysisId}/html/index.html`;
-  
-  logger.info('Attempting to download HTML from storage', {
-    htmlPath,
-    workspaceId,
-    analysisId
-  });
-  
-  const { data, error } = await supabase.storage
-    .from('analysis-assets')
-    .download(htmlPath);
-
-  if (error) {
-    logger.error('Storage download error', {
-      error: error.message,
-      htmlPath,
-      errorCode: error.statusCode || 'unknown'
-    });
-    throw new AppError(`Failed to download HTML from storage: ${error.message}`, 500, true, error);
+async function getTargetUrl(websiteId: string, metadata: any): Promise<string> {
+  // Try to get URL from metadata first
+  if (metadata?.url) {
+    return metadata.url;
   }
 
-  if (!data) {
-    logger.error('No data returned from storage', { htmlPath });
-    throw new AppError('No data returned from storage download', 500, true);
+  // Otherwise, get from database
+  const { data: website, error } = await supabase
+    .from('websites')
+    .select('url')
+    .eq('id', websiteId)
+    .single();
+    
+  if (error || !website) {
+    throw new AppError('Website not found', 404);
   }
-
-  logger.info('Successfully downloaded HTML from storage', {
-    htmlPath,
-    dataSize: data.size
-  });
-
-  // Convert blob to text
-  const text = await data.text();
-  return text;
+  
+  return website.url;
 }
 
 export const colorContrastWorker = new Worker('color-contrast', async (job: Job<ColorContrastJobData>) => {
-  const { analysisId, workspaceId, assetPath, metadata } = job.data;
+  const { analysisId, workspaceId, websiteId, metadata } = job.data;
   
-  logger.info('Starting color contrast analysis', { 
+  logger.info('Starting color contrast analysis with live DOM', { 
     analysisId, 
-    workspaceId,
-    assetPath 
+    workspaceId
   });
 
   let moduleJobInfo: { moduleId: string; jobId: string } | null = null;
+  let browser: Browser | null = null;
 
   try {
     // Get module and job IDs
@@ -202,32 +171,84 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
     // Update job status to running
     await updateJobStatus(analysisId, moduleJobInfo.moduleId, 'running');
 
-    // Download HTML from storage
-    logger.info('Downloading HTML from storage', { workspaceId, analysisId });
-    const html = await downloadHtmlFromStorage(workspaceId, analysisId);
+    // Get the target URL
+    const targetUrl = await getTargetUrl(websiteId, metadata);
+    logger.info('Analyzing URL for accessibility', { targetUrl });
 
-    // Create virtual DOM for axe-core
-    const dom = new JSDOM(html, {
-      url: metadata?.url || 'http://localhost',
-      pretendToBeVisual: true,
-      resources: 'usable'
+    // Launch browser with optimized settings
+    browser = await puppeteer.launch({
+      headless: 'new',
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote'
+      ],
+      timeout: 30000
     });
 
-    const { window } = dom;
-    const { document } = window;
+    const page = await browser.newPage();
+    
+    // Configure page settings
+    await page.setDefaultTimeout(15000);
+    await page.setDefaultNavigationTimeout(15000);
+    
+    // Set viewport for desktop analysis
+    await page.setViewport({ width: 1920, height: 1080 });
+    
+    // Navigate to the page
+    logger.info('Navigating to target URL for accessibility analysis');
+    
+    try {
+      await page.goto(targetUrl, { 
+        waitUntil: 'networkidle2',
+        timeout: 20000
+      });
+    } catch (navigationError) {
+      logger.warn('Initial navigation failed, retrying', { 
+        error: navigationError.message,
+        targetUrl 
+      });
+      
+      // Retry with simpler settings
+      await page.goto(targetUrl, { 
+        waitUntil: 'domcontentloaded',
+        timeout: 15000
+      });
+      
+      // Wait for content to be rendered
+      await page.waitForTimeout(3000);
+    }
 
-    // Configure axe-core to only run color contrast rules
-    const axeConfig = {
-      rules: {
-        'color-contrast': { enabled: true },
-        'color-contrast-enhanced': { enabled: true }
-      },
-      runOnly: ['color-contrast', 'color-contrast-enhanced']
-    };
+    // Inject axe-core into the page
+    logger.info('Injecting axe-core for analysis');
+    await page.addScriptTag({
+      path: require.resolve('axe-core')
+    });
 
-    // Run axe-core analysis
-    logger.info('Running axe-core color contrast analysis');
-    const results = await axe.run(document.documentElement, axeConfig);
+    // Wait for axe to be available
+    await page.waitForFunction(() => typeof (window as any).axe !== 'undefined', { timeout: 10000 });
+    logger.info('Axe-core loaded successfully');
+
+    // Run axe-core analysis focusing on color contrast
+    logger.info('Running axe-core color contrast analysis on live DOM');
+    const results = await page.evaluate(() => {
+      // Configure axe to only run color contrast rules
+      const axeConfig = {
+        rules: {
+          'color-contrast': { enabled: true },
+          'color-contrast-enhanced': { enabled: true },
+          'link-in-text-block': { enabled: true }
+        },
+        runOnly: ['color-contrast', 'color-contrast-enhanced', 'link-in-text-block']
+      };
+
+      // Run axe analysis
+      return (window as any).axe.run(document, axeConfig);
+    });
 
     logger.info('Axe-core analysis complete', {
       violations: results.violations.length,
@@ -292,9 +313,6 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
     // Check if all analysis jobs are complete
     await checkAndUpdateAnalysisCompletion(analysisId);
 
-    // Clean up
-    dom.window.close();
-
     return {
       success: true,
       violationsFound: results.violations.length,
@@ -319,19 +337,25 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
     await checkAndUpdateAnalysisCompletion(analysisId);
 
     throw error;
+  } finally {
+    if (browser) {
+      await browser.close();
+    }
   }
 }, {
   connection: {
     host: config.redis.host,
     port: config.redis.port,
   },
-  concurrency: 5, // Can process multiple analyses concurrently
+  concurrency: 3, // Can process multiple analyses concurrently
   defaultJobOptions: {
     attempts: 2,
     backoff: {
       type: 'exponential',
       delay: 5000
-    }
+    },
+    removeOnComplete: 10,
+    removeOnFail: 10
   }
 });
 
