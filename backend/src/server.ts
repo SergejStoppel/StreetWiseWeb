@@ -214,9 +214,10 @@ class Server {
       const { fetcherWorker } = await import('@/core/workers/fetcher.worker');
       const { colorContrastWorker } = await import('@/core/workers/accessibility/colorContrast.worker');
       const { ariaWorker } = await import('@/core/workers/accessibility/aria.worker');
+        const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
       
       logger.info('BullMQ workers initialized successfully', {
-        workers: ['master', 'fetcher', 'colorContrast', 'aria']
+        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'technicalSeo']
       });
     } catch (error) {
       logger.error('Failed to initialize workers', { error: error.message });
@@ -235,12 +236,14 @@ class Server {
       const { fetcherWorker } = await import('@/core/workers/fetcher.worker');  
       const { colorContrastWorker } = await import('@/core/workers/accessibility/colorContrast.worker');
       const { ariaWorker } = await import('@/core/workers/accessibility/aria.worker');
+        const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
       
       await Promise.all([
         masterWorker.close(),
         fetcherWorker.close(),
         colorContrastWorker.close(),
-        ariaWorker.close()
+          ariaWorker.close(),
+          technicalSeoWorker.close()
       ]);
       
       logger.info('BullMQ workers closed successfully');

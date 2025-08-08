@@ -220,7 +220,7 @@ router.post('/public', async (req, res, next) => {
           .from('websites')
           .select('id')
           .eq('url', url)
-          .is('workspace_id', null)
+          .eq('workspace_id', publicWorkspace.id)
           .limit(1);
           
         const existingWebsite = existingWebsites?.[0];

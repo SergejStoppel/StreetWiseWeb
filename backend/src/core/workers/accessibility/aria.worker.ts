@@ -167,7 +167,8 @@ function mapAxeRuleToDbRule(axeRuleId: string): string {
     // Form controls and buttons
     'button-name': 'ACC_FRM_10_BUTTON_NAME_MISSING',
     'input-button-name': 'ACC_FRM_10_BUTTON_NAME_MISSING',
-    'link-name': 'ACC_STR_08_SKIP_LINK_BROKEN', // Map to most relevant existing rule
+    // Link accessible name (no exact rule in seed, reuse closest naming rule)
+    'link-name': 'ACC_FRM_10_BUTTON_NAME_MISSING',
     'label': 'ACC_FRM_01_LABEL_MISSING',
     'form-field-multiple-labels': 'ACC_FRM_02_LABEL_FOR_ID_MISMATCH',
     'label-title-only': 'ACC_FRM_03_LABEL_HIDDEN',
@@ -253,14 +254,33 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
 
     await updateJobStatusCoordinated(analysisId, moduleJobInfo.moduleId, 'aria', 'running');
 
-    // Get the target URL (same approach as colorContrast worker)  
-    let targetUrl: string;
+    // Prefer stored HTML if available; fallback to navigating live URL
+    const htmlPath = `${assetPath}/html/index.html`;
+    let storedHtml: string | null = null;
     try {
-      targetUrl = await getTargetUrl(websiteId, metadata);
-      logger.info('ARIA worker: Successfully got target URL', { targetUrl, analysisId });
-    } catch (error) {
-      logger.error('ARIA worker: Failed to get target URL', { error, websiteId, metadata, analysisId });
-      throw error;
+      const { data, error } = await supabase.storage
+        .from('analysis-assets')
+        .download(htmlPath);
+      if (!error && data) {
+        storedHtml = await (data as any).text();
+        logger.info('ARIA worker: Using stored HTML from analysis-assets', { htmlPath, analysisId });
+      } else {
+        logger.info('ARIA worker: Stored HTML not found, will navigate live', { htmlPath, analysisId });
+      }
+    } catch (e: any) {
+      logger.warn('ARIA worker: Failed to read stored HTML, will navigate live', { error: e?.message, htmlPath, analysisId });
+    }
+
+    // Get the target URL for fallback/live mode
+    let targetUrl: string | null = null;
+    if (!storedHtml) {
+      try {
+        targetUrl = await getTargetUrl(websiteId, metadata);
+        logger.info('ARIA worker: Successfully got target URL', { targetUrl, analysisId });
+      } catch (error) {
+        logger.error('ARIA worker: Failed to get target URL', { error, websiteId, metadata, analysisId });
+        throw error;
+      }
     }
 
     // Launch browser with optimized settings
@@ -287,28 +307,32 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
     // Set viewport for desktop analysis
     await page.setViewport({ width: 1920, height: 1080 });
     
-    // Navigate to the page
-    logger.info('Navigating to target URL for ARIA analysis');
-    
-    try {
-      await page.goto(targetUrl, { 
-        waitUntil: 'networkidle2',
-        timeout: 20000
-      });
-    } catch (navigationError: any) {
-      logger.warn('Initial navigation failed, retrying', { 
-        error: navigationError?.message || 'Unknown navigation error',
-        targetUrl 
-      });
-      
-      // Retry with simpler settings
-      await page.goto(targetUrl, { 
-        waitUntil: 'domcontentloaded',
-        timeout: 15000
-      });
-      
-      // Wait for content to be rendered
-      await page.waitForTimeout(3000);
+    if (storedHtml) {
+      logger.info('ARIA worker: Setting stored HTML as page content');
+      await page.setContent(storedHtml);
+      // small delay to allow any inline scripts/styles to apply
+      await page.waitForTimeout(200);
+    } else if (targetUrl) {
+      // Navigate to the page
+      logger.info('Navigating to target URL for ARIA analysis');
+      try {
+        await page.goto(targetUrl, { 
+          waitUntil: 'networkidle2',
+          timeout: 20000
+        });
+      } catch (navigationError: any) {
+        logger.warn('Initial navigation failed, retrying', { 
+          error: navigationError?.message || 'Unknown navigation error',
+          targetUrl 
+        });
+        // Retry with simpler settings
+        await page.goto(targetUrl, { 
+          waitUntil: 'domcontentloaded',
+          timeout: 15000
+        });
+        // Wait for content to be rendered
+        await page.waitForTimeout(3000);
+      }
     }
 
     // Inject axe-core into the page

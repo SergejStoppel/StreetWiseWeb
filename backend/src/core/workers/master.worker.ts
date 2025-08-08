@@ -6,6 +6,7 @@ import { fetcherQueue } from '@/lib/queue/fetcher';
 import { colorContrastQueue } from '@/lib/queue/colorContrast';
 import { ariaQueue } from '@/lib/queue/aria';
 import { AppError } from '@/types';
+import { technicalSeoQueue } from '@/lib/queue/technicalSeo';
 
 const logger = createLogger('master-worker');
 
@@ -35,11 +36,11 @@ interface FetcherResult {
 const analyzerQueues = {
   colorContrast: colorContrastQueue,
   aria: ariaQueue,
+  technicalSeo: technicalSeoQueue,
   // TODO: Add other analyzer queues as they are implemented
   // forms: formsQueue,
   // keyboard: keyboardQueue,
   // altText: altTextQueue,
-  // technicalSeo: technicalSeoQueue,
   // onPageSeo: onPageSeoQueue,
   // metaTags: metaTagsQueue,
   // structuredData: structuredDataQueue,
@@ -54,8 +55,8 @@ const analyzerQueues = {
 const moduleToWorkerMap = {
   'Fetcher': [], // Handled separately in the fetcher step
   'Accessibility': ['colorContrast', 'aria'], // Multiple workers for accessibility
+  'SEO': ['technicalSeo'],
   // TODO: Add these as workers are implemented
-  // 'SEO': ['technicalSeo', 'onPageSeo'],
   // 'Performance': ['coreWebVitals', 'imageOptimization']
 };
 

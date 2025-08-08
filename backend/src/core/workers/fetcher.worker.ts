@@ -1,5 +1,5 @@
 import { Job, Worker } from 'bullmq';
-import puppeteer, { Browser, Page } from 'puppeteer';
+import puppeteer, { Browser, Page, Frame } from 'puppeteer';
 import { config } from '@/config';
 import { createLogger } from '@/config/logger';
 import { supabase } from '@/config/supabase';
@@ -117,6 +117,107 @@ async function captureScreenshots(page: Page, workspaceId: string, analysisId: s
   }
 }
 
+async function tryClickSelectors(frame: Frame, selectors: string[]): Promise<boolean> {
+  for (const selector of selectors) {
+    try {
+      const handle = await frame.$(selector);
+      if (handle) {
+        await handle.click({ delay: 20 });
+        return true;
+      }
+    } catch (_) {}
+  }
+  return false;
+}
+
+async function tryClickByText(frame: Frame, keywords: string[]): Promise<boolean> {
+  try {
+    const clicked = await frame.evaluate((acceptKeywords: string[]) => {
+      const isVisible = (el: any) => {
+        const style = (globalThis as any).getComputedStyle(el);
+        const rect = (el as any).getBoundingClientRect();
+        return style && style.display !== 'none' && style.visibility !== 'hidden' && rect.width > 0 && rect.height > 0;
+      };
+
+      const doc = (globalThis as any).document as any;
+      const candidates = Array.from(doc.querySelectorAll('button, [role="button"], input[type="button"], a')) as any[];
+      const lowerKeywords = acceptKeywords.map(k => k.toLowerCase());
+
+      const findMatch = (elements: any[]) => elements.find(el => {
+        const text = ((el.innerText as string) || (el.textContent as string) || '').trim().toLowerCase();
+        if (!text || !isVisible(el)) return false;
+        return lowerKeywords.some(k => text.includes(k));
+      });
+
+      const match = findMatch(candidates);
+      if (match) {
+        match.click();
+        return true;
+      }
+      return false;
+    }, keywords);
+    return Boolean(clicked);
+  } catch (_) {
+    return false;
+  }
+}
+
+async function dismissCookieBanners(page: Page): Promise<boolean> {
+  const selectors = [
+    '#onetrust-accept-btn-handler',
+    '.onetrust-accept-btn-handler',
+    '#truste-consent-button',
+    '.truste-button1',
+    'button[aria-label="Accept cookies"]',
+    'button[title*="Accept"]',
+    'button[title*="ACCEPT"]',
+  ];
+
+  const acceptKeywords = [
+    // English
+    'accept all', 'accept', 'agree', 'allow all', 'i agree', 'got it', 'yes, i agree',
+    // German
+    'alle akzeptieren', 'akzeptieren', 'zustimmen', 'ich stimme zu',
+    // French
+    'tout accepter', 'accepter', "j\'accepte", 'je consens',
+    // Spanish/Portuguese/Italian
+    'aceptar', 'aceptar todo', 'aceitar', 'aceitar todos', 'accetta', 'accetta tutto',
+    // Dutch
+    'accepteren', 'alles accepteren',
+  ];
+
+  try {
+    // Try top frame selectors first
+    if (await tryClickSelectors(page.mainFrame(), selectors)) {
+      await page.waitForTimeout(500);
+      return true;
+    }
+
+    // Try generic keyword match
+    if (await tryClickByText(page.mainFrame(), acceptKeywords)) {
+      await page.waitForTimeout(500);
+      return true;
+    }
+
+    // Try iframes (many CMPs load in iframes)
+    for (const frame of page.frames()) {
+      if (frame === page.mainFrame()) continue;
+      if (await tryClickSelectors(frame, selectors)) {
+        await page.waitForTimeout(500);
+        return true;
+      }
+      if (await tryClickByText(frame, acceptKeywords)) {
+        await page.waitForTimeout(500);
+        return true;
+      }
+    }
+
+  } catch (error: any) {
+    // Non-fatal
+  }
+  return false;
+}
+
 export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobData>) => {
   const { analysisId, workspaceId, websiteId, userId, url } = job.data;
   logger.info('Starting lightweight fetcher job', { analysisId, workspaceId, websiteId });
@@ -200,8 +301,9 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
     // Navigate to the page
     logger.info('Navigating to target URL');
     
+    let navigationResponse: any = null;
     try {
-      await page.goto(targetUrl, { 
+      navigationResponse = await page.goto(targetUrl, { 
         waitUntil: 'networkidle2',
         timeout: 20000
       });
@@ -213,13 +315,95 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
       });
       
       // Retry with simpler settings
-      await page.goto(targetUrl, { 
+      navigationResponse = await page.goto(targetUrl, { 
         waitUntil: 'domcontentloaded',
         timeout: 15000
       });
       
       // Wait a bit for JS to execute
       await page.waitForTimeout(3000);
+    }
+
+    // Persist rendered HTML, headers and robots.txt for analyzers
+    const basePath = `${workspaceId}/${analysisId}`;
+    try {
+      // Save rendered HTML snapshot
+      const html = await page.content();
+      const { error: htmlError } = await supabase.storage
+        .from('analysis-assets')
+        .upload(`${basePath}/html/index.html`, html, {
+          contentType: 'text/html; charset=utf-8',
+          upsert: true,
+        });
+      if (htmlError) {
+        logger.warn('Failed to upload rendered HTML', { error: htmlError.message });
+      } else {
+        logger.info('Rendered HTML uploaded');
+      }
+
+      // Save response headers
+      const headersPayload = {
+        status: navigationResponse?.status?.() ?? null,
+        statusText: undefined as any,
+        url: navigationResponse?.url?.() ?? targetUrl,
+        headers: navigationResponse?.headers?.() ?? {},
+        capturedAt: new Date().toISOString(),
+      };
+      const { error: headersError } = await supabase.storage
+        .from('analysis-assets')
+        .upload(`${basePath}/meta/headers.json`, JSON.stringify(headersPayload, null, 2), {
+          contentType: 'application/json',
+          upsert: true,
+        });
+      if (headersError) {
+        logger.warn('Failed to upload headers.json', { error: headersError.message });
+      } else {
+        logger.info('headers.json uploaded');
+      }
+
+      // Try to fetch robots.txt and save if available
+      try {
+        const origin = new URL(targetUrl).origin;
+        const robotsUrl = `${origin}/robots.txt`;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 6000);
+        const resp = await fetch(robotsUrl, { signal: controller.signal, redirect: 'follow', headers: { 'User-Agent': 'SiteCraft-Analyzer/1.0' } as any });
+        clearTimeout(timeout);
+        if (resp.ok) {
+          const robotsTxt = await resp.text();
+          if (robotsTxt && robotsTxt.trim().length > 0) {
+            const { error: robotsError } = await supabase.storage
+              .from('analysis-assets')
+              .upload(`${basePath}/meta/robots.txt`, robotsTxt, {
+                contentType: 'text/plain; charset=utf-8',
+                upsert: true,
+              });
+            if (robotsError) {
+              logger.warn('Failed to upload robots.txt', { error: robotsError.message });
+            } else {
+              logger.info('robots.txt uploaded');
+            }
+          }
+        } else {
+          logger.info('robots.txt not found or not ok', { status: resp.status });
+        }
+      } catch (robotsFetchError: any) {
+        logger.warn('robots.txt fetch failed', { error: robotsFetchError?.message || 'Unknown robots error' });
+      }
+    } catch (persistError: any) {
+      logger.warn('Failed persisting analyzer artifacts', { error: persistError?.message || 'Unknown persist error' });
+    }
+
+    // Attempt to dismiss cookie banners for cleaner screenshots
+    try {
+      const dismissed = await dismissCookieBanners(page);
+      if (dismissed) {
+        logger.info('Cookie banner dismissed before screenshots');
+      } else {
+        logger.info('No cookie banner dismissed (none detected or not clickable)');
+      }
+    } catch (e: any) {
+      logger.warn('Cookie banner dismissal failed', { error: e?.message || 'unknown' });
     }
 
     // Capture screenshots (desktop and mobile only)
@@ -230,11 +414,12 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
     logger.info('Storing metadata');
     const metadata = {
       url: targetUrl,
+      finalUrl: navigationResponse?.url?.() ?? targetUrl,
+      status: navigationResponse?.status?.() ?? null,
       capturedAt: new Date().toISOString(),
       screenshots: screenshots.map(s => s.type)
     };
 
-    const basePath = `${workspaceId}/${analysisId}`;
     const { error: metadataError } = await supabase.storage
       .from('analysis-assets')
       .upload(`${basePath}/metadata.json`, JSON.stringify(metadata, null, 2), {
@@ -288,6 +473,8 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
       assetPath: basePath,
       metadata: {
         url: targetUrl,
+        finalUrl: navigationResponse?.url?.() ?? targetUrl,
+        status: navigationResponse?.status?.() ?? null,
         screenshots: screenshots.length
       }
     };

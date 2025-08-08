@@ -20,36 +20,19 @@ const ScreenshotFrame = styled.div`
   position: relative;
   border-radius: var(--border-radius-lg);
   overflow: hidden;
-  background: var(--color-surface-primary);
-  border: 2px solid var(--color-border-primary);
-  box-shadow: var(--shadow-md);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-secondary);
+  box-shadow: var(--shadow-sm);
   transition: all var(--transition-fast);
   cursor: pointer;
   
   &:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-md);
     
     .expand-icon {
       opacity: 1;
     }
-  }
-  
-  &::before {
-    content: '${props => props.label}';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-    color: white;
-    padding: var(--spacing-xs) var(--spacing-sm);
-    font-size: var(--font-size-xs);
-    font-weight: var(--font-weight-semibold);
-    text-align: center;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    z-index: 2;
   }
 `;
 
@@ -86,9 +69,9 @@ const MobileFrame = styled(ScreenshotFrame)`
 const ScreenshotImage = styled.img`
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
-  margin-top: 2rem;
+  margin: 0;
 `;
 
 const ScreenshotPlaceholder = styled.div`
@@ -101,7 +84,7 @@ const ScreenshotPlaceholder = styled.div`
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  margin-top: 2rem;
+  margin: 0;
   text-align: center;
   padding: var(--spacing-md);
 `;
@@ -283,7 +266,7 @@ const ScreenshotDisplay = ({ screenshots, className }) => {
             <ModalHeader>
               <ModalTitle>
                 {getScreenshotTypeIcon(selectedScreenshot.type)}
-                {selectedScreenshot.type.charAt(0).toUpperCase() + selectedScreenshot.type.slice(1)} Screenshot
+                Screenshot
               </ModalTitle>
               <ModalClose onClick={closeScreenshotModal}>
                 <FaTimes />

@@ -17,6 +17,7 @@
     "type-check": "tsc --noEmit",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:seed": "tsx src/db/seed.ts",
+    "db:ensure-seo": "tsx src/scripts/ensure-analysis-modules-and-seo-rules.ts",
     "db:reset": "tsx src/db/reset.ts",
     "docs:generate": "swagger-jsdoc -d src/config/swagger.ts src/api/routes/*.ts -o docs/api.json",
     "docs:serve": "swagger-ui-serve docs/api.json",

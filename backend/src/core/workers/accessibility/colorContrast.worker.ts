@@ -171,9 +171,26 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
     // Update job status to running
     await updateJobStatus(analysisId, moduleJobInfo.moduleId, 'running');
 
-    // Get the target URL
-    const targetUrl = await getTargetUrl(websiteId, metadata);
-    logger.info('Analyzing URL for accessibility', { targetUrl });
+    // Prefer stored HTML; fallback to live navigation
+    const htmlPath = `${job.data.assetPath}/html/index.html`;
+    let storedHtml: string | null = null;
+    try {
+      const { data, error } = await supabase.storage
+        .from('analysis-assets')
+        .download(htmlPath);
+      if (!error && data) {
+        storedHtml = await (data as any).text();
+        logger.info('ColorContrast worker: Using stored HTML from analysis-assets', { htmlPath, analysisId });
+      }
+    } catch (e: any) {
+      logger.warn('ColorContrast worker: Failed to read stored HTML, will navigate live', { error: e?.message, htmlPath, analysisId });
+    }
+
+    let targetUrl: string | null = null;
+    if (!storedHtml) {
+      targetUrl = await getTargetUrl(websiteId, metadata);
+      logger.info('Analyzing URL for accessibility', { targetUrl });
+    }
 
     // Launch browser with optimized settings
     browser = await puppeteer.launch({
@@ -199,28 +216,31 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
     // Set viewport for desktop analysis
     await page.setViewport({ width: 1920, height: 1080 });
     
-    // Navigate to the page
-    logger.info('Navigating to target URL for accessibility analysis');
-    
-    try {
-      await page.goto(targetUrl, { 
-        waitUntil: 'networkidle2',
-        timeout: 20000
-      });
-    } catch (navigationError: any) {
-      logger.warn('Initial navigation failed, retrying', { 
-        error: navigationError?.message || 'Unknown navigation error',
-        targetUrl 
-      });
-      
-      // Retry with simpler settings
-      await page.goto(targetUrl, { 
-        waitUntil: 'domcontentloaded',
-        timeout: 15000
-      });
-      
-      // Wait for content to be rendered
-      await page.waitForTimeout(3000);
+    if (storedHtml) {
+      logger.info('ColorContrast worker: Setting stored HTML as page content');
+      await page.setContent(storedHtml);
+      await page.waitForTimeout(200);
+    } else if (targetUrl) {
+      // Navigate to the page
+      logger.info('Navigating to target URL for accessibility analysis');
+      try {
+        await page.goto(targetUrl, { 
+          waitUntil: 'networkidle2',
+          timeout: 20000
+        });
+      } catch (navigationError: any) {
+        logger.warn('Initial navigation failed, retrying', { 
+          error: navigationError?.message || 'Unknown navigation error',
+          targetUrl 
+        });
+        // Retry with simpler settings
+        await page.goto(targetUrl, { 
+          waitUntil: 'domcontentloaded',
+          timeout: 15000
+        });
+        // Wait for content to be rendered
+        await page.waitForTimeout(3000);
+      }
     }
 
     // Inject axe-core into the page
