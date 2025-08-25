@@ -1,8 +1,9 @@
 import dotenv from 'dotenv';
+import path from 'path';
 import { AppConfig } from '@/types';
 
-// Load environment variables
-dotenv.config();
+// Load environment variables from root directory
+dotenv.config({ path: path.resolve(process.cwd(), '../.env') });
 
 // Determine which environment to use
 const APP_ENV = process.env.APP_ENV || 'development';
