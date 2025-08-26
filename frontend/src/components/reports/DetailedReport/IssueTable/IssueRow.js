@@ -67,27 +67,27 @@ const SeverityBadge = styled.span`
     switch (props.severity) {
       case 'critical':
         return `
-          background: var(--color-error-light);
-          color: var(--color-error-text);
-          border: 1px solid var(--color-error);
+          background: #FFEBEE;
+          color: #C62828;
+          border: 1px solid #F44336;
         `;
       case 'serious':
         return `
-          background: var(--color-warning-light);
-          color: var(--color-warning-text);
-          border: 1px solid var(--color-warning);
+          background: #FFF3E0;
+          color: #E65100;
+          border: 1px solid #FF9800;
         `;
       case 'moderate':
         return `
-          background: var(--color-info-light);
-          color: var(--color-info-text);
-          border: 1px solid var(--color-info);
+          background: #F3E5F5;
+          color: #6A1B9A;
+          border: 1px solid #9C27B0;
         `;
       case 'minor':
         return `
-          background: var(--color-success-light);
-          color: var(--color-success-text);
-          border: 1px solid var(--color-success);
+          background: #E8F5E8;
+          color: #2E7D32;
+          border: 1px solid #4CAF50;
         `;
       default:
         return `
@@ -97,6 +97,32 @@ const SeverityBadge = styled.span`
         `;
     }
   }}
+`;
+
+const CategoryBadge = styled.span`
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background: ${props => props.backgroundColor || 'var(--color-surface-tertiary)'};
+  color: var(--color-text-secondary);
+  border: 1px solid ${props => props.borderColor || 'var(--color-border-primary)'};
+  margin-left: var(--spacing-sm);
+`;
+
+const CategoryIcon = styled.span`
+  font-size: var(--font-size-sm);
+`;
+
+const BadgeContainer = styled.div`
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-xs);
 `;
 
 const ElementCount = styled.span`
@@ -225,10 +251,12 @@ const IssueRow = ({ issue, isExpanded, onToggle }) => {
         </TableCell>
         
         <TableCell>
-          <SeverityBadge severity={issueInstance.severity}>
-            {getSeverityIcon(issueInstance.severity)}
-            {issueInstance.severity}
-          </SeverityBadge>
+          <BadgeContainer>
+            <SeverityBadge severity={issueInstance.severity}>
+              {getSeverityIcon(issueInstance.severity)}
+              {issueInstance.severity}
+            </SeverityBadge>
+          </BadgeContainer>
         </TableCell>
         
         <TableCell>
@@ -271,7 +299,6 @@ const IssueRow = ({ issue, isExpanded, onToggle }) => {
             <ExpandedContent>
               <div>
                 <h4>Issue Details</h4>
-                <p><strong>Category:</strong> {issueInstance.category}</p>
                 <p><strong>Elements Affected:</strong> {issueInstance.elementCount}</p>
                 
                 <h5>WCAG Success Criteria</h5>

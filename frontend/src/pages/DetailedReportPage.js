@@ -564,6 +564,7 @@ const DetailedReportPage = () => {
     setExpandedCards(newExpanded);
   };
 
+
   const renderGroupedIssues = (groupedIssues, type) => {
     if (!groupedIssues || groupedIssues.length === 0) {
       return (

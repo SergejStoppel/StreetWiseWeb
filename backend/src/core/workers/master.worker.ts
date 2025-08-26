@@ -5,6 +5,8 @@ import { supabase } from '@/config/supabase';
 import { fetcherQueue } from '@/lib/queue/fetcher';
 import { colorContrastQueue } from '@/lib/queue/colorContrast';
 import { ariaQueue } from '@/lib/queue/aria';
+import { keyboardQueue } from '@/lib/queue/keyboard';
+import { mediaQueue } from '@/lib/queue/media';
 import { AppError } from '@/types';
 import { technicalSeoQueue } from '@/lib/queue/technicalSeo';
 
@@ -36,10 +38,11 @@ interface FetcherResult {
 const analyzerQueues = {
   colorContrast: colorContrastQueue,
   aria: ariaQueue,
+  keyboard: keyboardQueue,        // NEW: Keyboard navigation analysis
+  media: mediaQueue,              // NEW: Media accessibility analysis
   technicalSeo: technicalSeoQueue,
   // TODO: Add other analyzer queues as they are implemented
   // forms: formsQueue,
-  // keyboard: keyboardQueue,
   // altText: altTextQueue,
   // onPageSeo: onPageSeoQueue,
   // metaTags: metaTagsQueue,

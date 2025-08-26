@@ -1,5 +1,4 @@
 // Test setup and configuration
-import { config } from '@/config';
 
 // Set test environment
 process.env.NODE_ENV = 'test';
@@ -24,8 +23,11 @@ afterAll(() => {
 
 // Global test utilities
 export const testConfig = {
-  ...config,
-  // Override config for testing
+  // Mock config for testing
+  redis: {
+    host: 'localhost',
+    port: 6379,
+  },
   logging: {
     level: 'error', // Only show errors in tests
   },

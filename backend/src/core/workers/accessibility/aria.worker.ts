@@ -6,6 +6,7 @@ import { createLogger } from '@/config/logger';
 import { supabase } from '@/config/supabase';
 import { AppError } from '@/types';
 import { checkAndUpdateAnalysisCompletion } from '@/core/workers/master.worker';
+import { getDatabaseRuleKey, mapImpactToSeverity, validateRuleMappings } from './ruleMapping';
 
 const logger = createLogger('aria-worker');
 
@@ -370,6 +371,11 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
           'aria-valid-attr': { enabled: true },
           'aria-valid-attr-value': { enabled: true },
           
+          // Additional ARIA rules - newly activated
+          'aria-braillelabel-equivalent': { enabled: true },  // ARIA braille labels must be equivalent to accessible names
+          'aria-text': { enabled: true },                     // aria-text must be added to elements with explicit semantic meanings
+          'aria-treeitem-name': { enabled: true },            // ARIA treeitem elements must have accessible names
+          
           // Expanded accessibility rules that are commonly violated
           'button-name': { enabled: true },            // Buttons must have accessible text
           'input-button-name': { enabled: true },      // Input buttons must have accessible text
@@ -388,6 +394,19 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
           'html-lang-valid': { enabled: true },        // HTML lang must be valid
           'valid-lang': { enabled: true },             // Lang attributes must be valid
           
+          // Structural navigation rules - newly activated
+          'bypass': { enabled: true },                 // Skip navigation links must be provided
+          'landmark-one-main': { enabled: true },      // Documents must have exactly one main landmark
+          'landmark-complementary-is-top-level': { enabled: true }, // Complementary landmarks must be top-level
+          'landmark-main-is-top-level': { enabled: true }, // Main landmark must be top-level
+          'page-has-heading-one': { enabled: true },   // Pages must have H1 heading
+          'landmark-unique': { enabled: true },        // Landmarks must have unique names
+          
+          // List and structure rules - newly activated
+          'list': { enabled: true },                   // Lists must be properly structured
+          'listitem': { enabled: true },               // List items must be contained in lists
+          'definition-list': { enabled: true },        // Definition lists must be properly structured
+          
           // Disable rules that other workers handle
           'color-contrast': { enabled: false },
           'color-contrast-enhanced': { enabled: false },
@@ -400,10 +419,20 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
           'aria-required-attr', 'aria-required-children', 'aria-required-parent', 'aria-roledescription', 
           'aria-roles', 'aria-toggle-field-name', 'aria-tooltip-name', 'aria-valid-attr', 'aria-valid-attr-value',
           
+          // Additional ARIA rules - newly activated
+          'aria-braillelabel-equivalent', 'aria-text', 'aria-treeitem-name',
+          
           // Expanded accessibility rules
           'button-name', 'input-button-name', 'link-name', 'form-field-multiple-labels', 'label', 
           'label-title-only', 'empty-heading', 'heading-order', 'image-alt', 'input-image-alt', 
-          'area-alt', 'frame-title', 'document-title', 'html-has-lang', 'html-lang-valid', 'valid-lang'
+          'area-alt', 'frame-title', 'document-title', 'html-has-lang', 'html-lang-valid', 'valid-lang',
+          
+          // Structural navigation rules - newly activated  
+          'bypass', 'landmark-one-main', 'landmark-complementary-is-top-level', 'landmark-main-is-top-level',
+          'page-has-heading-one', 'landmark-unique',
+          
+          // List and structure rules - newly activated
+          'list', 'listitem', 'definition-list'
         ]
       };
 
@@ -454,10 +483,20 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
         'aria-required-attr', 'aria-required-children', 'aria-required-parent', 'aria-roledescription', 
         'aria-roles', 'aria-toggle-field-name', 'aria-tooltip-name', 'aria-valid-attr', 'aria-valid-attr-value',
         
+        // Additional ARIA rules - newly activated
+        'aria-braillelabel-equivalent', 'aria-text', 'aria-treeitem-name',
+        
         // Expanded accessibility rules
         'button-name', 'input-button-name', 'link-name', 'form-field-multiple-labels', 'label', 
         'label-title-only', 'empty-heading', 'heading-order', 'image-alt', 'input-image-alt', 
-        'area-alt', 'frame-title', 'document-title', 'html-has-lang', 'html-lang-valid', 'valid-lang'
+        'area-alt', 'frame-title', 'document-title', 'html-has-lang', 'html-lang-valid', 'valid-lang',
+        
+        // Structural navigation rules - newly activated  
+        'bypass', 'landmark-one-main', 'landmark-complementary-is-top-level', 'landmark-main-is-top-level',
+        'page-has-heading-one', 'landmark-unique',
+        
+        // List and structure rules - newly activated
+        'list', 'listitem', 'definition-list'
       ];
       
       if (!allowedRules.includes(violation.id)) {
@@ -466,7 +505,7 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
         continue;
       }
 
-      const dbRuleKey = mapAxeRuleToDbRule(violation.id);
+      const dbRuleKey = getDatabaseRuleKey(violation.id);
       logger.info(`🔍 DEBUG: Mapped rule`, {
         analysisId,
         axeRuleId: violation.id,

@@ -6,6 +6,7 @@ import { createLogger } from '@/config/logger';
 import { supabase } from '@/config/supabase';
 import { AppError } from '@/types';
 import { checkAndUpdateAnalysisCompletion } from '@/core/workers/master.worker';
+import { getDatabaseRuleKey, mapImpactToSeverity } from './ruleMapping';
 
 const logger = createLogger('color-contrast-worker');
 
@@ -261,9 +262,13 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
         rules: {
           'color-contrast': { enabled: true },
           'color-contrast-enhanced': { enabled: true },
-          'link-in-text-block': { enabled: true }
+          'link-in-text-block': { enabled: true },
+          
+          // Additional visual/focus rules - newly activated
+          'focus-order-semantics': { enabled: true },        // Focus order should follow DOM order
+          'scrollable-region-focusable': { enabled: true }   // Scrollable regions must be focusable
         },
-        runOnly: ['color-contrast', 'color-contrast-enhanced', 'link-in-text-block']
+        runOnly: ['color-contrast', 'color-contrast-enhanced', 'link-in-text-block', 'focus-order-semantics', 'scrollable-region-focusable']
       };
 
       // Run axe analysis
@@ -295,7 +300,7 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
         const issue = {
           analysis_job_id: moduleJobInfo.jobId,
           rule_id: ruleId,
-          severity: mapAxeImpactToSeverity(violation.impact),
+          severity: mapImpactToSeverity(violation.impact as any),
           location_path: node.target.join(' > '),
           code_snippet: node.html,
           message: node.failureSummary || violation.help,

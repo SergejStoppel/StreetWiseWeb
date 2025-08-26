@@ -27,7 +27,6 @@ router.get('/websites', authenticateToken, async (req: AuthRequest, res, next) =
       .select(`
         id,
         url,
-        name,
         created_at,
         workspaces!inner (
           id,
