@@ -128,7 +128,7 @@ async function getModuleAndJobId(analysisId: string): Promise<{ moduleId: string
 }
 
 async function loadStoredAsset(assetPath: string, filename: string): Promise<string> {
-  const fullPath = `${assetPath}${filename}`;
+  const fullPath = `${assetPath}/${filename}`;
   
   const { data, error } = await supabase.storage
     .from('analysis-assets')
@@ -415,7 +415,19 @@ async function processMediaAnalysis(job: Job<MediaJobData>) {
     const htmlContent = await loadStoredAsset(assetPath, 'html/index.html');
     
     // Launch browser and create page
-    browser = await puppeteer.launch(config.puppeteer.options);
+    browser = await puppeteer.launch({
+      headless: 'new',
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote'
+      ],
+      timeout: 30000
+    });
     const page = await browser.newPage();
     
     // Set content and wait for media elements to load

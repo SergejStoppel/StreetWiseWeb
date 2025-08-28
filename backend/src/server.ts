@@ -214,13 +214,15 @@ class Server {
       const { fetcherWorker } = await import('@/core/workers/fetcher.worker');
       const { colorContrastWorker } = await import('@/core/workers/accessibility/colorContrast.worker');
       const { ariaWorker } = await import('@/core/workers/accessibility/aria.worker');
+      const { keyboardWorker } = await import('@/core/workers/accessibility/keyboard.worker');
+      const { mediaWorker } = await import('@/core/workers/accessibility/media.worker');
       const { formsAnalysisWorker } = await import('@/core/workers/accessibility/forms.analysis.worker');
       const { structureAnalysisWorker } = await import('@/core/workers/accessibility/structure.analysis.worker');
       const { tablesAnalysisWorker } = await import('@/core/workers/accessibility/tables.analysis.worker');
       const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
       
       logger.info('BullMQ workers initialized successfully', {
-        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'forms', 'structure', 'tables', 'technicalSeo']
+        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'keyboard', 'media', 'forms', 'structure', 'tables', 'technicalSeo']
       });
     } catch (error) {
       logger.error('Failed to initialize workers', { error: error.message });
@@ -239,6 +241,8 @@ class Server {
       const { fetcherWorker } = await import('@/core/workers/fetcher.worker');  
       const { colorContrastWorker } = await import('@/core/workers/accessibility/colorContrast.worker');
       const { ariaWorker } = await import('@/core/workers/accessibility/aria.worker');
+      const { keyboardWorker } = await import('@/core/workers/accessibility/keyboard.worker');
+      const { mediaWorker } = await import('@/core/workers/accessibility/media.worker');
       const { formsAnalysisWorker } = await import('@/core/workers/accessibility/forms.analysis.worker');
       const { structureAnalysisWorker } = await import('@/core/workers/accessibility/structure.analysis.worker');
       const { tablesAnalysisWorker } = await import('@/core/workers/accessibility/tables.analysis.worker');
@@ -249,6 +253,8 @@ class Server {
         fetcherWorker.close(),
         colorContrastWorker.close(),
         ariaWorker.close(),
+        keyboardWorker.close(),
+        mediaWorker.close(),
         formsAnalysisWorker.close(),
         structureAnalysisWorker.close(),
         tablesAnalysisWorker.close(),

@@ -128,7 +128,7 @@ async function getModuleAndJobId(analysisId: string): Promise<{ moduleId: string
 }
 
 async function loadStoredAsset(assetPath: string, filename: string): Promise<string> {
-  const fullPath = `${assetPath}${filename}`;
+  const fullPath = `${assetPath}/${filename}`;
   
   const { data, error } = await supabase.storage
     .from('analysis-assets')
@@ -159,16 +159,16 @@ async function performAdvancedKeyboardTesting(page: Page): Promise<KeyboardTestR
         // Core keyboard navigation rules
         'tabindex': { enabled: true },                        // Positive tabindex issues
         'focus-order-semantics': { enabled: true },           // Logical focus order
-        'focusable-content': { enabled: true },               // Interactive elements focusable  
-        'accesskeys': { enabled: true },                      // Duplicate access keys
-        'skip-link': { enabled: true },                       // Skip link functionality
+        'scrollable-region-focusable': { enabled: true },    // Scrollable regions need keyboard access
+        'accesskeys': { enabled: true },                     // Duplicate access keys
+        'skip-link': { enabled: true },                      // Skip link functionality
         
         // Additional keyboard rules
         'aria-activedescendant-has-tabindex': { enabled: true }, // Active descendant management
-        'keyboard-trap': { enabled: false }                   // We'll test this manually for better detection
+        'keyboard-trap': { enabled: false }                  // We'll test this manually for better detection
       },
       runOnly: [
-        'tabindex', 'focus-order-semantics', 'focusable-content', 
+        'tabindex', 'focus-order-semantics', 'scrollable-region-focusable', 
         'accesskeys', 'skip-link', 'aria-activedescendant-has-tabindex'
       ]
     };
@@ -318,7 +318,19 @@ async function processKeyboardAnalysis(job: Job<KeyboardJobData>) {
     const htmlContent = await loadStoredAsset(assetPath, 'html/index.html');
     
     // Launch browser and create page
-    browser = await puppeteer.launch(config.puppeteer.options);
+    browser = await puppeteer.launch({
+      headless: 'new',
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--no-first-run',
+        '--no-zygote'
+      ],
+      timeout: 30000
+    });
     const page = await browser.newPage();
     
     // Set content

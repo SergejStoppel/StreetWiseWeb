@@ -170,6 +170,7 @@ function mapAxeRuleToDbRule(axeRuleId: string): string {
     'input-button-name': 'ACC_FRM_10_BUTTON_NAME_MISSING',
     // Link accessible name (no exact rule in seed, reuse closest naming rule)
     'link-name': 'ACC_FRM_10_BUTTON_NAME_MISSING',
+    'link-in-text-block': 'ACC_FRM_10_BUTTON_NAME_MISSING', // Links must be distinguishable from text
     'label': 'ACC_FRM_01_LABEL_MISSING',
     'form-field-multiple-labels': 'ACC_FRM_02_LABEL_FOR_ID_MISMATCH',
     'label-title-only': 'ACC_FRM_03_LABEL_HIDDEN',
@@ -410,7 +411,7 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
           // Disable rules that other workers handle
           'color-contrast': { enabled: false },
           'color-contrast-enhanced': { enabled: false },
-          'link-in-text-block': { enabled: false }
+          'link-in-text-block': { enabled: true }
         },
         runOnly: [
           // Core ARIA rules
@@ -432,7 +433,10 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
           'page-has-heading-one', 'landmark-unique',
           
           // List and structure rules - newly activated
-          'list', 'listitem', 'definition-list'
+          'list', 'listitem', 'definition-list',
+          
+          // Link visual distinction
+          'link-in-text-block'
         ]
       };
 

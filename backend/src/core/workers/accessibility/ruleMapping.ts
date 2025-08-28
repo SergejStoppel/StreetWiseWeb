@@ -97,9 +97,15 @@ export const AXE_TO_DATABASE_MAPPING: RuleMapping = {
   'color-contrast-enhanced': 'ACC_CLR_02_LARGE_TEXT_CONTRAST',
   'link-in-text-block': 'ACC_CLR_01_TEXT_CONTRAST_RATIO',
   
-  // Newly activated visual rules
+  // ====================================
+  // KEYBOARD & FOCUS RULES MAPPING
+  // ====================================
+  
+  'tabindex': 'ACC_KBD_03_TABINDEX_POSITIVE',
+  'accesskeys': 'ACC_KBD_08_ACCESS_KEY_DUPLICATE',
   'focus-order-semantics': 'ACC_KBD_05_FOCUS_ORDER_LOGICAL',
   'scrollable-region-focusable': 'ACC_KBD_04_INTERACTIVE_NOT_FOCUSABLE',
+  'aria-activedescendant-has-tabindex': 'ACC_ARIA_05_HIDDEN_FOCUSABLE',
   
   // ====================================
   // TABLE RULES MAPPING
