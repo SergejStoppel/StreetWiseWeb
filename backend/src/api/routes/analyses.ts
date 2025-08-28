@@ -588,8 +588,16 @@ router.get('/:id', async (req, res, next) => {
     const performanceScore = calculateImprovedScore(performanceIssues, 'performance');
     const overallScore = Math.round((accessibilityScore + seoScore + performanceScore) / 3);
 
-    // Update scores in database if analysis is completed
-    if (analysis.status === 'completed' && !analysis.overall_score) {
+    // Update scores in database when we have issues to score (regardless of analysis status)
+    // This ensures real-time score updates even before all workers complete
+    const shouldUpdateScores = (
+      (accessibilityIssues && accessibilityIssues.length > 0) ||
+      (seoIssues && seoIssues.length > 0) ||
+      (performanceIssues && performanceIssues.length > 0) ||
+      analysis.status === 'completed'
+    ) && !analysis.overall_score;
+
+    if (shouldUpdateScores) {
       await supabase
         .from('analyses')
         .update({

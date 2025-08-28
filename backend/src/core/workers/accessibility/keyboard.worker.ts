@@ -163,13 +163,11 @@ async function performAdvancedKeyboardTesting(page: Page): Promise<KeyboardTestR
         'accesskeys': { enabled: true },                     // Duplicate access keys
         'skip-link': { enabled: true },                      // Skip link functionality
         
-        // Additional keyboard rules
-        'aria-activedescendant-has-tabindex': { enabled: true }, // Active descendant management
-        'keyboard-trap': { enabled: false }                  // We'll test this manually for better detection
+        // Note: Keyboard trap detection is handled by custom testing below
       },
       runOnly: [
         'tabindex', 'focus-order-semantics', 'scrollable-region-focusable', 
-        'accesskeys', 'skip-link', 'aria-activedescendant-has-tabindex'
+        'accesskeys', 'skip-link'
       ]
     };
     

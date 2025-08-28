@@ -46,7 +46,7 @@ export const AXE_TO_DATABASE_MAPPING: RuleMapping = {
   
   'button-name': 'ACC_FRM_10_BUTTON_NAME_MISSING',
   'input-button-name': 'ACC_FRM_10_BUTTON_NAME_MISSING',
-  'link-name': 'ACC_STR_01_HEADING_ORDER', // Will need dedicated link rule
+  'link-name': 'ACC_FRM_10_BUTTON_NAME_MISSING', // Links must have accessible names
   'form-field-multiple-labels': 'ACC_FRM_02_LABEL_FOR_ID_MISMATCH',
   'label': 'ACC_FRM_01_LABEL_MISSING',
   'label-title-only': 'ACC_FRM_03_LABEL_HIDDEN',
@@ -105,7 +105,6 @@ export const AXE_TO_DATABASE_MAPPING: RuleMapping = {
   'accesskeys': 'ACC_KBD_08_ACCESS_KEY_DUPLICATE',
   'focus-order-semantics': 'ACC_KBD_05_FOCUS_ORDER_LOGICAL',
   'scrollable-region-focusable': 'ACC_KBD_04_INTERACTIVE_NOT_FOCUSABLE',
-  'aria-activedescendant-has-tabindex': 'ACC_ARIA_05_HIDDEN_FOCUSABLE',
   
   // ====================================
   // TABLE RULES MAPPING
