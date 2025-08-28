@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 import { analysisAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ScreenshotCard from '../components/ScreenshotCard';
+import SeoResults from '../components/SeoResults';
 
 const ReportContainer = styled.div`
   min-height: calc(100vh - 160px);
@@ -830,7 +831,12 @@ const DetailedReportPage = () => {
           
           <TabContent>
             {activeTab === 'accessibility' && renderGroupedIssues(groupedIssues.accessibility, 'accessibility')}
-            {activeTab === 'seo' && renderGroupedIssues(groupedIssues.seo, 'SEO')}
+            {activeTab === 'seo' && (
+              <SeoResults 
+                seoData={groupedIssues.seo} 
+                score={scores.seo}
+              />
+            )}
             {activeTab === 'performance' && renderGroupedIssues(groupedIssues.performance, 'performance')}
           </TabContent>
         </TabContainer>

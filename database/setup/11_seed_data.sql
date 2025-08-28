@@ -183,6 +183,14 @@ BEGIN
     (seo_module_id, 'SEO_SCHEMA_02_BREADCRUMB', 'Breadcrumb Schema Missing', 'Breadcrumb schema improves search result navigation', 'minor'),
     (seo_module_id, 'SEO_SCHEMA_03_ARTICLE', 'Article Schema Missing', 'Article schema enhances content appearance in search results', 'moderate');
 
+    -- AI-Powered Content Analysis (5 rules)
+    INSERT INTO rules (module_id, rule_key, name, description, default_severity) VALUES
+    (seo_module_id, 'SEO_AI_01_READABILITY', 'Content Readability Issues', 'Content readability score is below recommended threshold for user engagement', 'moderate'),
+    (seo_module_id, 'SEO_AI_02_CONTENT_RELEVANCE', 'Content-Title Mismatch', 'Content does not align well with page title and meta description', 'serious'),
+    (seo_module_id, 'SEO_AI_03_KEYWORD_RELEVANCE', 'Poor Keyword Integration', 'Target keywords are not well integrated into the content', 'moderate'),
+    (seo_module_id, 'SEO_AI_04_CONTENT_GAPS', 'Content Improvement Opportunities', 'AI analysis identified potential content enhancements', 'minor'),
+    (seo_module_id, 'SEO_AI_05_SEMANTIC_OPPORTUNITIES', 'Semantic Keyword Opportunities', 'Related semantic keywords could improve content relevance', 'minor');
+
     -- ================================
     -- PERFORMANCE RULES (20+ rules)
     -- ================================
