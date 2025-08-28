@@ -306,6 +306,29 @@ async function performMediaAnalysis(page: Page): Promise<MediaViolation[]> {
         });
       }
       
+      // Check for video audio descriptions
+      const hasAudioDescription = await page.evaluate((videoHtml) => {
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = videoHtml;
+        const video = tempDiv.querySelector('video');
+        if (!video) return false;
+        
+        const tracks = video.querySelectorAll('track');
+        return Array.from(tracks).some(track => 
+          track.getAttribute('kind') === 'descriptions'
+        );
+      }, element.element);
+      
+      if (!hasAudioDescription) {
+        violations.push({
+          ruleKey: 'ACC_MED_03_VIDEO_AUDIO_DESC',
+          severity: 'moderate',
+          message: 'Video missing audio description track for blind users',
+          element: element.element,
+          fixSuggestion: 'Add an audio description track for videos with important visual content. Use <track kind="descriptions" src="descriptions.vtt" srclang="en" label="English Audio Descriptions">. Audio descriptions narrate important visual information during pauses in dialogue.'
+        });
+      }
+      
       // Check for video controls
       if (!element.hasControls) {
         violations.push({
@@ -387,6 +410,57 @@ async function performMediaAnalysis(page: Page): Promise<MediaViolation[]> {
   });
   
   violations.push(...complexImageViolations);
+  
+  // Check for decorative images with non-empty alt text
+  const decorativeImageViolations = await page.evaluate(() => {
+    const violations: MediaViolation[] = [];
+    const images = document.querySelectorAll('img');
+    
+    images.forEach(img => {
+      const alt = img.getAttribute('alt') || '';
+      const src = img.src || '';
+      const role = img.getAttribute('role');
+      
+      // Detect likely decorative images
+      const decorativePatterns = [
+        'spacer', 'divider', 'separator', 'bullet', 'icon-decoration',
+        'decoration', 'ornament', 'background', 'pattern', 'border'
+      ];
+      
+      const isLikelyDecorative = decorativePatterns.some(pattern => 
+        src.toLowerCase().includes(pattern) || 
+        img.className.toLowerCase().includes(pattern) ||
+        (img.width * img.height < 100) // Very small images are often decorative
+      ) || role === 'presentation';
+      
+      // Decorative images should have empty alt text
+      if (isLikelyDecorative && alt.length > 0) {
+        violations.push({
+          ruleKey: 'ACC_IMG_02_ALT_TEXT_DECORATIVE',
+          severity: 'serious',
+          message: 'Decorative image has non-empty alt text which may confuse screen reader users',
+          element: img.outerHTML.substring(0, 200),
+          fixSuggestion: 'Decorative images should have empty alt attributes (alt=""). This tells screen readers to skip the image. If the image conveys information, ensure the alt text is descriptive.'
+        });
+      }
+      
+      // Images with redundant alt text
+      const parentText = img.parentElement?.textContent || '';
+      if (alt.length > 0 && parentText.includes(alt) && alt.length > 10) {
+        violations.push({
+          ruleKey: 'ACC_IMG_05_IMAGE_TEXT_REDUNDANT',
+          severity: 'moderate',
+          message: 'Image alt text duplicates adjacent text content',
+          element: img.outerHTML.substring(0, 200),
+          fixSuggestion: 'Alt text should not repeat text that is already visible near the image. Consider using empty alt text (alt="") if the image is purely decorative, or provide unique descriptive text.'
+        });
+      }
+    });
+    
+    return violations;
+  });
+  
+  violations.push(...decorativeImageViolations);
   
   return violations;
 }

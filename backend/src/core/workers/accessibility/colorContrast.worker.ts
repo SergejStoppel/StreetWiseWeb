@@ -7,6 +7,7 @@ import { supabase } from '@/config/supabase';
 import { AppError } from '@/types';
 import { checkAndUpdateAnalysisCompletion } from '@/core/workers/master.worker';
 import { getDatabaseRuleKey, mapImpactToSeverity } from './ruleMapping';
+import { detectCustomColorViolations } from './customRuleDetectors';
 
 const logger = createLogger('color-contrast-worker');
 
@@ -321,6 +322,51 @@ export const colorContrastWorker = new Worker('color-contrast', async (job: Job<
             })
         );
       }
+    }
+
+    // Run custom color violation detection for rules not covered by axe-core
+    try {
+      const customColorViolations = await detectCustomColorViolations(page);
+      
+      for (const violation of customColorViolations) {
+        const ruleId = await getRuleId(violation.ruleKey);
+        
+        if (!ruleId) {
+          logger.warn('Skipping custom color violation - rule not found in database', { 
+            ruleKey: violation.ruleKey 
+          });
+          continue;
+        }
+
+        // Process each element that violates the rule
+        for (const element of violation.elements) {
+          const issueData = {
+            analysis_job_id: moduleJobInfo.jobId,
+            rule_id: ruleId,
+            severity: mapImpactToSeverity(violation.severity as any),
+            location_path: element.selector,
+            code_snippet: element.html.substring(0, 500),
+            message: violation.message,
+            fix_suggestion: `${violation.message}\n\nCustom detection identified this issue through advanced color analysis beyond standard axe-core testing.`
+          };
+
+          issuePromises.push(
+            supabase
+              .from('accessibility_issues')
+              .insert([issueData])
+              .then(({ error }) => {
+                if (error) {
+                  logger.error('Failed to insert custom color accessibility issue', { 
+                    error, 
+                    ruleKey: violation.ruleKey 
+                  });
+                }
+              })
+          );
+        }
+      }
+    } catch (error) {
+      logger.error('Error detecting custom color violations', { error });
     }
 
     // Wait for all issues to be inserted

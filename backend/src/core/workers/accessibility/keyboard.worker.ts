@@ -289,6 +289,36 @@ async function performCustomKeyboardTests(page: Page): Promise<Array<{
     });
   }
 
+  // Test 4: Keyboard shortcuts conflict detection
+  const shortcutConflictViolations = await page.evaluate(() => {
+    const violations: string[] = [];
+    const elementsWithAccessKeys = document.querySelectorAll('[accesskey]');
+    const accessKeys = new Map<string, number>();
+    
+    elementsWithAccessKeys.forEach(element => {
+      const accessKey = element.getAttribute('accesskey')?.toLowerCase();
+      if (accessKey) {
+        const count = accessKeys.get(accessKey) || 0;
+        accessKeys.set(accessKey, count + 1);
+        
+        if (count > 0) { // Duplicate found
+          violations.push(element.outerHTML.substring(0, 100));
+        }
+      }
+    });
+    
+    return violations;
+  });
+
+  if (shortcutConflictViolations.length > 0) {
+    violations.push({
+      ruleKey: 'ACC_KBD_07_KEYBOARD_SHORTCUTS',
+      severity: 'moderate' as const,
+      message: 'Duplicate access keys detected - keyboard shortcuts conflict with each other',
+      elements: shortcutConflictViolations
+    });
+  }
+
   return violations;
 }
 

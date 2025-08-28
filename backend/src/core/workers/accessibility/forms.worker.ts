@@ -17,6 +17,7 @@ import * as axe from 'axe-core';
 import { AccessibilityIssue } from '@/types';
 import { getDatabaseRuleKey, mapImpactToSeverity } from './ruleMapping';
 import { supabase } from '@/config/supabase';
+import { detectCustomFormViolations } from './customRuleDetectors';
 
 export class FormAnalysisWorker {
   private page: puppeteer.Page;
@@ -72,6 +73,9 @@ export class FormAnalysisWorker {
       await this.analyzeButtonNames();
       await this.analyzeFormInstructions();
       await this.analyzeAutoComplete();
+      
+      // Run custom form violation detection for rules not covered above
+      await this.analyzeCustomFormViolations();
       
       console.log(`✅ Form Analysis completed. Found ${this.issues.length} issues.`);
       return this.issues;
@@ -548,19 +552,273 @@ export class FormAnalysisWorker {
    * (analyzePlaceholderAsLabel, analyzeButtonNames, analyzeFormInstructions, analyzeAutoComplete)
    */
   private async analyzePlaceholderAsLabel(): Promise<void> {
-    // Implementation for placeholder analysis
+    try {
+      const placeholderIssues = await this.page.evaluate(() => {
+        const issues: any[] = [];
+        const inputsWithPlaceholder = document.querySelectorAll('input[placeholder], textarea[placeholder]');
+        
+        inputsWithPlaceholder.forEach((input: HTMLInputElement | HTMLTextAreaElement) => {
+          const id = input.id;
+          const hasLabel = document.querySelector(`label[for="${id}"]`);
+          const hasAriaLabel = input.getAttribute('aria-label');
+          const hasAriaLabelledBy = input.getAttribute('aria-labelledby');
+          
+          // ACC_FRM_09_PLACEHOLDER_LABEL
+          if (!hasLabel && !hasAriaLabel && !hasAriaLabelledBy) {
+            issues.push({
+              type: 'ACC_FRM_09_PLACEHOLDER_LABEL',
+              element: input.outerHTML,
+              selector: input.tagName.toLowerCase() + (id ? `#${id}` : ''),
+              message: 'Placeholder text is being used as the only label - screen readers may not announce it consistently'
+            });
+          }
+        });
+        
+        return issues;
+      });
+      
+      for (const issue of placeholderIssues) {
+        const ruleId = await this.getRuleId(issue.type);
+        if (!ruleId) continue;
+        
+        const accessibilityIssue: AccessibilityIssue = {
+          id: `forms_placeholder_${Date.now()}_${Math.random()}`,
+          rule_id: ruleId,
+          severity: 'serious',
+          message: issue.message,
+          element_selector: issue.selector,
+          element_html: issue.element,
+          location_path: issue.selector,
+          fix_suggestion: this.getFormFixSuggestion(issue.type),
+          wcag_criteria: this.getWCAGCriteria(issue.type).join(', '),
+          impact_level: 'serious',
+          detected_at: new Date().toISOString()
+        };
+        
+        this.issues.push(accessibilityIssue);
+      }
+    } catch (error) {
+      console.error('Error analyzing placeholder labels:', error);
+    }
   }
 
   private async analyzeButtonNames(): Promise<void> {
-    // Implementation for button name analysis  
+    try {
+      const buttonIssues = await this.page.evaluate(() => {
+        const issues: any[] = [];
+        const buttons = document.querySelectorAll('button, input[type="submit"], input[type="button"], input[type="reset"]');
+        
+        buttons.forEach((button: HTMLButtonElement | HTMLInputElement) => {
+          const id = button.id;
+          const hasText = button.textContent?.trim();
+          const hasValue = (button as HTMLInputElement).value?.trim();
+          const hasAriaLabel = button.getAttribute('aria-label');
+          const hasAriaLabelledBy = button.getAttribute('aria-labelledby');
+          const hasTitle = button.getAttribute('title');
+          
+          // ACC_FRM_10_BUTTON_NAME_MISSING
+          if (!hasText && !hasValue && !hasAriaLabel && !hasAriaLabelledBy) {
+            issues.push({
+              type: 'ACC_FRM_10_BUTTON_NAME_MISSING',
+              element: button.outerHTML,
+              selector: button.tagName.toLowerCase() + (id ? `#${id}` : ''),
+              message: 'Button is missing an accessible name'
+            });
+          }
+          
+          // ACC_FRM_11_SUBMIT_BUTTON_GENERIC
+          if (button.type === 'submit') {
+            const text = hasText || hasValue || hasAriaLabel || '';
+            const isGeneric = ['submit', 'button', 'click here', 'go', 'send'].includes(text.toLowerCase().trim());
+            
+            if (isGeneric) {
+              issues.push({
+                type: 'ACC_FRM_11_SUBMIT_BUTTON_GENERIC',
+                element: button.outerHTML,
+                selector: button.tagName.toLowerCase() + (id ? `#${id}` : ''),
+                message: 'Submit button has generic text that does not describe its purpose'
+              });
+            }
+          }
+        });
+        
+        return issues;
+      });
+      
+      for (const issue of buttonIssues) {
+        const ruleId = await this.getRuleId(issue.type);
+        if (!ruleId) continue;
+        
+        const severity = issue.type === 'ACC_FRM_10_BUTTON_NAME_MISSING' ? 'critical' : 'moderate';
+        
+        const accessibilityIssue: AccessibilityIssue = {
+          id: `forms_button_${issue.type}_${Date.now()}_${Math.random()}`,
+          rule_id: ruleId,
+          severity: severity,
+          message: issue.message,
+          element_selector: issue.selector,
+          element_html: issue.element,
+          location_path: issue.selector,
+          fix_suggestion: this.getFormFixSuggestion(issue.type),
+          wcag_criteria: this.getWCAGCriteria(issue.type).join(', '),
+          impact_level: severity,
+          detected_at: new Date().toISOString()
+        };
+        
+        this.issues.push(accessibilityIssue);
+      }
+    } catch (error) {
+      console.error('Error analyzing button names:', error);
+    }
   }
 
   private async analyzeFormInstructions(): Promise<void> {
-    // Implementation for form instructions analysis
+    try {
+      const instructionIssues = await this.page.evaluate(() => {
+        const issues: any[] = [];
+        const forms = document.querySelectorAll('form');
+        
+        forms.forEach((form: HTMLFormElement, index) => {
+          const formInputs = form.querySelectorAll('input:not([type="hidden"]), textarea, select');
+          const hasInstructions = form.querySelector('.instructions, .help-text, [role="group"] p, fieldset legend');
+          
+          // ACC_FRM_12_FORM_INSTRUCTION_MISSING
+          if (formInputs.length > 3 && !hasInstructions) {
+            issues.push({
+              type: 'ACC_FRM_12_FORM_INSTRUCTION_MISSING',
+              element: form.outerHTML.substring(0, 200),
+              selector: form.id ? `form#${form.id}` : `form:nth-of-type(${index + 1})`,
+              message: 'Complex form is missing general instructions or help text'
+            });
+          }
+          
+          // Check for format requirements
+          formInputs.forEach((input: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement) => {
+            const inputType = (input as HTMLInputElement).type;
+            const needsFormat = ['email', 'tel', 'password', 'date', 'time'].includes(inputType) || 
+                              input.pattern || 
+                              input.getAttribute('data-format');
+            
+            const hasFormatInfo = input.getAttribute('aria-describedby') ||
+                                input.getAttribute('title') ||
+                                input.nextElementSibling?.textContent?.includes('format') ||
+                                input.nextElementSibling?.textContent?.includes('example');
+                                
+            // ACC_FRM_14_INPUT_FORMAT_UNCLEAR
+            if (needsFormat && !hasFormatInfo) {
+              issues.push({
+                type: 'ACC_FRM_14_INPUT_FORMAT_UNCLEAR',
+                element: input.outerHTML,
+                selector: input.id ? `#${input.id}` : input.tagName.toLowerCase(),
+                message: 'Input requires specific format but format requirements are not clearly communicated'
+              });
+            }
+          });
+        });
+        
+        return issues;
+      });
+      
+      for (const issue of instructionIssues) {
+        const ruleId = await this.getRuleId(issue.type);
+        if (!ruleId) continue;
+        
+        const accessibilityIssue: AccessibilityIssue = {
+          id: `forms_instruction_${issue.type}_${Date.now()}_${Math.random()}`,
+          rule_id: ruleId,
+          severity: 'moderate',
+          message: issue.message,
+          element_selector: issue.selector,
+          element_html: issue.element,
+          location_path: issue.selector,
+          fix_suggestion: this.getFormFixSuggestion(issue.type),
+          wcag_criteria: this.getWCAGCriteria(issue.type).join(', '),
+          impact_level: 'moderate',
+          detected_at: new Date().toISOString()
+        };
+        
+        this.issues.push(accessibilityIssue);
+      }
+    } catch (error) {
+      console.error('Error analyzing form instructions:', error);
+    }
   }
 
   private async analyzeAutoComplete(): Promise<void> {
-    // Implementation for autocomplete analysis
+    try {
+      const autocompleteIssues = await this.page.evaluate(() => {
+        const issues: any[] = [];
+        const personalDataInputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="password"]');
+        
+        personalDataInputs.forEach((input: HTMLInputElement) => {
+          const name = input.name?.toLowerCase() || '';
+          const id = input.id?.toLowerCase() || '';
+          const label = document.querySelector(`label[for="${input.id}"]`)?.textContent?.toLowerCase() || '';
+          
+          // Define patterns that suggest personal data
+          const personalDataMap: { [key: string]: string } = {
+            'email': 'email',
+            'password': 'current-password',
+            'fname|firstname|given.*name': 'given-name',
+            'lname|lastname|family.*name|surname': 'family-name', 
+            'address.*line.*1|address1|street': 'address-line1',
+            'address.*line.*2|address2': 'address-line2',
+            'city|town': 'address-level2',
+            'state|province|region': 'address-level1',
+            'zip|postal.*code|postcode': 'postal-code',
+            'country': 'country',
+            'phone|tel': 'tel',
+            'organization|company': 'organization'
+          };
+          
+          let expectedAutocomplete = null;
+          for (const [pattern, autocomplete] of Object.entries(personalDataMap)) {
+            const regex = new RegExp(pattern, 'i');
+            if (regex.test(name) || regex.test(id) || regex.test(label)) {
+              expectedAutocomplete = autocomplete;
+              break;
+            }
+          }
+          
+          const currentAutocomplete = input.getAttribute('autocomplete');
+          
+          // ACC_FRM_13_AUTOCOMPLETE_MISSING
+          if (expectedAutocomplete && !currentAutocomplete) {
+            issues.push({
+              type: 'ACC_FRM_13_AUTOCOMPLETE_MISSING',
+              element: input.outerHTML,
+              selector: input.id ? `#${input.id}` : input.tagName.toLowerCase(),
+              message: `Input appears to collect ${expectedAutocomplete.replace('-', ' ')} but is missing autocomplete attribute`
+            });
+          }
+        });
+        
+        return issues;
+      });
+      
+      for (const issue of autocompleteIssues) {
+        const ruleId = await this.getRuleId(issue.type);
+        if (!ruleId) continue;
+        
+        const accessibilityIssue: AccessibilityIssue = {
+          id: `forms_autocomplete_${Date.now()}_${Math.random()}`,
+          rule_id: ruleId,
+          severity: 'minor',
+          message: issue.message,
+          element_selector: issue.selector,
+          element_html: issue.element,
+          location_path: issue.selector,
+          fix_suggestion: this.getFormFixSuggestion(issue.type),
+          wcag_criteria: this.getWCAGCriteria(issue.type).join(', '),
+          impact_level: 'minor',
+          detected_at: new Date().toISOString()
+        };
+        
+        this.issues.push(accessibilityIssue);
+      }
+    } catch (error) {
+      console.error('Error analyzing autocomplete:', error);
+    }
   }
 
   /**
@@ -627,10 +885,55 @@ export class FormAnalysisWorker {
       'ACC_FRM_07_ERROR_SUGGESTION': ['3.3.3'],
       'ACC_FRM_08_INPUT_PURPOSE': ['1.3.5'],
       'ACC_FRM_09_PLACEHOLDER_LABEL': ['3.3.2'],
+      'ACC_FRM_10_BUTTON_NAME_MISSING': ['4.1.2'],
+      'ACC_FRM_11_SUBMIT_BUTTON_GENERIC': ['2.4.6'],
+      'ACC_FRM_12_FORM_INSTRUCTION_MISSING': ['3.3.2'],
+      'ACC_FRM_13_AUTOCOMPLETE_MISSING': ['1.3.5'],
+      'ACC_FRM_14_INPUT_FORMAT_UNCLEAR': ['3.3.2'],
+      'ACC_FRM_15_CHANGE_OF_CONTEXT': ['3.2.2'],
       'label': ['3.3.2'],
       'button-name': ['4.1.2']
     };
     
     return criteria[ruleId] || ['1.3.1'];
+  }
+
+  /**
+   * Analyze custom form violations using custom detectors
+   */
+  private async analyzeCustomFormViolations(): Promise<void> {
+    try {
+      const customViolations = await detectCustomFormViolations(this.page);
+      
+      for (const violation of customViolations) {
+        const ruleId = await this.getRuleId(violation.ruleKey);
+        if (!ruleId) {
+          console.warn(`Skipping custom form violation - rule not found in database: ${violation.ruleKey}`);
+          continue;
+        }
+        
+        // Process each element that violates the rule
+        for (const element of violation.elements) {
+          const accessibilityIssue: AccessibilityIssue = {
+            id: `forms_custom_${violation.ruleKey}_${Date.now()}_${Math.random()}`,
+            rule_id: ruleId,
+            severity: violation.severity,
+            message: violation.message,
+            element_selector: element.selector,
+            element_html: element.html,
+            location_path: element.selector,
+            fix_suggestion: this.getFormFixSuggestion(violation.ruleKey),
+            wcag_criteria: this.getWCAGCriteria(violation.ruleKey).join(', '),
+            impact_level: violation.severity,
+            detected_at: new Date().toISOString()
+          };
+          
+          this.issues.push(accessibilityIssue);
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error analyzing custom form violations:', error);
+    }
   }
 }

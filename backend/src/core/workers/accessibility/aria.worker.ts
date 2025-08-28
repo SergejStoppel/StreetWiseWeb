@@ -154,13 +154,8 @@ function mapAxeRuleToDbRule(axeRuleId: string): string {
     'aria-hidden-body': 'ACC_ARIA_05_HIDDEN_FOCUSABLE',
     'aria-hidden-focus': 'ACC_ARIA_05_HIDDEN_FOCUSABLE',
     
-    // Labels and descriptions
-    'aria-labelledby': 'ACC_ARIA_07_LABELLEDBY_MISSING',
-    'aria-describedby': 'ACC_ARIA_08_DESCRIBEDBY_MISSING',
-    
-    // State attributes
-    'aria-expanded': 'ACC_ARIA_09_EXPANDED_MISSING',
-    'aria-controls': 'ACC_ARIA_10_CONTROLS_MISSING',
+    // Note: aria-labelledby, aria-describedby, aria-expanded, aria-controls
+    // are not standalone axe-core rules - they are handled by custom detection
     
     // Live regions
     'aria-live-region-missing': 'ACC_ARIA_06_LIVE_REGION_MISSING',
@@ -235,6 +230,33 @@ async function getTargetUrl(websiteId: string, metadata: any): Promise<string> {
   }
   
   return website.url;
+}
+
+// Custom detection for ARIA live regions
+async function detectLiveRegionViolations(page: Page): Promise<any[]> {
+  return await page.evaluate(() => {
+    const violations: any[] = [];
+    
+    // Look for dynamic content areas that should have live regions
+    const dynamicElements = document.querySelectorAll('[data-dynamic], [data-live], .notification, .alert, .status, .message, .toast');
+    
+    dynamicElements.forEach(element => {
+      const hasLiveRegion = element.getAttribute('aria-live') || 
+                           element.getAttribute('role') === 'alert' ||
+                           element.getAttribute('role') === 'status' ||
+                           element.getAttribute('role') === 'log';
+      
+      if (!hasLiveRegion) {
+        violations.push({
+          selector: (element as HTMLElement).id ? `#${(element as HTMLElement).id}` : element.className,
+          html: (element as HTMLElement).outerHTML.substring(0, 200),
+          message: 'Dynamic content area missing ARIA live region attributes'
+        });
+      }
+    });
+    
+    return violations;
+  });
 }
 
 export async function processAriaAnalysis(job: Job<AriaJobData>) {
@@ -372,10 +394,8 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
           'aria-valid-attr': { enabled: true },
           'aria-valid-attr-value': { enabled: true },
           
-          // Additional ARIA rules - newly activated (some rules may not be available in current axe-core version)
-          // 'aria-braillelabel-equivalent': { enabled: true },  // Not available in current axe-core version
-          // 'aria-text': { enabled: true },                     // Not available in current axe-core version  
-          // 'aria-treeitem-name': { enabled: true },            // Not available in current axe-core version
+          // Note: aria-labelledby, aria-describedby, aria-expanded, aria-controls 
+          // are not standalone axe-core rules - they are handled by custom detection below
           
           // Expanded accessibility rules that are commonly violated
           'button-name': { enabled: true },            // Buttons must have accessible text
@@ -420,8 +440,7 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
           'aria-required-attr', 'aria-required-children', 'aria-required-parent', 'aria-roledescription', 
           'aria-roles', 'aria-toggle-field-name', 'aria-tooltip-name', 'aria-valid-attr', 'aria-valid-attr-value',
           
-          // Additional ARIA rules - newly activated (commented out - not available in current axe-core version)
-          // 'aria-braillelabel-equivalent', 'aria-text', 'aria-treeitem-name',
+          // Note: Invalid rules removed - aria-labelledby, aria-describedby, aria-expanded, aria-controls are not standalone axe rules
           
           // Expanded accessibility rules
           'button-name', 'input-button-name', 'link-name', 'form-field-multiple-labels', 'label', 
@@ -586,6 +605,38 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
             dbRuleKey,
             ruleId
           });
+        }
+      }
+    }
+
+    // Detect custom ARIA violations not covered by axe-core
+    const liveRegionViolations = await detectLiveRegionViolations(page);
+    
+    if (liveRegionViolations.length > 0) {
+      logger.info('Found ARIA live region violations', { count: liveRegionViolations.length });
+      
+      // Get rule ID for live region violations
+      const liveRegionRuleId = await getRuleIdFromDatabase('ACC_ARIA_06_LIVE_REGION_MISSING');
+      
+      if (liveRegionRuleId) {
+        for (const violation of liveRegionViolations) {
+          const issueData = {
+            analysis_job_id: moduleJobInfo.jobId,
+            rule_id: liveRegionRuleId,
+            severity: 'moderate' as const,
+            message: violation.message,
+            location_path: violation.selector,
+            code_snippet: violation.html,
+            fix_suggestion: 'Add aria-live="polite" or appropriate role (alert, status) to dynamic content areas'
+          };
+          
+          const { error: insertError } = await supabase
+            .from('accessibility_issues')
+            .insert(issueData);
+            
+          if (insertError) {
+            logger.error('Failed to insert live region violation', { error: insertError });
+          }
         }
       }
     }

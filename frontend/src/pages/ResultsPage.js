@@ -387,12 +387,12 @@ const ResultsPage = () => {
   // Extract URL from website data or use a placeholder
   const websiteUrl = analysisData.websites?.url || analysisData.url || 'Unknown Website';
   
-  // Use scores from analysis or default to 0
-  const scores = analysisData.scores || {
-    overall: analysisData.overall_score || 0,
-    accessibility: analysisData.accessibility_score || 0,
-    seo: analysisData.seo_score || 0,
-    performance: analysisData.performance_score || 0
+  // Prioritize calculated scores over stored database scores to ensure consistency
+  const scores = {
+    overall: analysisData.scores?.overall ?? analysisData.overall_score ?? 0,
+    accessibility: analysisData.scores?.accessibility ?? analysisData.accessibility_score ?? 0,
+    seo: analysisData.scores?.seo ?? analysisData.seo_score ?? 0,
+    performance: analysisData.scores?.performance ?? analysisData.performance_score ?? 0
   };
 
   return (

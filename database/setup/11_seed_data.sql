@@ -136,6 +136,12 @@ BEGIN
     (accessibility_module_id, 'ACC_TBL_04_COMPLEX_TABLE_HEADERS', 'Complex Table Headers Unclear', 'Complex tables need clear header associations', 'serious'),
     (accessibility_module_id, 'ACC_TBL_05_LAYOUT_TABLE_HEADERS', 'Layout Table Has Headers', 'Layout tables should not use header elements', 'moderate');
 
+    -- Additional axe-core specific rules that map to our rules
+    INSERT INTO rules (module_id, rule_key, name, description, default_severity) VALUES
+    (accessibility_module_id, 'skip-link', 'Skip Link Functionality', 'Ensure all skip links have a focusable target', 'serious'),
+    (accessibility_module_id, 'bypass', 'Bypass Blocks', 'Page must provide ways to bypass repetitive content', 'serious'),
+    (accessibility_module_id, 'focus-order-semantics', 'Focus Order Semantics', 'Elements in focus order must have appropriate roles', 'serious');
+
     -- ================================
     -- SEO RULES (25+ rules)
     -- ================================

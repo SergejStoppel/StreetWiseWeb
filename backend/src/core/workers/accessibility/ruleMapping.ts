@@ -35,10 +35,8 @@ export const AXE_TO_DATABASE_MAPPING: RuleMapping = {
   'aria-valid-attr': 'ACC_ARIA_02_REQUIRED_ATTR_MISSING',
   'aria-valid-attr-value': 'ACC_ARIA_03_INVALID_ATTR_VALUE',
   
-  // Newly activated ARIA rules (commented out - not available in current axe-core version)
-  // 'aria-braillelabel-equivalent': 'ACC_ARIA_07_LABELLEDBY_MISSING',
-  // 'aria-text': 'ACC_ARIA_02_REQUIRED_ATTR_MISSING',
-  // 'aria-treeitem-name': 'ACC_ARIA_02_REQUIRED_ATTR_MISSING',
+  // Note: aria-labelledby, aria-describedby, aria-expanded, aria-controls
+  // are not standalone axe-core rules - they are handled by custom detection
   
   // ====================================
   // FORM & INPUT RULES MAPPING
@@ -53,6 +51,8 @@ export const AXE_TO_DATABASE_MAPPING: RuleMapping = {
   'fieldset-legend': 'ACC_FRM_04_FIELDSET_LEGEND_MISSING',
   'select-name': 'ACC_FRM_01_LABEL_MISSING',
   'textarea-name': 'ACC_FRM_01_LABEL_MISSING',
+  'input-placeholder': 'ACC_FRM_09_PLACEHOLDER_LABEL', // Placeholder used as label
+  'autocomplete-valid': 'ACC_FRM_08_INPUT_PURPOSE', // Autocomplete attribute validation
   
   // ====================================
   // IMAGE & MEDIA RULES MAPPING  
@@ -93,9 +93,9 @@ export const AXE_TO_DATABASE_MAPPING: RuleMapping = {
   // COLOR & VISUAL RULES MAPPING
   // ====================================
   
-  'color-contrast': 'ACC_CLR_01_TEXT_CONTRAST_RATIO',
-  'color-contrast-enhanced': 'ACC_CLR_02_LARGE_TEXT_CONTRAST',
-  'link-in-text-block': 'ACC_CLR_01_TEXT_CONTRAST_RATIO',
+  'color-contrast': 'color-contrast', // Use database rule key as-is
+  'color-contrast-enhanced': 'color-contrast-enhanced', // Use database rule key as-is
+  'link-in-text-block': 'link-in-text-block', // Use database rule key as-is
   
   // ====================================
   // KEYBOARD & FOCUS RULES MAPPING
@@ -105,6 +105,7 @@ export const AXE_TO_DATABASE_MAPPING: RuleMapping = {
   'accesskeys': 'ACC_KBD_08_ACCESS_KEY_DUPLICATE',
   'focus-order-semantics': 'ACC_KBD_05_FOCUS_ORDER_LOGICAL',
   'scrollable-region-focusable': 'ACC_KBD_04_INTERACTIVE_NOT_FOCUSABLE',
+  'skip-link': 'skip-link', // Use database rule key as-is
   
   // ====================================
   // TABLE RULES MAPPING
@@ -282,6 +283,13 @@ export const RULE_CATEGORY_MAPPING = {
   'link-in-text-block': 'color-visual',
   'focus-order-semantics': 'keyboard',
   'scrollable-region-focusable': 'keyboard',
+  'skip-link': 'content-structure',
+  'aria-labelledby': 'aria',
+  'aria-describedby': 'aria',
+  'aria-expanded': 'aria',
+  'aria-controls': 'aria',
+  'input-placeholder': 'forms-input',
+  'autocomplete-valid': 'forms-input',
   
   // Form rule mappings to categories
   'label': 'forms-input',
