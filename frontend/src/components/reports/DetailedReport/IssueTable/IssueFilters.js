@@ -72,6 +72,38 @@ const CheckboxItem = styled.label`
   }
 `;
 
+const CategoryItem = styled(CheckboxItem)`
+  background: ${props => props.categoryColor || 'transparent'};
+  border-left: 3px solid ${props => props.borderColor || 'transparent'};
+  
+  &:hover {
+    background: ${props => props.categoryColor ? `${props.categoryColor}CC` : 'var(--color-surface-secondary)'};
+  }
+`;
+
+const CategoryIcon = styled.span`
+  font-size: var(--font-size-lg);
+  margin-right: var(--spacing-xs);
+`;
+
+const CategoryLabel = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  flex: 1;
+`;
+
+const CategoryName = styled.span`
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+`;
+
+const CategoryDescription = styled.span`
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  line-height: 1.3;
+`;
+
 const FilterActions = styled.div`
   display: flex;
   justify-content: space-between;
@@ -198,7 +230,7 @@ const IssueFilters = ({ issues, filters, onFilterChange }) => {
               <CheckboxItem key={severity}>
                 <input
                   type="checkbox"
-                  checked={filters.severity.includes(severity)}
+                  checked={filters.severity && filters.severity.includes(severity)}
                   onChange={(e) => handleFilterChange('severity', severity, e.target.checked)}
                 />
                 {severity.charAt(0).toUpperCase() + severity.slice(1)}
@@ -210,16 +242,27 @@ const IssueFilters = ({ issues, filters, onFilterChange }) => {
         <FilterGroup>
           <FilterLabel>Category</FilterLabel>
           <CheckboxGroup>
-            {categoryOptions.map(category => (
-              <CheckboxItem key={category}>
-                <input
-                  type="checkbox"
-                  checked={filters.category.includes(category)}
-                  onChange={(e) => handleFilterChange('category', category, e.target.checked)}
-                />
-                {category.charAt(0).toUpperCase() + category.slice(1)}
-              </CheckboxItem>
-            ))}
+            {categoryOptions.map(category => {
+              const categoryInfo = getCategoryByKey(category);
+              return (
+                <CategoryItem 
+                  key={category}
+                  categoryColor={categoryInfo.color}
+                  borderColor={categoryInfo.borderColor}
+                >
+                  <input
+                    type="checkbox"
+                    checked={filters.category && filters.category.includes(category)}
+                    onChange={(e) => handleFilterChange('category', category, e.target.checked)}
+                  />
+                  <CategoryIcon>{categoryInfo.icon}</CategoryIcon>
+                  <CategoryLabel>
+                    <CategoryName>{categoryInfo.label}</CategoryName>
+                    <CategoryDescription>{categoryInfo.description}</CategoryDescription>
+                  </CategoryLabel>
+                </CategoryItem>
+              );
+            })}
           </CheckboxGroup>
         </FilterGroup>
         
@@ -230,7 +273,7 @@ const IssueFilters = ({ issues, filters, onFilterChange }) => {
               <CheckboxItem key={level}>
                 <input
                   type="checkbox"
-                  checked={filters.wcagLevel.includes(level)}
+                  checked={filters.wcagLevel && filters.wcagLevel.includes(level)}
                   onChange={(e) => handleFilterChange('wcagLevel', level, e.target.checked)}
                 />
                 Level {level}
@@ -246,7 +289,7 @@ const IssueFilters = ({ issues, filters, onFilterChange }) => {
               <CheckboxItem key={group}>
                 <input
                   type="checkbox"
-                  checked={filters.disabilityGroup.includes(group)}
+                  checked={filters.disabilityGroup && filters.disabilityGroup.includes(group)}
                   onChange={(e) => handleFilterChange('disabilityGroup', group, e.target.checked)}
                 />
                 {group}

@@ -18,7 +18,21 @@
     "test": "cd backend && npm test && cd ../frontend && npm test",
     "start": "cd backend && npm start",
     "start:dev": "APP_ENV=development npm start",
-    "start:prod": "APP_ENV=production npm start"
+    "start:prod": "APP_ENV=production npm start",
+    "docker:dev": "docker-compose -f docker-compose.dev.yml up --build",
+    "docker:dev:detached": "docker-compose -f docker-compose.dev.yml up --build -d",
+    "docker:prod": "docker-compose -f docker-compose.prod.yml up --build",
+    "docker:prod:detached": "docker-compose -f docker-compose.prod.yml up --build -d",
+    "docker:stop": "docker-compose -f docker-compose.dev.yml -f docker-compose.prod.yml down",
+    "docker:clean": "docker-compose -f docker-compose.dev.yml -f docker-compose.prod.yml down -v --rmi all",
+    "docker:logs": "docker-compose -f docker-compose.dev.yml logs -f",
+    "docker:logs:backend": "docker-compose -f docker-compose.dev.yml logs -f backend",
+    "docker:logs:frontend": "docker-compose -f docker-compose.dev.yml logs -f frontend",
+    "docker:simple": "docker-compose -f docker-compose.simple.yml up --build",
+    "docker:simple:detached": "docker-compose -f docker-compose.simple.yml up --build -d",
+    "docker:simple:stop": "docker-compose -f docker-compose.simple.yml down",
+    "health": "node scripts/health-check.js",
+    "health:docker": "DOCKER=true node scripts/health-check.js"
   },
   "keywords": [
     "accessibility",

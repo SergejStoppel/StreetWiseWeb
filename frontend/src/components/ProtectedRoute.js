@@ -43,8 +43,8 @@ const ProtectedRoute = ({ children, requireProfile = false, requiredFeature = nu
     pathname: location.pathname
   });
 
-  // Show loading spinner while initializing or loading
-  if (initializing || loading) {
+  // Show loading spinner only while initializing (don't block on general loading)
+  if (initializing) {
     console.log('🛡️ ProtectedRoute: Showing loading spinner', { initializing, loading });
     return (
       <LoadingContainer>

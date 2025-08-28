@@ -201,13 +201,13 @@ export const accessibilityAPI = {
     try {
       debugLog('🚀 API Call Starting:', {
         baseURL: API_BASE_URL,
-        endpoint: '/api/accessibility/analyze',
-        payload: { url, reportType, language },
+        endpoint: '/api/analyses/public',
+        payload: { url },
         timestamp: new Date().toISOString()
       });
       
-      debugLog('📡 Making POST request to /api/accessibility/analyze...');
-      const response = await api.post('/api/accessibility/analyze', { url, reportType, language });
+      debugLog('📡 Making POST request to /api/analyses/public...');
+      const response = await api.post('/api/analyses/public', { url });
       
       debugLog('✅ API Response Received:', {
         status: response.status,
@@ -261,42 +261,11 @@ export const accessibilityAPI = {
     }
   },
 
-  generatePDF: async (analysisId, reportData, language = 'en') => {
-    try {
-      // Try the new cached PDF endpoint first
-      return await accessibilityAPI.downloadPDF(analysisId, language);
-    } catch (error) {
-      // Fallback to legacy endpoint if needed
-      try {
-        const response = await api.post('/api/accessibility/generate-pdf', {
-          analysisId,
-          reportData,
-          language
-        }, {
-          responseType: 'blob'
-        });
-        
-        // Create blob and download link
-        const blob = new Blob([response.data], { type: 'application/pdf' });
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `accessibility-report-${analysisId}.pdf`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-        
-        return { success: true };
-      } catch (legacyError) {
-        throw legacyError;
-      }
-    }
-  },
+  
 
   getHealth: async () => {
     try {
-      const response = await api.get('/api/accessibility/health');
+      const response = await api.get('/api/health/status');
       return response.data;
     } catch (error) {
       throw error;
@@ -314,6 +283,32 @@ export const accessibilityAPI = {
 };
 
 export const analysisAPI = {
+  startPublicAnalysis: async (url) => {
+    try {
+      const response = await api.post('/api/analyses/public', { url });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  startAnalysis: async (websiteId) => {
+    try {
+      const response = await api.post('/api/analyses', { websiteId });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  startAnalysisWithUrl: async (url) => {
+    try {
+      const response = await api.post('/api/analyses', { url });
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
   // Get user's analysis history
   getHistory: async (options = {}) => {
     try {
@@ -333,8 +328,8 @@ export const analysisAPI = {
   // Get recent analyses
   getRecent: async (limit = 5) => {
     try {
-      debugLog(`📊 API: Making request to /api/analysis/recent?limit=${limit}`);
-      const response = await api.get(`/api/analysis/recent?limit=${limit}`);
+      debugLog(`📊 API: Making request to /api/analyses/recent?limit=${limit}`);
+      const response = await api.get(`/api/analyses/recent?limit=${limit}`);
       debugLog('✅ API: getRecent response received', response.data);
       return response.data;
     } catch (error) {
@@ -346,8 +341,8 @@ export const analysisAPI = {
   // Get specific analysis by ID
   getById: async (analysisId) => {
     try {
-      debugLog(`📊 API: Making request to /api/analysis/${analysisId}`);
-      const response = await api.get(`/api/analysis/${analysisId}`);
+      debugLog(`📊 API: Making request to /api/analyses/${analysisId}`);
+      const response = await api.get(`/api/analyses/${analysisId}`);
       debugLog('✅ API: getById response received', response.data);
       return response.data;
     } catch (error) {
@@ -359,8 +354,8 @@ export const analysisAPI = {
   // Get analysis statistics
   getStats: async () => {
     try {
-      debugLog('📊 API: Making request to /api/analysis/stats');
-      const response = await api.get('/api/analysis/stats');
+      debugLog('📊 API: Making request to /api/analyses/stats');
+      const response = await api.get('/api/analyses/stats');
       debugLog('✅ API: getStats response received', response.data);
       return response.data;
     } catch (error) {
@@ -372,7 +367,7 @@ export const analysisAPI = {
   // Delete analysis
   delete: async (analysisId) => {
     try {
-      const response = await api.delete(`/api/analysis/${analysisId}`);
+      const response = await api.delete(`/api/analyses/${analysisId}`);
       return response.data;
     } catch (error) {
       throw error;
@@ -382,12 +377,23 @@ export const analysisAPI = {
   // Search analyses by URL
   search: async (term, limit = 10) => {
     try {
-      const response = await api.get(`/api/analysis/search/${encodeURIComponent(term)}?limit=${limit}`);
+      const response = await api.get(`/api/analyses/search/${encodeURIComponent(term)}?limit=${limit}`);
       return response.data;
     } catch (error) {
       throw error;
     }
   }
+};
+
+export const websiteAPI = {
+  getWebsites: async () => {
+    try {
+      const response = await api.get('/api/workspaces/websites');
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
 };
 
 export default api;

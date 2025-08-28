@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import styled from 'styled-components';
-import { FaSort, FaSortUp, FaSortDown, FaFilter, FaSearch } from 'react-icons/fa';
+import { FaSort, FaSortUp, FaSortDown, FaFilter } from 'react-icons/fa';
 import IssueRow from './IssueRow';
 import IssueFilters from './IssueFilters';
 import TablePagination from './TablePagination';

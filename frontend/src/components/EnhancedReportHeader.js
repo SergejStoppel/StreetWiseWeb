@@ -1,5 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
+import ScreenshotDisplay from './ScreenshotDisplay';
 
 const HeaderContainer = styled.div`
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -89,66 +90,7 @@ const ScreenshotSection = styled.div`
   gap: 1rem;
 `;
 
-const ScreenshotContainer = styled.div`
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  
-  @media (max-width: 768px) {
-    flex-direction: column;
-    align-items: center;
-  }
-`;
 
-const ScreenshotFrame = styled.div`
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.1);
-  position: relative;
-  
-  &::before {
-    content: '${props => props.label}';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.7);
-    color: white;
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
-    text-align: center;
-    z-index: 1;
-  }
-`;
-
-const ScreenshotImage = styled.img`
-  width: ${props => props.width || '140px'};
-  height: auto;
-  display: block;
-  margin-top: 1.5rem;
-  
-  @media (max-width: 768px) {
-    width: ${props => props.width === '200px' ? '160px' : '120px'};
-  }
-`;
-
-const ScreenshotPlaceholder = styled.div`
-  width: ${props => props.width || '140px'};
-  height: ${props => props.height || '100px'};
-  background: rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 0.875rem;
-  margin-top: 1.5rem;
-  
-  @media (max-width: 768px) {
-    width: ${props => props.width === '200px' ? '160px' : '120px'};
-    height: ${props => props.width === '200px' ? '88px' : '68px'};
-  }
-`;
 
 const AnalysisInfo = styled.div`
   display: flex;
@@ -218,20 +160,7 @@ const EnhancedReportHeader = ({ report }) => {
   };
 
   const summary = report?.summary || {};
-  const screenshot = report?.screenshot || {};
   const websiteContext = report?.aiInsights?.websiteContext || {};
-  
-  // Debug screenshot data
-  console.log('📸 EnhancedReportHeader screenshot data:', {
-    reportHasScreenshot: !!report?.screenshot,
-    screenshot: screenshot,
-    screenshotType: typeof screenshot,
-    screenshotKeys: screenshot ? Object.keys(screenshot) : 'no screenshot',
-    desktopUrl: screenshot?.desktop,
-    mobileUrl: screenshot?.mobile,
-    isDataUrl: screenshot?.desktop?.startsWith('data:') || screenshot?.mobile?.startsWith('data:'),
-    isSupabaseUrl: screenshot?.desktop?.includes('supabase.co') || screenshot?.mobile?.includes('supabase.co')
-  });
 
   return (
     <HeaderContainer>
@@ -278,45 +207,9 @@ const EnhancedReportHeader = ({ report }) => {
         </TitleSection>
 
         <ScreenshotSection>
-          <ScreenshotContainer>
-            <ScreenshotFrame label="Desktop">
-              {screenshot.desktop ? (
-                <ScreenshotImage 
-                  src={screenshot.desktop} 
-                  alt="Desktop screenshot" 
-                  width="200px"
-                  onLoad={() => console.log('🖼️ Desktop screenshot loaded successfully:', screenshot.desktop)}
-                  onError={(e) => {
-                    console.error('❌ Desktop screenshot failed to load:', screenshot.desktop);
-                    console.error('Error details:', e);
-                  }}
-                />
-              ) : (
-                <ScreenshotPlaceholder width="200px" height="110px">
-                  Desktop View
-                </ScreenshotPlaceholder>
-              )}
-            </ScreenshotFrame>
-            
-            <ScreenshotFrame label="Mobile">
-              {screenshot.mobile ? (
-                <ScreenshotImage 
-                  src={screenshot.mobile} 
-                  alt="Mobile screenshot" 
-                  width="80px"
-                  onLoad={() => console.log('🖼️ Mobile screenshot loaded successfully:', screenshot.mobile)}
-                  onError={(e) => {
-                    console.error('❌ Mobile screenshot failed to load:', screenshot.mobile);
-                    console.error('Error details:', e);
-                  }}
-                />
-              ) : (
-                <ScreenshotPlaceholder width="80px" height="85px">
-                  Mobile View
-                </ScreenshotPlaceholder>
-              )}
-            </ScreenshotFrame>
-          </ScreenshotContainer>
+          {report.screenshots && report.screenshots.length > 0 && (
+            <ScreenshotDisplay screenshots={report.screenshots} />
+          )}
         </ScreenshotSection>
       </HeaderContent>
 

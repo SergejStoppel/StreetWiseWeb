@@ -1,0 +1,34 @@
+{
+  "title": "Resultados del Análisis",
+  "subtitle": "Su análisis de accesibilidad y rendimiento del sitio web está completo",
+  "loading": {
+    "title": "Cargando Resultados...",
+    "subtitle": "Por favor espere mientras preparamos sus resultados de análisis."
+  },
+  "error": {
+    "title": "No se Encontraron Resultados",
+    "subtitle": "No se encontraron resultados de análisis.",
+    "button": "Ejecutar Nuevo Análisis"
+  },
+  "status": {
+    "completed": "Completado",
+    "processing": "Procesando",
+    "failed": "Fallido",
+    "pending": "Pendiente",
+    "completedWithErrors": "Completado con Problemas"
+  },
+  "scores": {
+    "overall": "Puntuación General",
+    "accessibility": "Accesibilidad",
+    "seo": "SEO",
+    "performance": "Rendimiento"
+  },
+  "actions": {
+    "viewDetails": "Ver Informe Detallado",
+    "runNew": "Ejecutar Nuevo Análisis"
+  },
+  "details": {
+    "analysisId": "ID de Análisis",
+    "website": "Sitio Web"
+  }
+}

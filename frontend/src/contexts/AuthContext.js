@@ -104,7 +104,7 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Test API connectivity
+  // Test API connectivity (only when actually needed)
   const testApiConnectivity = async () => {
     const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:3005';
     devLog('🌐 Testing API connectivity to:', apiUrl);
@@ -120,8 +120,10 @@ export function AuthProvider({ children }) {
         ok: response.ok,
         url: `${apiUrl}/api/health`
       });
+      return response.ok;
     } catch (error) {
       devError('🌐 API connectivity test failed:', error);
+      return false;
     }
   };
 
@@ -214,8 +216,8 @@ export function AuthProvider({ children }) {
       }
     }, 3000);
 
-    // Test API connectivity first
-    testApiConnectivity();
+    // Only test API connectivity if we have a user session
+    // Homepage and public pages don't need backend connectivity
     
     getInitialSession().finally(() => {
       clearTimeout(initTimeout);
@@ -311,7 +313,7 @@ export function AuthProvider({ children }) {
   const fetchUserProfile = async (userId) => {
     try {
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('users')
         .select('*')
         .eq('id', userId)
         .single();
@@ -327,8 +329,7 @@ export function AuthProvider({ children }) {
             try {
               const newProfile = await createUserProfile({
                 firstName: authUser.user_metadata?.first_name || '',
-                lastName: authUser.user_metadata?.last_name || '',
-                company: authUser.user_metadata?.company || ''
+                lastName: authUser.user_metadata?.last_name || ''
               }, authUser);
               devLog('Profile created successfully');
             } catch (createError) {
@@ -360,16 +361,16 @@ export function AuthProvider({ children }) {
         throw new Error('No user information available');
       }
 
+      // Combine first and last name into full_name
+      const fullName = [userData.firstName || '', userData.lastName || ''].filter(Boolean).join(' ').trim();
+
       const { data, error } = await supabase
-        .from('user_profiles')
+        .from('users')
         .insert({
           id: currentUser.id,
           email: currentUser.email,
-          first_name: userData.firstName || '',
-          last_name: userData.lastName || '',
-          company: userData.company || null,
-          plan_type: 'free',
-          settings: {}
+          full_name: fullName || null,
+          avatar_url: null
         })
         .select()
         .single();
@@ -395,9 +396,28 @@ export function AuthProvider({ children }) {
     }
 
     try {
+      // Transform updateData to match new schema
+      const transformedData = {};
+      
+      // Handle full_name transformation from first_name/last_name
+      if (updateData.first_name !== undefined || updateData.last_name !== undefined) {
+        const firstName = updateData.first_name || '';
+        const lastName = updateData.last_name || '';
+        transformedData.full_name = [firstName, lastName].filter(Boolean).join(' ').trim() || null;
+      }
+      
+      // Handle other fields that exist in new schema
+      if (updateData.avatar_url !== undefined) {
+        transformedData.avatar_url = updateData.avatar_url;
+      }
+      
+      if (updateData.email !== undefined) {
+        transformedData.email = updateData.email;
+      }
+
       const { data, error } = await supabase
-        .from('user_profiles')
-        .update(updateData)
+        .from('users')
+        .update(transformedData)
         .eq('id', user.id)
         .select()
         .single();
@@ -647,29 +667,19 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Get plan limits
+  // Get plan limits (simplified for new schema - all users get free plan for now)
   const getPlanLimits = () => {
-    const planType = userProfile?.plan_type || 'free';
-    
+    // For now, all users get free plan features since plan_type was removed from schema
+    // This can be extended later with a separate subscriptions table if needed
     const limits = {
       free: {
         analysesPerMonth: 5,
         projectsMax: 2,
-        features: ['basic_analysis', 'pdf_export']
-      },
-      basic: {
-        analysesPerMonth: 50,
-        projectsMax: 10,
-        features: ['basic_analysis', 'detailed_analysis', 'pdf_export', 'project_management']
-      },
-      premium: {
-        analysesPerMonth: 200,
-        projectsMax: 50,
-        features: ['basic_analysis', 'detailed_analysis', 'pdf_export', 'project_management', 'team_collaboration', 'api_access']
+        features: ['basic_analysis']
       }
     };
 
-    return limits[planType] || limits.free;
+    return limits.free;
   };
 
   // Check if user has feature access

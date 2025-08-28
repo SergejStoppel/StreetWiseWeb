@@ -1,0 +1,34 @@
+{
+  "title": "Analysis Results",
+  "subtitle": "Your website accessibility and performance analysis is complete",
+  "loading": {
+    "title": "Loading Results...",
+    "subtitle": "Please wait while we prepare your analysis results."
+  },
+  "error": {
+    "title": "No Results Found",
+    "subtitle": "No analysis results were found.",
+    "button": "Run New Analysis"
+  },
+  "status": {
+    "completed": "Completed",
+    "processing": "Processing",
+    "failed": "Failed",
+    "pending": "Pending",
+    "completedWithErrors": "Completed with Issues"
+  },
+  "scores": {
+    "overall": "Overall Score",
+    "accessibility": "Accessibility",
+    "seo": "SEO",
+    "performance": "Performance"
+  },
+  "actions": {
+    "viewDetails": "View Detailed Report",
+    "runNew": "Run New Analysis"
+  },
+  "details": {
+    "analysisId": "Analysis ID",
+    "website": "Website"
+  }
+}

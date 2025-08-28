@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import { useAuth } from '../contexts/AuthContext';
-import { analysisAPI } from '../services/api';
+import { analysisAPI, websiteAPI } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { FaGlobe, FaCalendar, FaChartLine, FaExternalLinkAlt, FaTrash } from 'react-icons/fa';
+import ScreenshotCard from '../components/ScreenshotCard';
 
 const DashboardContainer = styled.div`
   min-height: 80vh;
@@ -151,30 +152,42 @@ const ActionButton = styled.button`
 `;
 
 const ScoreGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  display: flex;
+  align-items: center;
   gap: var(--spacing-md);
   margin-top: var(--spacing-md);
+  flex-wrap: wrap;
+  width: 100%;
 `;
 
 const ScoreItem = styled.div`
   text-align: center;
+  flex: 1;
+  min-width: 100px;
 `;
 
 const ScoreValue = styled.div`
-  font-size: var(--font-size-xl);
+  font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: ${props => {
     if (props.score >= 80) return 'var(--color-success)';
     if (props.score >= 60) return 'var(--color-warning)';
     return 'var(--color-error)';
   }};
+  
+  @media (min-width: 1200px) {
+    font-size: var(--font-size-3xl);
+  }
 `;
 
 const ScoreLabel = styled.div`
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-sm);
   color: var(--color-text-secondary);
   margin-top: var(--spacing-xs);
+  
+  @media (min-width: 1200px) {
+    font-size: var(--font-size-base);
+  }
 `;
 
 const LoadingSpinner = styled.div`
@@ -190,6 +203,10 @@ const EmptyState = styled.div`
   padding: var(--spacing-4xl);
   color: var(--color-text-secondary);
 `;
+
+
+
+
 
 const ErrorMessage = styled.div`
   background-color: var(--color-error-light, #fee);
@@ -207,10 +224,44 @@ const Dashboard = () => {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [websites, setWebsites] = useState([]);
+  const [selectedWebsite, setSelectedWebsite] = useState('');
+
+
+  useEffect(() => {
+    const fetchWebsites = async () => {
+      try {
+        const response = await websiteAPI.getWebsites();
+        setWebsites(response.data);
+        if (response.data.length > 0) {
+          setSelectedWebsite(response.data[0].id);
+        }
+      } catch (error) {
+        console.error('Error fetching websites:', error);
+      }
+    };
+
+    fetchWebsites();
+  }, []);
+
+  const handleStartAnalysis = async () => {
+    if (!selectedWebsite) {
+      alert('Please select a website to analyze.');
+      return;
+    }
+
+    try {
+      const response = await analysisAPI.startAnalysis(selectedWebsite);
+      navigate(`/results/${response.data.id}`);
+    } catch (error) {
+      console.error('Error starting analysis:', error);
+      alert('Failed to start analysis');
+    }
+  };
 
   console.log('🏠 Dashboard: Component rendered', {
     user: user ? { id: user.id, email: user.email } : null,
-    userProfile: userProfile ? { id: userProfile.id, name: userProfile.first_name } : null,
+    userProfile: userProfile ? { id: userProfile.id, name: userProfile.full_name } : null,
     loading,
     error,
     timestamp: new Date().toISOString()
@@ -251,6 +302,7 @@ const Dashboard = () => {
 
         if (analysesResult.status === 'fulfilled') {
           console.log('✅ Dashboard: Recent analyses loaded successfully', analysesResult.value);
+          console.log('✅ Dashboard: First analysis screenshots:', analysesResult.value.data?.[0]?.screenshots);
           setAnalyses(analysesResult.value.data || []);
         } else {
           console.error('❌ Dashboard: Failed to load recent analyses', analysesResult.reason);
@@ -353,7 +405,7 @@ const Dashboard = () => {
   const handleViewAnalysis = (analysis) => {
     console.log('🔍 Dashboard: Viewing analysis:', {
       id: analysis.id,
-      url: analysis.url,
+      url: analysis.websites?.url,
       hasAnalysisData: !!analysis.analysis_data,
       analysisDataType: typeof analysis.analysis_data,
       analysisDataPreview: analysis.analysis_data ? Object.keys(analysis.analysis_data) : 'null'
@@ -402,6 +454,8 @@ const Dashboard = () => {
     });
   };
 
+
+
   if (loading) {
     return (
       <DashboardContainer>
@@ -419,6 +473,17 @@ const Dashboard = () => {
           Here's an overview of your accessibility analyses.
         </Subtitle>
       </Header>
+
+      <div style={{ marginBottom: '2rem' }}>
+        <select value={selectedWebsite} onChange={(e) => setSelectedWebsite(e.target.value)} style={{ marginRight: '1rem' }}>
+          {websites.map((website) => (
+            <option key={website.id} value={website.id}>
+              {website.url}
+            </option>
+          ))}
+        </select>
+        <button onClick={handleStartAnalysis}>Start Analysis</button>
+      </div>
 
       {error && (
         <ErrorMessage>
@@ -460,7 +525,7 @@ const Dashboard = () => {
                   <AnalysisInfo>
                     <AnalysisUrl>
                       <FaGlobe />
-                      {analysis.url}
+                      {analysis.websites?.url || 'Unknown URL'}
                     </AnalysisUrl>
                     <AnalysisDate>
                       <FaCalendar />
@@ -507,12 +572,17 @@ const Dashboard = () => {
                     </ScoreValue>
                     <ScoreLabel>Performance</ScoreLabel>
                   </ScoreItem>
+                  
+                  {/* Screenshots in the same row */}
+                  <ScreenshotCard screenshots={analysis.screenshots} />
                 </ScoreGrid>
               </AnalysisCard>
             ))}
           </AnalysisList>
         )}
       </AnalysisHistorySection>
+
+
     </DashboardContainer>
   );
 };

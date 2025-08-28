@@ -1,75 +1,83 @@
-version: '3.8'
-
 services:
+  # Backend API
   backend:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    env_file:
-      - .env
+      dockerfile: Dockerfile.dev
     ports:
       - "3005:3005"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
-      - chrome-data:/app/chrome-user-data
     environment:
-      - APP_ENV=${APP_ENV:-development}
+      - NODE_ENV=development
       - PORT=3005
-      # Unified environment variables are loaded via env_file
-      # The backend/config/environment.js will handle the selection
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    env_file:
+      - .env
+    volumes:
+      - /app/node_modules
+      # Volume mounting disabled to prevent WSL2 EIO errors
+    depends_on:
+      - redis
     networks:
-      - streetwiseweb-network
+      - sitecraft-network
+    command: npm run dev
     restart: unless-stopped
-    # Chrome/Puppeteer needs these for stability in Docker
-    shm_size: 2gb
+    cap_add:
+      - SYS_ADMIN
     security_opt:
       - seccomp:unconfined
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3005/api/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
+  # Frontend React App
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-    env_file:
-      - .env
     ports:
       - "3000:3000"
-    volumes:
-      - ./frontend:/app
-      - /app/node_modules
     environment:
-      - APP_ENV=${APP_ENV:-development}
+      - NODE_ENV=development
       - PORT=3000
+      - HOST=0.0.0.0
       - CHOKIDAR_USEPOLLING=true
-      # React environment variables set by build process
+      - WATCHPACK_POLLING=true
       - REACT_APP_API_URL=http://localhost:3005
+      - REACT_APP_ENV=development
       - REACT_APP_SUPABASE_URL=${DEV_SUPABASE_URL}
       - REACT_APP_SUPABASE_ANON_KEY=${DEV_SUPABASE_ANON_KEY}
-      - REACT_APP_ENV=${APP_ENV:-development}
-      - REACT_APP_ENVIRONMENT=development
-      - REACT_APP_DEBUG=true
-    depends_on:
-      - backend
+      - NODE_OPTIONS=--max-old-space-size=4096
+    env_file:
+      - .env
+    volumes:
+      - /app/node_modules
+      # Volume mounting disabled to prevent WSL2 EIO errors
     networks:
-      - streetwiseweb-network
+      - sitecraft-network
+    command: npm start
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
+  # Redis for job queues
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - sitecraft-network
+    restart: unless-stopped
 
 networks:
-  streetwiseweb-network:
+  sitecraft-network:
     driver: bridge
 
 volumes:
-  chrome-data:
-    driver: local
+  redis-data:

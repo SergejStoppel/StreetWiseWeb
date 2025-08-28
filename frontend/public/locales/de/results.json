@@ -1,0 +1,34 @@
+{
+  "title": "Analyseergebnisse",
+  "subtitle": "Ihre Website-Zugänglichkeits- und Leistungsanalyse ist abgeschlossen",
+  "loading": {
+    "title": "Ergebnisse werden geladen...",
+    "subtitle": "Bitte warten Sie, während wir Ihre Analyseergebnisse vorbereiten."
+  },
+  "error": {
+    "title": "Keine Ergebnisse gefunden",
+    "subtitle": "Es wurden keine Analyseergebnisse gefunden.",
+    "button": "Neue Analyse starten"
+  },
+  "status": {
+    "completed": "Abgeschlossen",
+    "processing": "In Bearbeitung",
+    "failed": "Fehlgeschlagen",
+    "pending": "Ausstehend",
+    "completedWithErrors": "Mit Problemen abgeschlossen"
+  },
+  "scores": {
+    "overall": "Gesamtpunktzahl",
+    "accessibility": "Barrierefreiheit",
+    "seo": "SEO",
+    "performance": "Leistung"
+  },
+  "actions": {
+    "viewDetails": "Detaillierten Bericht anzeigen",
+    "runNew": "Neue Analyse starten"
+  },
+  "details": {
+    "analysisId": "Analyse-ID",
+    "website": "Webseite"
+  }
+}

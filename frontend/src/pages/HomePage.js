@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import styled from 'styled-components';
@@ -20,7 +20,7 @@ import {
   FaPlay
 } from 'react-icons/fa';
 import { useTranslation } from 'react-i18next';
-import { accessibilityAPI } from '../services/api';
+import { accessibilityAPI, analysisAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -694,7 +694,7 @@ const HomePage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
   const { t, i18n, ready } = useTranslation(['homepage', 'forms']);
-  const { initializing } = useAuth();
+  const { initializing, user } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -722,7 +722,7 @@ const HomePage = () => {
     // Test backend connectivity first
     try {
       console.log('🔍 Testing backend connectivity...');
-      const healthResponse = await fetch(`${process.env.REACT_APP_API_URL}/api/health`);
+      const healthResponse = await accessibilityAPI.getHealth();
       console.log('🏥 Health check response:', {
         status: healthResponse.status,
         statusText: healthResponse.statusText,
@@ -737,7 +737,10 @@ const HomePage = () => {
     try {
       toast.info('Starting analysis...', { autoClose: 2000 });
       
-      const result = await accessibilityAPI.analyzeWebsite(fullUrl, 'overview', i18n.language);
+      // Choose appropriate analysis endpoint based on authentication
+      const result = user 
+        ? await analysisAPI.startAnalysisWithUrl(fullUrl) // Authenticated user
+        : await analysisAPI.startPublicAnalysis(fullUrl); // Guest user
       
       console.log('🔍 Analysis result structure:', {
         result: !!result,
@@ -757,8 +760,9 @@ const HomePage = () => {
         });
         sessionStorage.setItem('analysisResult', JSON.stringify(result.data));
         
+        // Navigate to the simple results overview page
         console.log('🧭 Attempting navigation to /results');
-        navigate('/results');
+        navigate('/results', { replace: true });
         
         // Verify navigation after a short delay
         setTimeout(() => {
@@ -785,14 +789,56 @@ const HomePage = () => {
   };
 
   // Show loading only if translations are not ready (should be very fast)
-  if (!ready) {
+  // Add timeout to prevent infinite loading
+  const [translationTimeout, setTranslationTimeout] = useState(false);
+  const [fallbackMode, setFallbackMode] = useState(false);
+  
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (!ready) {
+        console.warn('⚠️ Translation loading timeout - enabling fallback mode');
+        setTranslationTimeout(true);
+        setFallbackMode(true);
+      }
+    }, 1500); // Reduced to 1.5 seconds
+    
+    return () => clearTimeout(timeout);
+  }, [ready]);
+
+  // If translations are ready, we're good to go
+  const translationsReady = ready || translationTimeout;
+  
+  if (!translationsReady) {
+    console.log('🌐 Translations not ready yet, showing loading spinner');
     return (
       <HomeContainer>
         <HeroSection>
           <LoadingSpinner size="large" />
+          <p style={{ marginTop: 'var(--spacing-md)', color: 'var(--color-text-inverse)' }}>
+            Loading...
+          </p>
         </HeroSection>
       </HomeContainer>
     );
+  }
+  
+  // Helper function to get text with fallback
+  const getText = (key, fallback) => {
+    if (fallbackMode) {
+      return fallback;
+    }
+    try {
+      return t(key, fallback);
+    } catch (error) {
+      console.warn(`Translation error for key "${key}":`, error);
+      return fallback;
+    }
+  };
+
+  if (fallbackMode) {
+    console.warn('⚠️ Using fallback mode due to translation timeout');
+  } else {
+    console.log('✅ HomePage ready to render, translations loaded');
   }
 
   return (
@@ -801,18 +847,18 @@ const HomePage = () => {
       <HomeContainer>
         <HeroSection>
           <HeroTitle>
-            {t('homepage:hero.title')}
+            {getText('homepage:hero.title', 'Is Your Website a Hidden Liability?')}
           </HeroTitle>
           <HeroSubtitle>
-            {t('homepage:hero.subtitle')}
+            {getText('homepage:hero.subtitle', "Don't let AI traffic pass you by or face costly accessibility lawsuits. StreetWiseWeb helps small businesses like yours get found online and stay legally safe, without the tech headache.")}
           </HeroSubtitle>
           
           <AnalysisForm onSubmit={handleSubmit}>
-            <FormTitle>{t('homepage:hero.formTitle')}</FormTitle>
+            <FormTitle>{getText('homepage:hero.formTitle', 'Get My Free Website Health Report')}</FormTitle>
             <InputGroup>
               <URLInput
                 type="text"
-                placeholder={t('homepage:hero.microcopy')}
+                placeholder={getText('homepage:hero.microcopy', 'yourwebsite.com')}
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
                 disabled={isAnalyzing}
@@ -826,18 +872,18 @@ const HomePage = () => {
                 {isAnalyzing ? (
                   <>
                     <LoadingSpinner size="small" />
-                    {t('forms:buttons.analyzing')}
+                    {getText('forms:buttons.analyzing', 'Analyzing...')}
                   </>
                 ) : (
                   <>
                     <FaPlay aria-hidden="true" />
-                    {t('forms:buttons.analyze')}
+                    {getText('forms:buttons.analyze', 'Analyze Website')}
                   </>
                 )}
               </AnalyzeButton>
             </InputGroup>
             <ExampleText>
-              {t('homepage:hero.exampleText')}
+              {getText('homepage:hero.exampleText', 'No credit card needed. Results emailed directly to you.')}
             </ExampleText>
           </AnalysisForm>
         </HeroSection>

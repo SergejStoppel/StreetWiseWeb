@@ -1,74 +1,80 @@
-# 🌐 StreetWiseWeb
+# 🌐 SiteCraft V3
 
-> **Comprehensive Website Accessibility Analysis Tool**
+> **Multi-Tenant Accessibility Analysis Platform**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-16+-green.svg)](https://nodejs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)](https://www.typescriptlang.org/)
 [![Supabase](https://img.shields.io/badge/Database-Supabase-green.svg)](https://supabase.com/)
-[![Docker](https://img.shields.io/badge/Docker-Supported-blue.svg)](https://www.docker.com/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 
-StreetWiseWeb is a comprehensive web accessibility analysis tool that provides instant insights into website compliance with WCAG guidelines. Built with modern web technologies, it delivers detailed reports with actionable recommendations to help make the web more accessible for everyone.
+SiteCraft V3 is a next-generation, multi-tenant accessibility analysis platform that provides comprehensive website compliance analysis with WCAG guidelines. Featuring workspace-based collaboration, advanced rule engines, and enterprise-grade security.
 
 ## ✨ Features
 
 | Feature | Description |
 |---------|-------------|
-| 🔍 **Comprehensive Analysis** | Uses axe-core and custom checks for thorough accessibility evaluation |
-| ⚡ **Real-time Reporting** | Instant analysis results with detailed scoring and metrics |
-| 📊 **WCAG Compliance** | Checks against Web Content Accessibility Guidelines (WCAG 2.1) |
-| 🎯 **Actionable Recommendations** | Specific, prioritized guidance for fixing accessibility issues |
-| 💾 **Screenshot Storage** | Captures and stores website screenshots in Supabase storage |
-| 👥 **User Management** | Full user authentication and profile management |
-| 📈 **Analytics Dashboard** | Track analysis history and progress over time |
-| 🌙 **Dark/Light Mode** | Responsive UI with theme switching |
-| 🌐 **Multilingual** | Support for English, German, and Spanish |
-| 📱 **Responsive Design** | Works seamlessly on desktop and mobile devices |
-| 📄 **Export Reports** | Download detailed analysis reports in multiple formats |
-| 🐳 **Docker Ready** | Easy deployment with Docker containers |
+| 🏢 **Multi-Tenant Architecture** | Workspace-based collaboration with role-based access control |
+| 🔐 **Enterprise Authentication** | Complete auth flow with email confirmation, password reset, account management |
+| 🔍 **Advanced Analysis Engine** | 100+ rules covering Accessibility, SEO, and Performance |
+| ⚡ **Real-time Analysis** | Three-tier pipeline with Master, Fetcher, and Analyzer workers |
+| 📊 **WCAG Compliance** | Complete WCAG 2.1 AA/AAA mapping with educational content |
+| 🎯 **Intelligent Prioritization** | Business impact scoring and conversion rate analysis |
+| 💾 **Cloud Storage** | Supabase storage with CDN delivery for screenshots |
+| 👥 **Workspace Management** | Invite members, manage roles, and collaborate on analyses |
+| 📈 **Analytics Dashboard** | Historical tracking and progress monitoring |
+| 🌙 **Modern UI** | Dark/light mode with responsive design |
+| 🌐 **Internationalization** | Multi-language support with i18next |
+| 📄 **Export & Sharing** | Professional reports with public sharing links |
+| 🐳 **Production Ready** | Docker deployment with health checks and monitoring |
+| 🔒 **Security First** | Row Level Security, audit logging, and comprehensive validation |
 
 ## 🛠️ Tech Stack
 
-### Backend
-- **Runtime**: Node.js 16+ with Express framework
-- **Database**: Supabase (PostgreSQL) with Row Level Security
-- **Storage**: Supabase Storage for screenshots and files
-- **Analysis**: Puppeteer for web scraping + axe-core for accessibility testing
-- **Security**: Helmet, CORS, rate limiting, and comprehensive middleware
-- **Logging**: Winston with structured logging and log rotation
-- **Environment**: Unified development/production configuration
+### Backend V3 (TypeScript)
+- **Runtime**: Node.js 18+ with Express.js and full TypeScript support
+- **Database**: Supabase PostgreSQL with Row Level Security and multi-tenancy
+- **Queue System**: BullMQ with Redis for job processing and analysis pipeline
+- **Authentication**: Complete Supabase Auth integration with workspace management
+- **Analysis Engine**: Modular system with 100+ rules for Accessibility, SEO, Performance
+- **Security**: Helmet, CORS, rate limiting, JWT validation, and audit logging
+- **Logging**: Winston with structured logging and environment-aware configuration
+- **Validation**: Zod schemas for comprehensive input validation
 
-### Frontend
-- **Framework**: React 18 with modern hooks and functional components
-- **Styling**: Styled Components with theme support
-- **Routing**: React Router v6 with protected routes
-- **State Management**: React Context API + custom hooks
-- **API Client**: Axios with interceptors and error handling
-- **UI Components**: Custom component library with React Icons
-- **Internationalization**: i18next with language detection
-- **Build Tool**: Create React App with custom configurations
+### Frontend (React + TypeScript)
+- **Framework**: React 18 with TypeScript and modern hooks
+- **Styling**: Styled Components with comprehensive theme system
+- **Routing**: React Router v6 with workspace-aware protected routes
+- **State Management**: Context API with workspace and authentication contexts
+- **API Client**: Axios with interceptors, error handling, and retry logic
+- **UI Components**: Custom component library with accessibility focus
+- **Internationalization**: i18next with dynamic language switching
+- **Build Tool**: Create React App with TypeScript template
 
-### Infrastructure
-- **Database**: Supabase PostgreSQL with automated backups
-- **Authentication**: Supabase Auth with JWT tokens
-- **Storage**: Supabase Storage with CDN delivery
-- **Deployment**: Docker containers with multi-stage builds
-- **Environment Management**: Unified .env configuration for dev/prod
+### Infrastructure & DevOps
+- **Database**: Multi-tenant Supabase setup with development/production projects
+- **Authentication**: Supabase Auth with email confirmation and password management
+- **Storage**: Supabase Storage with bucket policies and CDN optimization
+- **Deployment**: Docker multi-stage builds with development and production configurations
+- **Environment**: Unified .env system supporting dev/prod environment switching
+- **Monitoring**: Health checks, structured logging, and comprehensive error tracking
+- **Job Processing**: Redis-backed queue system for scalable analysis processing
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- **Node.js** v16 or higher
-- **npm** or **yarn**
+- **Node.js** v18 or higher
+- **Docker** and **Docker Compose** (optional, for containerized development)
 - **Git** for version control
-- **Supabase Account** (free tier available)
+- **Supabase Account** (free tier available - you'll need separate dev/prod projects)
 
 ### Installation
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/your-username/streetwiseweb.git
-   cd streetwiseweb
+   git clone https://github.com/your-username/sitecraft.git
+   cd sitecraft
    ```
 
 2. **Install all dependencies** (root, backend, and frontend)
@@ -78,21 +84,27 @@ StreetWiseWeb is a comprehensive web accessibility analysis tool that provides i
 
 3. **Environment Configuration**
    ```bash
-   # Copy the environment template
+   # Copy the unified environment template
    cp .env.example .env
    ```
    
-   **Edit `.env` file with your Supabase credentials:**
+   **Configure your `.env` file:**
    ```bash
-   # Environment selector
-   APP_ENV=development
+   # ===========================================
+   # ENVIRONMENT SELECTOR
+   # ===========================================
+   APP_ENV=development  # Change to 'production' when ready
    
-   # Development Supabase Project
+   # ===========================================
+   # DEVELOPMENT SUPABASE CONFIG
+   # ===========================================
    DEV_SUPABASE_URL=https://your-dev-project-id.supabase.co
    DEV_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    DEV_SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    
-   # Production Supabase Project (when ready)
+   # ===========================================
+   # PRODUCTION SUPABASE CONFIG (when ready)
+   # ===========================================
    PROD_SUPABASE_URL=https://your-prod-project-id.supabase.co
    PROD_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    PROD_SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -100,95 +112,133 @@ StreetWiseWeb is a comprehensive web accessibility analysis tool that provides i
 
 4. **Database Setup**
    
-   Follow the [Database Setup Guide](./database/README.md) to configure your Supabase database:
-   - Create development and production Supabase projects
-   - Run the database setup scripts
-   - Configure storage buckets and policies
+   Run the database setup scripts in your Supabase project:
+   ```bash
+   # Execute scripts in order in your Supabase SQL editor:
+   # 1. database/setup/01_extensions_and_types.sql
+   # 2. database/setup/02_core_tables.sql
+   # 3. database/setup/03_analysis_engine_tables.sql
+   # 4. database/setup/04_issues_tables.sql
+   # 5. database/setup/05_billing_tables.sql
+   # 6. database/setup/06_reporting_audit_tables.sql
+   # 7. database/setup/07_functions.sql
+   # 8. database/setup/08_triggers.sql
+   # 9. database/setup/09_rls_policies.sql
+   # 10. database/setup/10_initial_data.sql
+   ```
 
-### 🖥️ Development Mode
+## 🚀 Running the Application
 
-**Start the full application:**
+### Option 1: Local Development (Recommended for development)
+
+**Start the full application locally:**
 ```bash
-npm run dev
+npm run start:dev  # Uses APP_ENV=development
 ```
 
 This will start:
-- **Backend API** at http://localhost:3001
+- **Backend API** at http://localhost:3005
 - **Frontend** at http://localhost:3000
 - **Automatic reload** on code changes
 
 **Alternative: Start components individually**
 ```bash
-# Backend only
+# Backend only (development mode)
 npm run backend
 
 # Frontend only 
 npm run frontend
+
+# Both with concurrently
+npm run dev
 ```
 
-### 🐳 Docker Deployment
+### Option 2: Docker Development (For testing containerization)
 
-**Development with Docker:**
+**Start with Docker (development environment):**
 ```bash
-# Windows
-start-dev.bat
+# Start development containers with hot reload
+npm run docker:dev
 
-# Linux/Mac
-docker-compose -f docker-compose.dev.yml up
+# Or run in background
+npm run docker:dev:detached
+
+# View logs
+npm run docker:logs
+
+# Check service health
+npm run health:docker
 ```
 
-**Production with Docker:**
+### Option 3: Production Deployment
+
+**Local production build:**
 ```bash
-# Windows  
-start-docker.bat
+# Set environment to production in .env
+APP_ENV=production
 
-# Linux/Mac
-docker-compose up -d
+# Build and start production
+npm run start:prod
 ```
 
-### 🏭 Production Build
+**Docker production:**
+```bash
+# Start production containers
+npm run docker:prod
 
-1. **Set environment to production:**
-   ```bash
-   # In .env file
-   APP_ENV=production
-   ```
+# Or run in background
+npm run docker:prod:detached
+```
 
-2. **Build the application:**
-   ```bash
-   npm run build
-   ```
+### 🔍 Monitoring & Health Checks
 
-3. **Start production server:**
-   ```bash
-   npm start
-   ```
+```bash
+# Check if all services are running
+npm run health
 
-## 📖 How to Use
+# View Docker logs
+npm run docker:logs:backend
+npm run docker:logs:frontend
 
-### For End Users
+# Stop all Docker services
+npm run docker:stop
 
-1. **🔐 Sign Up/Login**
-   - Create an account or sign in with existing credentials
-   - Access your personal dashboard with analysis history
+# Clean up Docker resources
+npm run docker:clean
+```
 
-2. **🌐 Enter Website URL**
-   - Input the URL of the website you want to analyze
-   - Choose analysis type (Quick, Overview, or Detailed)
+## 📖 How to Use SiteCraft V3
 
-3. **⚡ Start Analysis**
-   - Click "Analyze Website" to begin the accessibility audit
-   - Watch real-time progress indicators
+### 🔐 Authentication & Account Management
 
-4. **📊 View Results**
-   - Review comprehensive reports with scores and recommendations
-   - Explore interactive violations with screenshots
-   - Navigate through categorized issues
+**Complete authentication system with:**
+- ✅ **Sign Up** with email confirmation required
+- ✅ **Sign In** with proper error handling for wrong passwords
+- ✅ **Email Confirmation** - users must confirm email before accessing
+- ✅ **Password Reset** via email with secure token-based flow
+- ✅ **Account Settings** - change email, password, or delete account
+- ✅ **Account Deletion** with complete data cleanup
 
-5. **💾 Save & Export**
-   - Save analyses to your dashboard
-   - Export reports in multiple formats
-   - Share results with team members
+### 🏢 Multi-Tenant Workspace Management
+
+1. **Create Workspace**
+   - Set up your organization's workspace
+   - Automatically become the workspace owner
+
+2. **Invite Team Members**
+   - Add members with different roles: Owner, Admin, Member
+   - Manage permissions and access levels
+
+3. **Workspace Collaboration**
+   - Share analyses across team members
+   - Track team progress and history
+
+### 🔍 Website Analysis (Coming Soon)
+
+The analysis engine includes 100+ rules covering:
+- **Accessibility**: WCAG 2.1 AA/AAA compliance with educational content
+- **SEO**: Technical and content optimization with business impact
+- **Performance**: Core Web Vitals and conversion rate analysis
 
 ### 🛡️ Analysis Features
 
@@ -222,60 +272,101 @@ docker-compose up -d
 ### 🔌 API Endpoints
 
 ```http
-# Analysis
-POST /api/analysis/analyze          # Start new website analysis
-GET  /api/analysis/:id              # Get analysis results
-GET  /api/analysis/user/:userId     # Get user's analysis history
+# Authentication
+POST /api/auth/signup               # Register new user
+POST /api/auth/signin               # Sign in user
+POST /api/auth/signout              # Sign out user
+POST /api/auth/forgot-password      # Send password reset email
+POST /api/auth/reset-password       # Reset password with token
+GET  /api/auth/me                   # Get current user profile
+PUT  /api/auth/profile              # Update user profile
+PUT  /api/auth/password             # Update user password
+DELETE /api/auth/account            # Delete user account
+POST /api/auth/resend-confirmation  # Resend email confirmation
 
-# Screenshots
-GET  /api/screenshots/:analysisId   # Get analysis screenshots
+# Workspaces
+GET  /api/workspaces                # Get user's workspaces
+POST /api/workspaces                # Create new workspace
+GET  /api/workspaces/:id            # Get workspace details
+PUT  /api/workspaces/:id            # Update workspace
+DELETE /api/workspaces/:id          # Delete workspace (owner only)
+POST /api/workspaces/:id/members    # Invite member
+PUT  /api/workspaces/:id/members/:userId  # Update member role
+DELETE /api/workspaces/:id/members/:userId # Remove member
+POST /api/workspaces/:id/leave      # Leave workspace
 
-# Health & Status
+# Health & Monitoring
 GET  /api/health                    # API health check
-GET  /api/version                   # API version info
-
-# User Management
-GET  /api/user/profile              # Get user profile
-PUT  /api/user/profile              # Update user profile
-GET  /api/user/dashboard            # Get dashboard statistics
+GET  /                              # API info and documentation
 ```
 
 ## 🏗️ Project Structure
 
 ```
-streetwiseweb/
-├── 📁 backend/                 # Node.js/Express API server
-│   ├── 📁 routes/             # API route handlers
-│   ├── 📁 services/           # Business logic and analysis engines
-│   │   ├── 📁 analysis/       # Individual analyzer modules
-│   │   ├── 📁 cache/          # Caching functionality
-│   │   ├── 📁 reporting/      # Report generation
-│   │   └── 📁 utils/          # Backend utilities
-│   ├── 📁 middleware/         # Express middleware (auth, validation, etc.)
-│   ├── 📁 config/             # Configuration files
-│   └── 📁 logs/               # Application logs
-├── 📁 frontend/               # React application
+sitecraft/
+├── 📁 backend/                     # TypeScript Backend V3
 │   ├── 📁 src/
-│   │   ├── 📁 components/     # Reusable UI components
-│   │   ├── 📁 pages/          # Page components and routes
-│   │   ├── 📁 services/       # API client services
-│   │   ├── 📁 hooks/          # Custom React hooks
-│   │   ├── 📁 theme/          # Theme and styling system
-│   │   └── 📁 utils/          # Frontend utilities
-│   ├── 📁 public/
-│   │   └── 📁 locales/        # i18n translation files
+│   │   ├── 📁 api/                # API layer
+│   │   │   ├── 📁 controllers/    # Request handlers
+│   │   │   ├── 📁 middleware/     # Auth, validation, error handling
+│   │   │   ├── 📁 routes/         # Route definitions
+│   │   │   └── 📁 validators/     # Zod validation schemas
+│   │   ├── 📁 config/             # Configuration management
+│   │   ├── 📁 core/               # Core business logic
+│   │   │   ├── 📁 analysis/       # Analysis engine modules
+│   │   │   ├── 📁 auth/           # Authentication services
+│   │   │   ├── 📁 billing/        # Billing and subscription logic
+│   │   │   └── 📁 reporting/      # Report generation
+│   │   ├── 📁 db/                 # Database utilities
+│   │   ├── 📁 lib/                # Shared libraries
+│   │   ├── 📁 types/              # TypeScript type definitions
+│   │   ├── 📁 utils/              # Utility functions
+│   │   ├── 📁 workers/            # Background job workers
+│   │   └── 📄 server.ts           # Main server file
+│   ├── 📄 Dockerfile.dev          # Development container
+│   ├── 📄 Dockerfile.prod         # Production container
 │   └── 📄 package.json
-├── 📁 database/               # Database setup and migrations
-│   ├── 📄 COMPLETE_PRODUCTION_SETUP.sql  # Complete database setup
-│   ├── 📄 STORAGE_BUCKET_SETUP.sql       # Storage policies setup
-│   └── 📄 README.md           # Database setup guide
-├── 📁 docs/                   # Documentation
-├── 📁 docker/                 # Docker configurations
-├── 📄 docker-compose.yml      # Production Docker setup
-├── 📄 docker-compose.dev.yml  # Development Docker setup
-├── 📄 .env.example            # Environment template
-├── 📄 CLAUDE.md               # AI assistant instructions
-└── 📄 package.json            # Root package.json with scripts
+├── 📁 frontend/                   # React TypeScript Frontend
+│   ├── 📁 src/
+│   │   ├── 📁 components/         # Reusable UI components
+│   │   ├── 📁 pages/              # Page components
+│   │   ├── 📁 services/           # API client services
+│   │   ├── 📁 hooks/              # Custom React hooks
+│   │   ├── 📁 context/            # React context providers
+│   │   ├── 📁 theme/              # Styling and theme system
+│   │   └── 📁 utils/              # Frontend utilities
+│   ├── 📁 public/
+│   │   └── 📁 locales/            # Internationalization files
+│   ├── 📄 Dockerfile.dev          # Development container
+│   ├── 📄 Dockerfile.prod         # Production container
+│   ├── 📄 nginx.conf              # Nginx configuration
+│   └── 📄 package.json
+├── 📁 database/                   # Database Setup Scripts
+│   ├── 📁 setup/                  # Modular setup scripts
+│   │   ├── 📄 01_extensions_and_types.sql
+│   │   ├── 📄 02_core_tables.sql
+│   │   ├── 📄 03_analysis_engine_tables.sql
+│   │   ├── 📄 04_issues_tables.sql
+│   │   ├── 📄 05_billing_tables.sql
+│   │   ├── 📄 06_reporting_audit_tables.sql
+│   │   ├── 📄 07_functions.sql
+│   │   ├── 📄 08_triggers.sql
+│   │   ├── 📄 09_rls_policies.sql
+│   │   ├── 📄 10_initial_data.sql
+│   │   └── 📄 README.md
+│   └── 📄 database_schema.dbml    # Database schema definition
+├── 📁 docs/                       # Project Documentation
+│   └── 📁 backend-v2-plan/        # Backend implementation plan
+├── 📁 scripts/                    # Utility scripts
+│   └── 📄 health-check.js         # Service health monitoring
+├── 📄 docker-compose.dev.yml      # Development Docker setup
+├── 📄 docker-compose.prod.yml     # Production Docker setup
+├── 📄 .env.example                # Unified environment template
+├── 📄 .dockerignore               # Docker build optimization
+├── 📄 DOCKER.md                   # Docker setup guide
+├── 📄 CLAUDE.md                   # AI assistant instructions
+├── 📄 README.md                   # This file
+└── 📄 package.json                # Root scripts and dependencies
 ```
 
 ## 🧪 Testing
