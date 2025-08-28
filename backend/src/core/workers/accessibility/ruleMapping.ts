@@ -35,10 +35,10 @@ export const AXE_TO_DATABASE_MAPPING: RuleMapping = {
   'aria-valid-attr': 'ACC_ARIA_02_REQUIRED_ATTR_MISSING',
   'aria-valid-attr-value': 'ACC_ARIA_03_INVALID_ATTR_VALUE',
   
-  // Newly activated ARIA rules
-  'aria-braillelabel-equivalent': 'ACC_ARIA_07_LABELLEDBY_MISSING',
-  'aria-text': 'ACC_ARIA_02_REQUIRED_ATTR_MISSING',
-  'aria-treeitem-name': 'ACC_ARIA_02_REQUIRED_ATTR_MISSING',
+  // Newly activated ARIA rules (commented out - not available in current axe-core version)
+  // 'aria-braillelabel-equivalent': 'ACC_ARIA_07_LABELLEDBY_MISSING',
+  // 'aria-text': 'ACC_ARIA_02_REQUIRED_ATTR_MISSING',
+  // 'aria-treeitem-name': 'ACC_ARIA_02_REQUIRED_ATTR_MISSING',
   
   // ====================================
   // FORM & INPUT RULES MAPPING
@@ -50,6 +50,9 @@ export const AXE_TO_DATABASE_MAPPING: RuleMapping = {
   'form-field-multiple-labels': 'ACC_FRM_02_LABEL_FOR_ID_MISMATCH',
   'label': 'ACC_FRM_01_LABEL_MISSING',
   'label-title-only': 'ACC_FRM_03_LABEL_HIDDEN',
+  'fieldset-legend': 'ACC_FRM_04_FIELDSET_LEGEND_MISSING',
+  'select-name': 'ACC_FRM_01_LABEL_MISSING',
+  'textarea-name': 'ACC_FRM_01_LABEL_MISSING',
   
   // ====================================
   // IMAGE & MEDIA RULES MAPPING  
@@ -97,6 +100,16 @@ export const AXE_TO_DATABASE_MAPPING: RuleMapping = {
   // Newly activated visual rules
   'focus-order-semantics': 'ACC_KBD_05_FOCUS_ORDER_LOGICAL',
   'scrollable-region-focusable': 'ACC_KBD_04_INTERACTIVE_NOT_FOCUSABLE',
+  
+  // ====================================
+  // TABLE RULES MAPPING
+  // ====================================
+  
+  'table-duplicate-name': 'ACC_TBL_02_CAPTION_MISSING',
+  'table-fake-caption': 'ACC_TBL_02_CAPTION_MISSING',
+  'td-headers-attr': 'ACC_TBL_04_COMPLEX_TABLE_HEADERS',
+  'th-has-data-cells': 'ACC_TBL_01_HEADER_MISSING',
+  'layout-table': 'ACC_TBL_05_LAYOUT_TABLE_HEADERS',
 };
 
 /**
@@ -263,7 +276,41 @@ export const RULE_CATEGORY_MAPPING = {
   'color-contrast-enhanced': 'color-visual',
   'link-in-text-block': 'color-visual',
   'focus-order-semantics': 'keyboard',
-  'scrollable-region-focusable': 'keyboard'
+  'scrollable-region-focusable': 'keyboard',
+  
+  // Form rule mappings to categories
+  'label': 'forms-input',
+  'button-name': 'forms-input',
+  'input-button-name': 'forms-input',
+  'form-field-multiple-labels': 'forms-input',
+  'label-title-only': 'forms-input',
+  'fieldset-legend': 'forms-input',
+  'select-name': 'forms-input',
+  'textarea-name': 'forms-input',
+  
+  // Structure rule mappings to categories
+  'heading-order': 'content-structure',
+  'empty-heading': 'content-structure',
+  'document-title': 'content-structure',
+  'html-has-lang': 'content-structure',
+  'html-lang-valid': 'content-structure',
+  'valid-lang': 'content-structure',
+  'bypass': 'content-structure',
+  'landmark-one-main': 'content-structure',
+  'landmark-complementary-is-top-level': 'content-structure',
+  'landmark-main-is-top-level': 'content-structure',
+  'landmark-unique': 'content-structure',
+  'page-has-heading-one': 'content-structure',
+  'list': 'content-structure',
+  'listitem': 'content-structure',
+  'definition-list': 'content-structure',
+  
+  // Table rule mappings to categories
+  'table-duplicate-name': 'tables-data',
+  'table-fake-caption': 'tables-data',
+  'td-headers-attr': 'tables-data',
+  'th-has-data-cells': 'tables-data',
+  'layout-table': 'tables-data'
 };
 
 /**

@@ -7,6 +7,9 @@ import { colorContrastQueue } from '@/lib/queue/colorContrast';
 import { ariaQueue } from '@/lib/queue/aria';
 import { keyboardQueue } from '@/lib/queue/keyboard';
 import { mediaQueue } from '@/lib/queue/media';
+import { formsQueue } from '@/lib/queue/forms';
+import { structureQueue } from '@/lib/queue/structure';
+import { tablesQueue } from '@/lib/queue/tables';
 import { AppError } from '@/types';
 import { technicalSeoQueue } from '@/lib/queue/technicalSeo';
 
@@ -38,11 +41,13 @@ interface FetcherResult {
 const analyzerQueues = {
   colorContrast: colorContrastQueue,
   aria: ariaQueue,
-  keyboard: keyboardQueue,        // NEW: Keyboard navigation analysis
-  media: mediaQueue,              // NEW: Media accessibility analysis
+  keyboard: keyboardQueue,        // Keyboard navigation analysis
+  media: mediaQueue,              // Media accessibility analysis
+  forms: formsQueue,              // NEW: Forms accessibility analysis
+  structure: structureQueue,      // NEW: Content structure analysis
+  tables: tablesQueue,            // NEW: Tables accessibility analysis
   technicalSeo: technicalSeoQueue,
   // TODO: Add other analyzer queues as they are implemented
-  // forms: formsQueue,
   // altText: altTextQueue,
   // onPageSeo: onPageSeoQueue,
   // metaTags: metaTagsQueue,
@@ -57,7 +62,7 @@ const analyzerQueues = {
 // Now supports multiple workers per module
 const moduleToWorkerMap = {
   'Fetcher': [], // Handled separately in the fetcher step
-  'Accessibility': ['colorContrast', 'aria'], // Multiple workers for accessibility
+  'Accessibility': ['colorContrast', 'aria', 'keyboard', 'media', 'forms', 'structure', 'tables'], // Enhanced accessibility workers
   'SEO': ['technicalSeo'],
   // TODO: Add these as workers are implemented
   // 'Performance': ['coreWebVitals', 'imageOptimization']

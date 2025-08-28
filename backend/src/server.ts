@@ -214,10 +214,13 @@ class Server {
       const { fetcherWorker } = await import('@/core/workers/fetcher.worker');
       const { colorContrastWorker } = await import('@/core/workers/accessibility/colorContrast.worker');
       const { ariaWorker } = await import('@/core/workers/accessibility/aria.worker');
-        const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
+      const { formsAnalysisWorker } = await import('@/core/workers/accessibility/forms.analysis.worker');
+      const { structureAnalysisWorker } = await import('@/core/workers/accessibility/structure.analysis.worker');
+      const { tablesAnalysisWorker } = await import('@/core/workers/accessibility/tables.analysis.worker');
+      const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
       
       logger.info('BullMQ workers initialized successfully', {
-        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'technicalSeo']
+        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'forms', 'structure', 'tables', 'technicalSeo']
       });
     } catch (error) {
       logger.error('Failed to initialize workers', { error: error.message });
@@ -236,14 +239,20 @@ class Server {
       const { fetcherWorker } = await import('@/core/workers/fetcher.worker');  
       const { colorContrastWorker } = await import('@/core/workers/accessibility/colorContrast.worker');
       const { ariaWorker } = await import('@/core/workers/accessibility/aria.worker');
-        const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
+      const { formsAnalysisWorker } = await import('@/core/workers/accessibility/forms.analysis.worker');
+      const { structureAnalysisWorker } = await import('@/core/workers/accessibility/structure.analysis.worker');
+      const { tablesAnalysisWorker } = await import('@/core/workers/accessibility/tables.analysis.worker');
+      const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
       
       await Promise.all([
         masterWorker.close(),
         fetcherWorker.close(),
         colorContrastWorker.close(),
-          ariaWorker.close(),
-          technicalSeoWorker.close()
+        ariaWorker.close(),
+        formsAnalysisWorker.close(),
+        structureAnalysisWorker.close(),
+        tablesAnalysisWorker.close(),
+        technicalSeoWorker.close()
       ]);
       
       logger.info('BullMQ workers closed successfully');

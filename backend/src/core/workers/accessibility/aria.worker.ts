@@ -371,10 +371,10 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
           'aria-valid-attr': { enabled: true },
           'aria-valid-attr-value': { enabled: true },
           
-          // Additional ARIA rules - newly activated
-          'aria-braillelabel-equivalent': { enabled: true },  // ARIA braille labels must be equivalent to accessible names
-          'aria-text': { enabled: true },                     // aria-text must be added to elements with explicit semantic meanings
-          'aria-treeitem-name': { enabled: true },            // ARIA treeitem elements must have accessible names
+          // Additional ARIA rules - newly activated (some rules may not be available in current axe-core version)
+          // 'aria-braillelabel-equivalent': { enabled: true },  // Not available in current axe-core version
+          // 'aria-text': { enabled: true },                     // Not available in current axe-core version  
+          // 'aria-treeitem-name': { enabled: true },            // Not available in current axe-core version
           
           // Expanded accessibility rules that are commonly violated
           'button-name': { enabled: true },            // Buttons must have accessible text
@@ -419,8 +419,8 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
           'aria-required-attr', 'aria-required-children', 'aria-required-parent', 'aria-roledescription', 
           'aria-roles', 'aria-toggle-field-name', 'aria-tooltip-name', 'aria-valid-attr', 'aria-valid-attr-value',
           
-          // Additional ARIA rules - newly activated
-          'aria-braillelabel-equivalent', 'aria-text', 'aria-treeitem-name',
+          // Additional ARIA rules - newly activated (commented out - not available in current axe-core version)
+          // 'aria-braillelabel-equivalent', 'aria-text', 'aria-treeitem-name',
           
           // Expanded accessibility rules
           'button-name', 'input-button-name', 'link-name', 'form-field-multiple-labels', 'label', 
@@ -483,8 +483,8 @@ export async function processAriaAnalysis(job: Job<AriaJobData>) {
         'aria-required-attr', 'aria-required-children', 'aria-required-parent', 'aria-roledescription', 
         'aria-roles', 'aria-toggle-field-name', 'aria-tooltip-name', 'aria-valid-attr', 'aria-valid-attr-value',
         
-        // Additional ARIA rules - newly activated
-        'aria-braillelabel-equivalent', 'aria-text', 'aria-treeitem-name',
+        // Additional ARIA rules - newly activated (commented out - not available in current axe-core version)
+        // 'aria-braillelabel-equivalent', 'aria-text', 'aria-treeitem-name',
         
         // Expanded accessibility rules
         'button-name', 'input-button-name', 'link-name', 'form-field-multiple-labels', 'label', 
