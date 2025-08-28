@@ -130,7 +130,7 @@ const OccurrenceFix = styled.div`
   background: var(--color-success-100);
   border: 1px solid var(--color-success-300);
   border-radius: var(--border-radius-sm);
-  padding: var(--spacing-sm);
+  padding: var(--spacing-md);
   margin-top: var(--spacing-sm);
   
   &:before {
@@ -142,6 +142,7 @@ const OccurrenceFix = styled.div`
   color: var(--color-success-600);
   font-size: var(--font-size-sm);
   line-height: var(--line-height-relaxed);
+  white-space: pre-line;
 `;
 
 // Helper functions
