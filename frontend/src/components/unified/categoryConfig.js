@@ -11,7 +11,12 @@ import {
   FaUniversalAccess,
   FaHandPointer,
   FaMobileAlt,
-  FaGlobe
+  FaGlobe,
+  FaTachometerAlt,
+  FaCompressAlt,
+  FaCloudDownloadAlt,
+  FaLightbulb,
+  FaBolt
 } from 'react-icons/fa';
 
 // Configuration for all category types across SEO and Accessibility
@@ -92,6 +97,38 @@ export const CATEGORY_CONFIG = {
     description: 'Mobile-specific accessibility issues'
   },
   
+  // Performance Categories
+  coreWebVitals: {
+    icon: FaTachometerAlt,
+    color: '#dc2626',
+    label: 'Core Web Vitals',
+    description: 'Google Core Web Vitals metrics and optimization'
+  },
+  imageOptimization: {
+    icon: FaImage,
+    color: '#059669',
+    label: 'Image Optimization',
+    description: 'Image format, sizing, and loading optimizations'
+  },
+  resourceOptimization: {
+    icon: FaCompressAlt,
+    color: '#7c3aed',
+    label: 'Resource Optimization',
+    description: 'CSS, JavaScript, and resource loading optimization'
+  },
+  caching: {
+    icon: FaCloudDownloadAlt,
+    color: '#0891b2',
+    label: 'Caching & Delivery',
+    description: 'Browser caching and content delivery optimization'
+  },
+  performanceGeneral: {
+    icon: FaBolt,
+    color: '#ea580c',
+    label: 'Performance Optimization',
+    description: 'General performance improvements and best practices'
+  },
+  
   // General/Fallback
   general: {
     icon: FaGlobe,
@@ -118,6 +155,13 @@ export const determineCategoryFromIssue = (issue) => {
   if (ruleKey.startsWith('SEO_STR_')) return 'structure';
   if (ruleKey.startsWith('SEO_SCHEMA_')) return 'schema';
   if (ruleKey.startsWith('SEO_AI_')) return 'ai';
+  
+  // Performance rule key patterns
+  if (ruleKey.startsWith('PERF_CWV_')) return 'coreWebVitals';
+  if (ruleKey.startsWith('PERF_IMG_')) return 'imageOptimization';
+  if (ruleKey.startsWith('PERF_RES_')) return 'resourceOptimization';
+  if (ruleKey.startsWith('PERF_CACHE_')) return 'caching';
+  if (ruleKey.startsWith('PERF_JS_')) return 'resourceOptimization';
   
   // Accessibility patterns based on rule keys
   if (ruleKey.includes('alt-text') || ruleKey.includes('image')) return 'images';

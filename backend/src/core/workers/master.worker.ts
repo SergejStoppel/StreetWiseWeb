@@ -12,6 +12,8 @@ import { structureQueue } from '@/lib/queue/structure';
 import { tablesQueue } from '@/lib/queue/tables';
 import { AppError } from '@/types';
 import { technicalSeoQueue } from '@/lib/queue/technicalSeo';
+import { coreWebVitalsQueue } from '@/lib/queue/coreWebVitals';
+import { imageOptimizationQueue } from '@/lib/queue/imageOptimization';
 
 const logger = createLogger('master-worker');
 
@@ -47,6 +49,8 @@ const analyzerQueues = {
   structure: structureQueue,      // NEW: Content structure analysis
   tables: tablesQueue,            // NEW: Tables accessibility analysis
   technicalSeo: technicalSeoQueue,
+  coreWebVitals: coreWebVitalsQueue,         // Performance: Core Web Vitals analysis
+  imageOptimization: imageOptimizationQueue, // Performance: Image optimization analysis
   // TODO: Add other analyzer queues as they are implemented
   // altText: altTextQueue,
   // onPageSeo: onPageSeoQueue,
@@ -64,8 +68,8 @@ const moduleToWorkerMap = {
   'Fetcher': [], // Handled separately in the fetcher step
   'Accessibility': ['colorContrast', 'aria', 'keyboard', 'media', 'forms', 'structure', 'tables'], // Enhanced accessibility workers
   'SEO': ['technicalSeo'],
+  'Performance': ['coreWebVitals', 'imageOptimization'], // Performance analysis workers
   // TODO: Add these as workers are implemented
-  // 'Performance': ['coreWebVitals', 'imageOptimization']
 };
 
 async function createAnalysisJob(analysisId: string, moduleId: string, workerName?: string) {

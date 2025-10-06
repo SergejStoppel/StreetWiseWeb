@@ -1,0 +1,121 @@
+# Worker services for docker-compose.dev.yml
+# Use with: docker-compose -f docker-compose.dev.yml -f docker-compose.workers.yml up
+
+services:
+  # Master Worker - Orchestrates all analysis jobs
+  worker-master:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    env_file:
+      - .env
+    volumes:
+      - /app/node_modules
+    depends_on:
+      - redis
+    networks:
+      - sitecraft-network
+    command: npm run worker:master
+    restart: unless-stopped
+
+  # Fetcher Worker - Downloads website assets
+  worker-fetcher:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    env_file:
+      - .env
+    volumes:
+      - /app/node_modules
+    depends_on:
+      - redis
+    networks:
+      - sitecraft-network
+    command: npm run worker:fetcher
+    restart: unless-stopped
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - seccomp:unconfined
+
+  # Accessibility Workers
+  worker-accessibility:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    env_file:
+      - .env
+    volumes:
+      - /app/node_modules
+    depends_on:
+      - redis
+    networks:
+      - sitecraft-network
+    command: npm run worker:accessibility
+    restart: unless-stopped
+
+  # SEO Workers
+  worker-seo:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    env_file:
+      - .env
+    volumes:
+      - /app/node_modules
+    depends_on:
+      - redis
+    networks:
+      - sitecraft-network
+    command: npm run worker:seo
+    restart: unless-stopped
+
+  # Performance Workers (Core Web Vitals + Image Optimization)
+  worker-performance:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+    env_file:
+      - .env
+    volumes:
+      - /app/node_modules
+    depends_on:
+      - redis
+    networks:
+      - sitecraft-network
+    command: npm run worker:performance
+    restart: unless-stopped
+    cap_add:
+      - SYS_ADMIN
+    security_opt:
+      - seccomp:unconfined
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G

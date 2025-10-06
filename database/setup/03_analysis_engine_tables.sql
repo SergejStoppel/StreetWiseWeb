@@ -41,6 +41,12 @@ CREATE TABLE analyses (
   accessibility_score INT,
   seo_score INT,
   performance_score INT,
+  -- Core Web Vitals metrics
+  lcp_value DECIMAL(8,3), -- Largest Contentful Paint in seconds
+  cls_value DECIMAL(8,3), -- Cumulative Layout Shift (unitless)
+  tbt_value DECIMAL(8,3), -- Total Blocking Time in milliseconds  
+  fcp_value DECIMAL(8,3), -- First Contentful Paint in seconds
+  performance_data JSONB, -- Full Lighthouse report data
   created_at TIMESTAMPTZ DEFAULT now(),
   completed_at TIMESTAMPTZ
 );
@@ -73,6 +79,9 @@ CREATE INDEX idx_rules_rule_key ON rules(rule_key);
 CREATE INDEX idx_analyses_website_id ON analyses(website_id);
 CREATE INDEX idx_analyses_user_id ON analyses(user_id);
 CREATE INDEX idx_analyses_status ON analyses(status);
+CREATE INDEX idx_analyses_lcp_value ON analyses(lcp_value);
+CREATE INDEX idx_analyses_cls_value ON analyses(cls_value);
+CREATE INDEX idx_analyses_tbt_value ON analyses(tbt_value);
 CREATE INDEX idx_analysis_jobs_analysis_id ON analysis_jobs(analysis_id);
 CREATE INDEX idx_analysis_jobs_status ON analysis_jobs(status);
 CREATE INDEX idx_screenshots_analysis_id ON screenshots(analysis_id);

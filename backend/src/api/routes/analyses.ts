@@ -660,6 +660,13 @@ router.get('/:id', async (req, res, next) => {
         seo: seoScore,
         performance: performanceScore
       },
+      performanceMetrics: {
+        lcp: analysis.lcp_value,
+        cls: analysis.cls_value,
+        tbt: analysis.tbt_value,
+        fcp: analysis.fcp_value,
+        performanceData: analysis.performance_data
+      },
       issues: {
         accessibility: accessibilityIssues || [],
         seo: seoIssues || [],

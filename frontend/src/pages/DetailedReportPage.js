@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { 
   FaAccessibleIcon, 
   FaSearch, 
-  FaRocket, 
+  FaTachometerAlt, 
   FaCheckCircle,
   FaTimes,
   FaArrowLeft,
@@ -17,6 +17,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ScreenshotCard from '../components/ScreenshotCard';
 import SeoResults from '../components/SeoResults';
 import AccessibilityResults from '../components/AccessibilityResults';
+import PerformanceResults from '../components/PerformanceResults';
 
 const ReportContainer = styled.div`
   min-height: calc(100vh - 160px);
@@ -303,22 +304,13 @@ const DetailedReportPage = () => {
   };
 
 
-  const renderPerformanceResults = (performanceData, score) => {
-    // TODO: Create PerformanceResults component later
-    if (!performanceData || performanceData.length === 0) {
-      return (
-        <EmptyState>
-          <FaCheckCircle size={48} style={{ color: 'var(--color-success)', marginBottom: 'var(--spacing-md)' }} />
-          <h3>No performance issues found!</h3>
-          <p>Great job! Your website meets all performance requirements we tested.</p>
-        </EmptyState>
-      );
-    }
-    
+  const renderPerformanceResults = (performanceData, score, metrics) => {
     return (
-      <div>
-        <p>Performance analysis results will be displayed here.</p>
-      </div>
+      <PerformanceResults 
+        performanceData={performanceData} 
+        score={score}
+        metrics={metrics}
+      />
     );
   };
   if (loading) {
@@ -453,7 +445,7 @@ const DetailedReportPage = () => {
               active={activeTab === 'performance'}
               onClick={() => setActiveTab('performance')}
             >
-              <FaRocket />
+              <FaTachometerAlt />
               Performance
               <IssueCount $count={groupedIssues.performance.length}>
                 {groupedIssues.performance.length}
@@ -474,7 +466,11 @@ const DetailedReportPage = () => {
                 score={scores.seo}
               />
             )}
-            {activeTab === 'performance' && renderPerformanceResults(groupedIssues.performance, scores.performance)}
+            {activeTab === 'performance' && renderPerformanceResults(
+              groupedIssues.performance, 
+              scores.performance, 
+              analysis.performanceMetrics || analysis.performance_metrics
+            )}
           </TabContent>
         </TabContainer>
       </ContentContainer>

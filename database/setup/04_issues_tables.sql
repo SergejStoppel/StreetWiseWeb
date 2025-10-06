@@ -42,6 +42,12 @@ CREATE TABLE performance_issues (
   message TEXT,
   fix_suggestion TEXT,
   screenshot_highlight JSONB,
+  -- Performance-specific columns
+  metric_value DECIMAL(10,3), -- Numeric metric value (LCP, CLS, etc.)
+  improvement_potential TEXT, -- Estimated improvement (e.g., "Save 2.5s", "Reduce by 0.15")
+  resource_url TEXT, -- URL of problematic resource (for images, JS, CSS)
+  savings_bytes INTEGER, -- Potential bytes saved
+  savings_ms INTEGER, -- Potential milliseconds saved
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
@@ -57,3 +63,5 @@ CREATE INDEX idx_seo_issues_severity ON seo_issues(severity);
 CREATE INDEX idx_performance_issues_job_id ON performance_issues(analysis_job_id);
 CREATE INDEX idx_performance_issues_rule_id ON performance_issues(rule_id);
 CREATE INDEX idx_performance_issues_severity ON performance_issues(severity);
+CREATE INDEX idx_performance_issues_metric_value ON performance_issues(metric_value);
+CREATE INDEX idx_performance_issues_resource_url ON performance_issues(resource_url);
