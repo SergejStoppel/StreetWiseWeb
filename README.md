@@ -6,7 +6,7 @@
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org/)
 [![React](https://img.shields.io/badge/React-18+-blue.svg)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5+-blue.svg)](https://www.typescriptlang.org/)
-[![Supabase](https://img.shields.io/badge/Database-Supabase-green.svg)](https://supabase.com/)
+[![Google Cloud](https://img.shields.io/badge/Database-Google%20Cloud-blue.svg)](https://cloud.google.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-blue.svg)](https://www.docker.com/)
 
 SiteCraft V3 is a next-generation, multi-tenant accessibility analysis platform that provides comprehensive website compliance analysis with WCAG guidelines. Featuring workspace-based collaboration, advanced rule engines, and enterprise-grade security.
@@ -34,12 +34,13 @@ SiteCraft V3 is a next-generation, multi-tenant accessibility analysis platform 
 
 ### Backend V3 (TypeScript)
 - **Runtime**: Node.js 18+ with Express.js and full TypeScript support
-- **Database**: Supabase PostgreSQL with Row Level Security and multi-tenancy
-- **Queue System**: BullMQ with Redis for job processing and analysis pipeline
-- **Authentication**: Complete Supabase Auth integration with workspace management
+- **Database**: Google Cloud SQL PostgreSQL with application-level multi-tenancy
+- **Queue System**: BullMQ with Google Cloud Memorystore (Redis) for job processing
+- **Authentication**: Firebase Auth with workspace management and JWT validation
+- **Storage**: Google Cloud Storage with secure bucket policies and CDN delivery
 - **Analysis Engine**: Modular system with 100+ rules for Accessibility, SEO, Performance
-- **Security**: Helmet, CORS, rate limiting, JWT validation, and audit logging
-- **Logging**: Winston with structured logging and environment-aware configuration
+- **Security**: Helmet, CORS, rate limiting, IAM-based access control, and audit logging
+- **Logging**: Winston with structured logging and Google Cloud Logging integration
 - **Validation**: Zod schemas for comprehensive input validation
 
 ### Frontend (React + TypeScript)
@@ -53,21 +54,25 @@ SiteCraft V3 is a next-generation, multi-tenant accessibility analysis platform 
 - **Build Tool**: Create React App with TypeScript template
 
 ### Infrastructure & DevOps
-- **Database**: Multi-tenant Supabase setup with development/production projects
-- **Authentication**: Supabase Auth with email confirmation and password management
-- **Storage**: Supabase Storage with bucket policies and CDN optimization
-- **Deployment**: Docker multi-stage builds with development and production configurations
-- **Environment**: Unified .env system supporting dev/prod environment switching
-- **Monitoring**: Health checks, structured logging, and comprehensive error tracking
-- **Job Processing**: Redis-backed queue system for scalable analysis processing
+- **Database**: Google Cloud SQL PostgreSQL with high availability and automated backups
+- **Authentication**: Firebase Auth with email confirmation and password management
+- **Storage**: Google Cloud Storage with secure bucket policies and global CDN
+- **Redis**: Google Cloud Memorystore for Redis queue system and caching
+- **Secrets**: Google Secret Manager for secure credential management
+- **Deployment**: Docker multi-stage builds with Google Cloud Run/GKE support
+- **Environment**: Google Cloud native configuration with environment separation
+- **Monitoring**: Google Cloud Monitoring, Logging, and comprehensive error tracking
+- **Job Processing**: Cloud-native queue system for scalable analysis processing
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 - **Node.js** v18 or higher
-- **Docker** and **Docker Compose** (optional, for containerized development)
+- **Docker** and **Docker Compose** (optional, for containerized development)  
 - **Git** for version control
-- **Supabase Account** (free tier available - you'll need separate dev/prod projects)
+- **Google Cloud Account** with billing enabled
+- **Firebase Project** for authentication
+- **Google Cloud CLI** (`gcloud`) installed and configured
 
 ### Installation
 
@@ -82,49 +87,94 @@ SiteCraft V3 is a next-generation, multi-tenant accessibility analysis platform 
    npm run install-all
    ```
 
-3. **Environment Configuration**
+3. **Google Cloud Infrastructure Setup**
+   
+   Set up your Google Cloud infrastructure:
    ```bash
-   # Copy the unified environment template
+   # Enable required APIs
+   gcloud services enable sqladmin.googleapis.com storage.googleapis.com \
+     redis.googleapis.com secretmanager.googleapis.com firebase.googleapis.com \
+     identitytoolkit.googleapis.com
+   
+   # Create Cloud SQL instance
+   gcloud sql instances create street-wise-web-db \
+     --database-version=POSTGRES_15 --tier=db-g1-small \
+     --region=us-central1 --availability-type=REGIONAL
+   
+   # Create application database
+   gcloud sql databases create streetwiseweb --instance=street-wise-web-db
+   
+   # Create Cloud Storage bucket
+   gsutil mb -p PROJECT_ID -c standard -l us-central1 \
+     gs://street-wise-web-assets/
+   
+   # Set up Firebase Auth (via console.firebase.google.com)
+   firebase login
+   firebase init
+   ```
+
+4. **Environment Configuration**
+   ```bash
+   # Copy the environment template
    cp .env.example .env
    ```
    
    **Configure your `.env` file:**
    ```bash
    # ===========================================
-   # ENVIRONMENT SELECTOR
+   # GOOGLE CLOUD CONFIGURATION
    # ===========================================
-   APP_ENV=development  # Change to 'production' when ready
+   GOOGLE_CLOUD_PROJECT=street-wise-web
+   GOOGLE_APPLICATION_CREDENTIALS=./firebase-admin-key.json
    
    # ===========================================
-   # DEVELOPMENT SUPABASE CONFIG
+   # DATABASE (Cloud SQL)
    # ===========================================
-   DEV_SUPABASE_URL=https://your-dev-project-id.supabase.co
-   DEV_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-   DEV_SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   CLOUD_SQL_CONNECTION_NAME=street-wise-web:us-central1:street-wise-web-db
+   DB_USER=streetwise_app
+   DB_PASSWORD=your-secure-password
+   DB_NAME=streetwiseweb
    
    # ===========================================
-   # PRODUCTION SUPABASE CONFIG (when ready)
+   # FIREBASE AUTH
    # ===========================================
-   PROD_SUPABASE_URL=https://your-prod-project-id.supabase.co
-   PROD_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-   PROD_SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   FIREBASE_PROJECT_ID=street-wise-web
+   FIREBASE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n"
+   FIREBASE_CLIENT_EMAIL=firebase-adminsdk-xxx@street-wise-web.iam.gserviceaccount.com
+   
+   # ===========================================
+   # STORAGE (Cloud Storage)
+   # ===========================================
+   GCS_BUCKET_NAME=street-wise-web-assets
+   
+   # ===========================================
+   # REDIS (Cloud Memorystore)
+   # ===========================================
+   REDIS_HOST=10.0.0.3
+   REDIS_PORT=6379
    ```
 
-4. **Database Setup**
+5. **Database Setup**
    
-   Run the database setup scripts in your Supabase project:
+   Run the Google Cloud setup scripts:
    ```bash
-   # Execute scripts in order in your Supabase SQL editor:
-   # 1. database/setup/01_extensions_and_types.sql
-   # 2. database/setup/02_core_tables.sql
-   # 3. database/setup/03_analysis_engine_tables.sql
-   # 4. database/setup/04_issues_tables.sql
-   # 5. database/setup/05_billing_tables.sql
-   # 6. database/setup/06_reporting_audit_tables.sql
-   # 7. database/setup/07_functions.sql
-   # 8. database/setup/08_triggers.sql
-   # 9. database/setup/09_rls_policies.sql
-   # 10. database/setup/10_initial_data.sql
+   # Connect to your Cloud SQL instance
+   gcloud sql connect street-wise-web-db --user=postgres
+   
+   # Or use the Cloud SQL Proxy for local development
+   cloud_sql_proxy -instances=INSTANCE_CONNECTION_NAME=tcp:5432
+   
+   # Execute scripts in order from database/GoogleSetup/:
+   # 1. 01_extensions_and_types.sql
+   # 2. 02_core_tables.sql  
+   # 3. 03_analysis_engine_tables.sql
+   # 4. 04_issues_tables.sql
+   # 5. 05_billing_tables.sql
+   # 6. 06_reporting_audit_tables.sql
+   # 7. 07_firebase_functions.sql
+   # 8. 08_triggers.sql
+   # 9. 09_application_security.sql
+   # 10. 10_seed_data.sql
    ```
 
 ## 🚀 Running the Application

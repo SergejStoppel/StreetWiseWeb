@@ -1,0 +1,74 @@
+# =====================================
+# SiteCraft Terraform Variables Example
+# Copy this file to terraform.tfvars and customize for your environment
+# =====================================
+
+# =====================================
+# Project Configuration
+# =====================================
+project_id   = "street-wise-web"
+project_name = "street-wise-web"
+region       = "us-central1"
+zone         = "us-central1-a"
+environment  = "development"  # development, staging, production
+
+# =====================================
+# Database Configuration
+# =====================================
+database_name = "streetwiseweb"
+db_user      = "streetwise_app"
+db_tier      = "db-g1-small"    # For production: db-n1-standard-2 or higher
+db_disk_size = 20               # GB - For production: 100 or higher
+
+# =====================================
+# Redis Configuration
+# =====================================
+redis_memory_gb = 1             # For production: 4 or higher
+
+# =====================================
+# Network Configuration
+# =====================================
+cors_origins = [
+  "http://localhost:3000",
+  "https://localhost:3000",
+  "https://your-domain.com"     # Add your production domain
+]
+
+# =====================================
+# Firebase Configuration
+# =====================================
+firebase_project_id = "street-wise-web"
+
+# =====================================
+# Feature Toggles
+# =====================================
+enable_private_networking = true
+enable_backup_retention   = true
+enable_monitoring         = true
+
+# =====================================
+# Resource Labels
+# =====================================
+labels = {
+  project     = "sitecraft"
+  environment = "development"
+  managed_by  = "terraform"
+  team        = "backend"
+  cost_center = "engineering"
+}
+
+# =====================================
+# Environment-Specific Overrides
+# =====================================
+
+# For Production:
+# environment = "production"
+# db_tier = "db-n1-standard-2"
+# db_disk_size = 100
+# redis_memory_gb = 4
+
+# For Staging:
+# environment = "staging"
+# db_tier = "db-n1-standard-1"
+# db_disk_size = 50
+# redis_memory_gb = 2
