@@ -2,7 +2,7 @@ name: Deploy to Production (Supabase)
 
 on:
   push:
-    branches: [prod, production]
+    branches: [prod, production]  # Only trigger on prod/production branches
   workflow_dispatch: # Allow manual trigger from GitHub UI
 
 jobs:
@@ -37,10 +37,17 @@ jobs:
           echo "Waiting 10 seconds before proceeding..."
           sleep 10
 
+      - name: Link to Production project
+        run: |
+          echo "🔗 Linking to Production Supabase project..."
+          supabase link --project-ref ${{ secrets.PROD_SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
       - name: Run database migrations (Prod)
         run: |
-          echo "🚀 Deploying to Production Supabase..."
-          supabase db push --project-ref ${{ secrets.PROD_SUPABASE_PROJECT_REF }} --include-all
+          echo "🚀 Deploying migrations to Production..."
+          supabase db push --linked
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 

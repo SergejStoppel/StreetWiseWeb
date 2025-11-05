@@ -2,7 +2,7 @@ name: Deploy to Development (Supabase)
 
 on:
   push:
-    branches: [main, claude/*]
+    branches: [main]  # Only trigger on main branch
   pull_request:
     branches: [main]
 
@@ -26,10 +26,17 @@ jobs:
           ls -la supabase/migrations/
           echo "✅ Found $(ls -1 supabase/migrations/*.sql | wc -l) migration files"
 
+      - name: Link to Development project
+        run: |
+          echo "🔗 Linking to Development Supabase project..."
+          supabase link --project-ref ${{ secrets.DEV_SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
       - name: Run database migrations (Dev)
         run: |
-          echo "🚀 Deploying to Development Supabase..."
-          supabase db push --project-ref ${{ secrets.DEV_SUPABASE_PROJECT_REF }} --include-all
+          echo "🚀 Deploying migrations to Development..."
+          supabase db push --linked
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
@@ -40,3 +47,4 @@ jobs:
           echo "🔗 Project: ${{ secrets.DEV_SUPABASE_PROJECT_REF }}"
           echo "🌿 Branch: ${{ github.ref_name }}"
           echo "👤 Triggered by: ${{ github.actor }}"
+          echo "⏰ Deployed at: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
