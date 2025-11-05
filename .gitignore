@@ -151,3 +151,15 @@ frontend/node_modules/.cache/
 *.old
 **/*.pack
 **/*.pack.old
+
+# Supabase local development
+.supabase/
+supabase/.branches/
+supabase/.temp/
+supabase/functions/.cache/
+
+# Database dumps and backups
+*.sql.gz
+*.dump
+*.bak
+*.backup
