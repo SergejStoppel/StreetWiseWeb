@@ -148,7 +148,7 @@ router.post('/public', async (req, res, next) => {
 
     // Get or create a system user and public workspace for unauthenticated analyses
     let publicWorkspace;
-    
+
     // First, get or create a system user for public analyses
     let systemUser;
     const { data: existingUsers } = await supabase
@@ -156,7 +156,7 @@ router.post('/public', async (req, res, next) => {
       .select('id')
       .eq('email', 'system@sitecraft.public')
       .limit(1);
-      
+
     const existingUser = existingUsers?.[0];
 
     if (existingUser) {
@@ -182,7 +182,7 @@ router.post('/public', async (req, res, next) => {
       .select('id')
       .eq('name', 'Public Analyses')
       .limit(1);
-      
+
     const existingWorkspace = existingWorkspaces?.[0];
 
     if (existingWorkspace) {
@@ -191,18 +191,56 @@ router.post('/public', async (req, res, next) => {
       // Create public workspace with system user as owner
       const { data: newWorkspaces, error: workspaceError } = await supabase
         .from('workspaces')
-        .insert({ 
+        .insert({
           name: 'Public Analyses',
           owner_id: systemUser.id
         })
         .select();
-        
+
       const newWorkspace = newWorkspaces?.[0];
 
       if (workspaceError) {
         throw workspaceError;
       }
       publicWorkspace = newWorkspace;
+    }
+
+    // Check for existing analysis within last 24 hours (rate limiting for public analyses)
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: recentAnalyses, error: recentAnalysisError } = await supabase
+      .from('analyses')
+      .select(`
+        id,
+        status,
+        created_at,
+        websites!inner(url)
+      `)
+      .eq('websites.url', url)
+      .gte('created_at', twentyFourHoursAgo)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (!recentAnalysisError && recentAnalyses && recentAnalyses.length > 0) {
+      const recentAnalysis = recentAnalyses[0];
+      logger.info('Found recent analysis within 24 hours', {
+        analysisId: recentAnalysis.id,
+        url,
+        createdAt: recentAnalysis.created_at
+      });
+
+      // Return the existing analysis
+      const response: ApiResponse = {
+        success: true,
+        message: 'This website was recently analyzed. Returning existing analysis to prevent duplicate processing.',
+        data: {
+          ...recentAnalysis,
+          isReused: true,
+          originalCreatedAt: recentAnalysis.created_at
+        },
+        timestamp: new Date().toISOString(),
+      };
+      return res.status(200).json(response);
     }
 
     // Create website record with public workspace

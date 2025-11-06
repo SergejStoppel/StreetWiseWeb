@@ -114,28 +114,30 @@ async function analyzeContentSEO(dom: Document, url: string): Promise<SeoIssue[]
   // SEO_CON_01_TITLE_TAG_MISSING
   const titleElement = dom.querySelector('title');
   if (!titleElement || !titleElement.textContent?.trim()) {
-    const titleExample = SeoExamplesService.getTitleTagExamples(null);
     issues.push({
       rule_key: 'SEO_CON_01_TITLE_TAG_MISSING',
       severity: 'critical',
       location_path: 'head > title',
-      code_snippet: titleExample.example?.badExample || '<!-- No title tag -->',
+      code_snippet: '<!-- No title tag found -->',
       message: 'Page title tag is missing or empty',
-      fix_suggestion: `${titleExample.fix_suggestion}\n\n✅ Good Example:\n${titleExample.example?.goodExample}\n\n💡 Why this matters: ${titleExample.example?.explanation}`
+      fix_suggestion: 'Add a unique, descriptive title tag (50-60 characters) that accurately describes the page content and includes your target keyword. Title tags are crucial for SEO and appear in search results.'
     });
   } else {
     const title = titleElement.textContent.trim();
-    
-    // SEO_CON_02_TITLE_TAG_LENGTH  
+
+    // SEO_CON_02_TITLE_TAG_LENGTH
     if (title.length < 30 || title.length > 60) {
-      const titleExample = SeoExamplesService.getTitleTagExamples(title, title.length);
+      const suggestion = title.length < 30
+        ? 'Expand your title tag to be more descriptive and include target keywords. Aim for 50-60 characters to fully utilize search result space.'
+        : 'Shorten your title tag to prevent truncation in search results. Keep it under 60 characters to avoid being cut off with "..." in search results.';
+
       issues.push({
         rule_key: 'SEO_CON_02_TITLE_TAG_LENGTH',
         severity: 'serious',
         location_path: 'head > title',
-        code_snippet: `<title>${title}</title>`,
+        code_snippet: `Current title (${title.length} chars):\n<title>${title}</title>`,
         message: `Title tag length is ${title.length} characters (optimal: 50-60 characters)`,
-        fix_suggestion: `${titleExample.fix_suggestion}\n\n❌ Current:\n<title>${title}</title>\n\n✅ Improved Example:\n${titleExample.example?.goodExample}\n\n💡 Why this matters: ${titleExample.example?.explanation}`
+        fix_suggestion: suggestion
       });
     }
   }
@@ -143,28 +145,30 @@ async function analyzeContentSEO(dom: Document, url: string): Promise<SeoIssue[]
   // SEO_CON_04_META_DESC_MISSING
   const metaDescription = dom.querySelector('meta[name="description"]') as HTMLMetaElement;
   if (!metaDescription || !metaDescription.content?.trim()) {
-    const descExample = SeoExamplesService.getMetaDescriptionExamples(null);
     issues.push({
       rule_key: 'SEO_CON_04_META_DESC_MISSING',
       severity: 'serious',
       location_path: 'head > meta[name="description"]',
-      code_snippet: descExample.example?.badExample || '<!-- No meta description -->',
+      code_snippet: '<!-- No meta description found -->',
       message: 'Meta description is missing',
-      fix_suggestion: `${descExample.fix_suggestion}\n\n✅ Good Example:\n${descExample.example?.goodExample}\n\n💡 Why this matters: ${descExample.example?.explanation}`
+      fix_suggestion: 'Add a compelling meta description (150-160 characters) that summarizes the page content and encourages clicks. Meta descriptions act as advertising copy in search results and significantly impact click-through rates.'
     });
   } else {
     const description = metaDescription.content.trim();
-    
+
     // SEO_CON_05_META_DESC_LENGTH
     if (description.length < 120 || description.length > 160) {
-      const descExample = SeoExamplesService.getMetaDescriptionExamples(description, description.length);
+      const suggestion = description.length < 120
+        ? 'Expand your meta description to better describe the page content. Aim for 150-160 characters to fully utilize the space available in search results and include compelling calls-to-action.'
+        : 'Shorten your meta description to prevent truncation. Keep it under 160 characters to avoid being cut off in search results, which can hide important information or calls-to-action.';
+
       issues.push({
         rule_key: 'SEO_CON_05_META_DESC_LENGTH',
         severity: 'moderate',
         location_path: 'head > meta[name="description"]',
-        code_snippet: `<meta name="description" content="${description}">`,
+        code_snippet: `Current meta description (${description.length} chars):\n<meta name="description" content="${description}">`,
         message: `Meta description length is ${description.length} characters (optimal: 120-160 characters)`,
-        fix_suggestion: `${descExample.fix_suggestion}\n\n❌ Current (${description.length} chars):\n<meta name="description" content="${description}">\n\n✅ Improved Example:\n${descExample.example?.goodExample}\n\n💡 Why this matters: ${descExample.example?.explanation}`
+        fix_suggestion: suggestion
       });
     }
   }
@@ -172,26 +176,23 @@ async function analyzeContentSEO(dom: Document, url: string): Promise<SeoIssue[]
   // SEO_CON_07_H1_MISSING & SEO_CON_08_H1_DUPLICATE
   const h1Elements = dom.querySelectorAll('h1');
   if (h1Elements.length === 0) {
-    const h1Example = SeoExamplesService.getH1TagExamples(null);
     issues.push({
       rule_key: 'SEO_CON_07_H1_MISSING',
       severity: 'serious',
       location_path: 'body',
-      code_snippet: h1Example.example?.badExample || '<!-- No H1 tag found -->',
+      code_snippet: '<!-- No H1 tag found -->',
       message: 'Page is missing an H1 heading tag',
-      fix_suggestion: `${h1Example.fix_suggestion}\n\n✅ Good Example:\n${h1Example.example?.goodExample}\n\n💡 Why this matters: ${h1Example.example?.explanation}`
+      fix_suggestion: 'Add a clear, descriptive H1 tag that represents the main topic of the page. Each page should have exactly one H1 tag that helps search engines and users understand the page content. The H1 should include your primary keyword naturally.'
     });
   } else if (h1Elements.length > 1) {
-    const currentH1 = h1Elements[0]?.textContent?.trim() || '';
-    const h1Example = SeoExamplesService.getH1TagExamples(currentH1, true);
     const allH1s = Array.from(h1Elements).map(el => `<h1>${el.textContent?.trim()}</h1>`).join('\n');
     issues.push({
       rule_key: 'SEO_CON_08_H1_DUPLICATE',
       severity: 'moderate',
       location_path: 'body',
-      code_snippet: allH1s,
+      code_snippet: `Found ${h1Elements.length} H1 tags:\n${allH1s}`,
       message: `Page has ${h1Elements.length} H1 tags (should have exactly one)`,
-      fix_suggestion: `${h1Example.fix_suggestion}\n\n❌ Current (${h1Elements.length} H1 tags):\n${allH1s}\n\n✅ Improved Structure:\n${h1Example.example?.goodExample}\n\n💡 Why this matters: ${h1Example.example?.explanation}`
+      fix_suggestion: 'Use only one H1 tag per page. Convert additional H1 tags to H2, H3, etc. to maintain proper heading hierarchy. Multiple H1 tags confuse search engines about the main topic. Use H1 for the page title, then H2-H6 for subsections.'
     });
   }
 
@@ -232,14 +233,13 @@ async function analyzeContentStructure(dom: Document, url: string): Promise<SeoI
       const density = matches ? (matches.length / wordCount) * 100 : 0;
       
       if (density > 3) { // Over 3% density is typically considered stuffing
-        const keywordExample = SeoExamplesService.getKeywordOptimizationExamples(word, density);
         issues.push({
           rule_key: 'SEO_STR_02_KEYWORD_DENSITY',
           severity: 'moderate',
           location_path: 'body',
-          code_snippet: keywordExample.example?.badExample || `<!-- Keyword "${word}" overused -->`,
+          code_snippet: `Keyword "${word}" appears ${matches ? matches.length : 0} times in ${wordCount} words (${density.toFixed(1)}% density)`,
           message: `Keyword over-optimization detected for "${word}" (${density.toFixed(1)}% density, recommended: 1-2%)`,
-          fix_suggestion: `${keywordExample.fix_suggestion}\n\n${keywordExample.example?.badExample}\n\n${keywordExample.example?.goodExample}\n\n💡 Why this matters: ${keywordExample.example?.explanation}`
+          fix_suggestion: `Use keywords naturally throughout your content without overstuffing:\n• Reduce repetition of "${word}" to achieve 1-2% density\n• Use synonyms and related terms for variety\n• Focus on writing for users, not search engines\n• Let keywords flow naturally in sentences\n\nNatural keyword usage (1-2% density) ranks better than keyword stuffing, which can be penalized.`
         });
         break; // Only report once per page
       }
@@ -361,15 +361,14 @@ async function analyzeStructuredData(dom: Document, url: string): Promise<SeoIss
                        dom.querySelector('h1') && bodyText.split(/\s+/).length > 300;
 
   if (isArticlePage && !hasArticleSchema && !dom.querySelector('[itemtype*="Article"]')) {
-    const pageTitle = dom.querySelector('title')?.textContent?.trim();
-    const articleExample = SeoExamplesService.getArticleSchemaExamples(pageTitle);
+    const pageTitle = dom.querySelector('title')?.textContent?.trim() || 'Your Article';
     issues.push({
       rule_key: 'SEO_SCHEMA_03_ARTICLE',
       severity: 'moderate',
       location_path: 'article content',
-      code_snippet: articleExample.example?.badExample || '<!-- No Article schema -->',
+      code_snippet: '<!-- No Article schema markup found -->',
       message: 'Article schema enhances content appearance in search results',
-      fix_suggestion: `${articleExample.fix_suggestion}\n\n❌ Current:\n${articleExample.example?.badExample}\n\n✅ Add this structured data:\n${articleExample.example?.goodExample}\n\n💡 Why this matters: ${articleExample.example?.explanation}`
+      fix_suggestion: `Add Article structured data to help search engines understand your content:\n• Include headline: "${pageTitle}"\n• Add author information\n• Specify publish and modified dates\n• Include article description\n• Add featured image URL\n\nArticle schema helps your content appear in Google News, enables rich snippets with author photos and publish dates, and can improve click-through rates by up to 30%.`
     });
   }
 
@@ -434,65 +433,60 @@ async function analyzeContentWithAI(dom: Document, url: string): Promise<SeoIssu
     
     // Generate issues based on AI analysis
     if (analysis.readabilityScore < 60) {
-      const readabilityExample = SeoExamplesService.getContentReadabilityExamples(analysis.readabilityScore);
       issues.push({
         rule_key: 'SEO_AI_01_READABILITY',
         severity: 'moderate',
         location_path: 'body content',
-        code_snippet: readabilityExample.example?.badExample || '<!-- Complex, hard-to-read content -->',
+        code_snippet: `Current Readability Score: ${analysis.readabilityScore}/100`,
         message: `Content readability score is ${analysis.readabilityScore}/100 (recommended: 60+)`,
-        fix_suggestion: `${readabilityExample.fix_suggestion}\n\n${readabilityExample.example?.badExample}\n\n${readabilityExample.example?.goodExample}\n\n💡 Why this matters: ${readabilityExample.example?.explanation}`
+        fix_suggestion: `Improve content readability by:\n• Using shorter sentences (under 20 words)\n• Choosing simpler vocabulary\n• Using active voice instead of passive\n• Breaking content into clear paragraphs\n• Adding bullet points and headings\n\nBetter readability keeps visitors engaged longer and helps search engines understand your content.`
       });
     }
     
     if (analysis.contentRelevance < 70) {
       const title = pageData.title || 'Page Title';
-      const contentMismatchExample = SeoExamplesService.getContentTitleMismatchExamples(title, pageData.bodyText.substring(0, 200));
       issues.push({
         rule_key: 'SEO_AI_02_CONTENT_RELEVANCE',
         severity: 'serious',
         location_path: 'content alignment',
-        code_snippet: `Title: "${title}"\nContent preview: "${pageData.bodyText.substring(0, 150)}..."`,
+        code_snippet: `Page Title: "${title}"\n\nFirst 200 chars of content: "${pageData.bodyText.substring(0, 200)}..."`,
         message: `Content relevance to title/meta is ${analysis.contentRelevance}% (recommended: 70%+)`,
-        fix_suggestion: `${contentMismatchExample.fix_suggestion}\n\n${contentMismatchExample.example?.badExample}\n\n${contentMismatchExample.example?.goodExample}\n\n💡 Why this matters: ${contentMismatchExample.example?.explanation}`
+        fix_suggestion: `Ensure your page content directly matches and supports your title tag:\n• Use main title keywords in the first paragraph\n• Address what the title promises immediately\n• Maintain consistent topic throughout the page\n• Avoid misleading titles that don't match content\n\nWhen content matches the title, users stay longer and bounce rate decreases.`
       });
     }
     
     if (analysis.keywordRelevance < 50) {
-      const keywordExample = SeoExamplesService.getKeywordOptimizationExamples('target keyword', 1.5);
       issues.push({
         rule_key: 'SEO_AI_03_KEYWORD_RELEVANCE',
         severity: 'moderate',
         location_path: 'keyword usage',
-        code_snippet: keywordExample.example?.badExample || '<!-- Keyword stuffed content -->',
+        code_snippet: `Current Keyword Relevance: ${analysis.keywordRelevance}/100`,
         message: `Keyword relevance score is ${analysis.keywordRelevance}/100 (recommended: 50%+)`,
-        fix_suggestion: `${keywordExample.fix_suggestion}\n\n${keywordExample.example?.badExample}\n\n${keywordExample.example?.goodExample}\n\n💡 Why this matters: ${keywordExample.example?.explanation}`
+        fix_suggestion: `Optimize keyword usage naturally:\n• Aim for 1-2% keyword density (not too high, not too low)\n• Use keywords in title, headings, and first paragraph\n• Include semantic variations and related terms\n• Focus on user value, not keyword stuffing\n• Let keywords flow naturally in sentences\n\nNatural keyword usage (1-2% density) ranks better than keyword stuffing.`
       });
     }
     
     // Add content gaps as suggestions
     if (analysis.contentGaps.length > 0) {
-      const contentExample = SeoExamplesService.getContentImprovementExamples(analysis.contentGaps);
       issues.push({
         rule_key: 'SEO_AI_04_CONTENT_GAPS',
         severity: 'minor',
         location_path: 'content strategy',
-        code_snippet: contentExample.example?.badExample || '<!-- Weak content example -->',
+        code_snippet: `Identified gaps:\n${analysis.contentGaps.map(gap => `• ${gap}`).join('\n')}`,
         message: 'AI analysis identified potential content improvements',
-        fix_suggestion: `${contentExample.fix_suggestion}\n\n${contentExample.example?.badExample}\n\n${contentExample.example?.goodExample}\n\n💡 Why this matters: ${contentExample.example?.explanation}`
+        fix_suggestion: `Enhance your content with:\n${analysis.contentGaps.map(gap => `• ${gap}`).join('\n')}\n\nComprehensive content increases engagement and conversion rates, while establishing your site as an authority.`
       });
     }
     
     // Add semantic suggestions if available
     if (analysis.semanticSuggestions.length > 0) {
-      const semanticExample = SeoExamplesService.getSemanticKeywordExamples(analysis.semanticSuggestions);
       issues.push({
         rule_key: 'SEO_AI_05_SEMANTIC_OPPORTUNITIES',
         severity: 'minor',
         location_path: 'semantic SEO',
-        code_snippet: semanticExample.example?.badExample || '<!-- Limited keyword usage -->',
+        code_snippet: `Suggested related keywords:\n${analysis.semanticSuggestions.map(keyword => `• ${keyword}`).join('\n')}`,
         message: 'Related semantic keywords could improve content relevance',
-        fix_suggestion: `${semanticExample.fix_suggestion}\n\n${semanticExample.example?.badExample}\n\n${semanticExample.example?.goodExample}\n\n💡 Why this matters: ${semanticExample.example?.explanation}`
+        fix_suggestion: `Include these related semantic keywords naturally in your content:\n${analysis.semanticSuggestions.map(keyword => `• ${keyword}`).join('\n')}\n\nSemantic keywords help search engines understand your content context better and capture more search queries.`
       });
     }
     

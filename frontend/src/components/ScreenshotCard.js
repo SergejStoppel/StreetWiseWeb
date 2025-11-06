@@ -167,7 +167,11 @@ const ScreenshotCard = ({ screenshots, className }) => {
 
   const getScreenshotUrl = (screenshot) => {
     if (!screenshot) return null;
-    const baseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://iywlcimloohmgjhjptoj.supabase.co';
+    const baseUrl = process.env.REACT_APP_SUPABASE_URL;
+    if (!baseUrl) {
+      console.error('REACT_APP_SUPABASE_URL is not configured');
+      return null;
+    }
     return `${baseUrl}/storage/v1/object/public/${screenshot.storage_bucket}/${screenshot.storage_path}`;
   };
 
