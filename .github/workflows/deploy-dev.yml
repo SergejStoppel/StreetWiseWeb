@@ -2,9 +2,7 @@ name: Deploy to Development (Supabase)
 
 on:
   push:
-    branches:
-      - main
-      - claude/*  # Temporary: for testing deployment before merging to main
+    branches: [main]  # Only deploy on main branch
   pull_request:
     branches: [main]
 
@@ -50,11 +48,3 @@ jobs:
           echo "🌿 Branch: ${{ github.ref_name }}"
           echo "👤 Triggered by: ${{ github.actor }}"
           echo "⏰ Deployed at: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
-
-      - name: Testing reminder
-        if: startsWith(github.ref, 'refs/heads/claude/')
-        run: |
-          echo ""
-          echo "⚠️  TESTING MODE - This deployment was triggered from a claude/* branch"
-          echo "📝 Remember to remove 'claude/*' from deploy-dev.yml after testing"
-          echo "🎯 Once confirmed working, merge to main for production workflow"
