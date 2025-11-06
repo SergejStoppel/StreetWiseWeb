@@ -1,9 +1,6 @@
 -- Storage Bucket Policies for Analysis Assets
 -- This script sets up Row Level Security (RLS) policies for the 'analysis-assets' storage bucket
--- Run this after creating the 'analysis-assets' bucket in Supabase Storage
-
--- Ensure RLS is enabled on storage.objects table
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
+-- Note: RLS is already enabled on storage.objects by Supabase, so we just create the policies
 
 -- Drop existing policies if they exist (for re-running the script)
 DROP POLICY IF EXISTS "Service can upload analysis assets" ON storage.objects;
@@ -35,19 +32,3 @@ WITH CHECK (bucket_id = 'analysis-assets');
 CREATE POLICY "Service can delete analysis assets" ON storage.objects
 FOR DELETE TO service_role
 USING (bucket_id = 'analysis-assets');
-
--- Verify policies were created successfully
-SELECT
-    schemaname,
-    tablename,
-    policyname,
-    permissive,
-    roles,
-    cmd,
-    qual,
-    with_check
-FROM pg_policies
-WHERE tablename = 'objects'
-AND schemaname = 'storage'
-AND policyname LIKE '%analysis assets%'
-ORDER BY policyname;
