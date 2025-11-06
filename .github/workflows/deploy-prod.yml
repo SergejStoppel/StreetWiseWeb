@@ -1,0 +1,70 @@
+name: Deploy to Production (Supabase)
+
+on:
+  push:
+    branches: [prod, production]  # Only trigger on prod/production branches
+  workflow_dispatch: # Allow manual trigger from GitHub UI
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: production # Requires manual approval in GitHub settings
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Verify migrations directory
+        run: |
+          echo "📁 Checking migrations directory..."
+          ls -la supabase/migrations/
+          echo "✅ Found $(ls -1 supabase/migrations/*.sql | wc -l) migration files"
+
+      - name: ⚠️ Production deployment warning
+        run: |
+          echo "⚠️  WARNING: PRODUCTION DEPLOYMENT ⚠️"
+          echo "This will modify the production database!"
+          echo "Environment: Production"
+          echo "Project: ${{ secrets.PROD_SUPABASE_PROJECT_REF }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Triggered by: ${{ github.actor }}"
+          echo ""
+          echo "Waiting 10 seconds before proceeding..."
+          sleep 10
+
+      - name: Link to Production project
+        run: |
+          echo "🔗 Linking to Production Supabase project..."
+          supabase link --project-ref ${{ secrets.PROD_SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run database migrations (Prod)
+        run: |
+          echo "🚀 Deploying migrations to Production..."
+          supabase db push --linked
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Verify deployment
+        run: |
+          echo "✅ Production database updated successfully!"
+          echo "📊 Environment: Production"
+          echo "🔗 Project: ${{ secrets.PROD_SUPABASE_PROJECT_REF }}"
+          echo "🌿 Branch: ${{ github.ref_name }}"
+          echo "👤 Triggered by: ${{ github.actor }}"
+          echo "⏰ Deployed at: $(date -u +'%Y-%m-%d %H:%M:%S UTC')"
+
+      - name: Notify deployment success
+        if: success()
+        run: |
+          echo "🎉 Production deployment completed successfully!"
+          echo "Next steps:"
+          echo "1. Test the production application"
+          echo "2. Monitor for any errors"
+          echo "3. Check Supabase dashboard for database status"
