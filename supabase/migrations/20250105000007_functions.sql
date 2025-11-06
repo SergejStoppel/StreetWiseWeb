@@ -33,7 +33,7 @@ BEGIN
 
   RETURN new_workspace_id;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
 
 -- Function to check if user has access to workspace
 CREATE OR REPLACE FUNCTION user_has_workspace_access(
