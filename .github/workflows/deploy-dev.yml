@@ -2,9 +2,9 @@ name: Deploy to Development (Supabase)
 
 on:
   push:
-    branches: [main]  # Only deploy on main branch
+    branches: [master]  # Only deploy on master branch
   pull_request:
-    branches: [main]
+    branches: [master]
 
 jobs:
   deploy-dev:
