@@ -10,6 +10,46 @@ const router = express.Router();
 const logger = createLogger('analyses-route');
 
 /**
+ * Helper function to generate signed URLs for screenshots
+ * @param screenshots - Array of screenshot objects with storage_bucket and storage_path
+ * @returns Array of screenshots with added signed_url field
+ */
+async function addSignedUrlsToScreenshots(screenshots: any[]) {
+  if (!screenshots || screenshots.length === 0) {
+    return screenshots;
+  }
+
+  const screenshotsWithUrls = await Promise.all(
+    screenshots.map(async (screenshot) => {
+      try {
+        const { data, error } = await supabase.storage
+          .from(screenshot.storage_bucket)
+          .createSignedUrl(screenshot.storage_path, 3600); // 1 hour expiry
+
+        if (error) {
+          logger.error('Failed to generate signed URL for screenshot', {
+            error,
+            bucket: screenshot.storage_bucket,
+            path: screenshot.storage_path
+          });
+          return screenshot;
+        }
+
+        return {
+          ...screenshot,
+          signed_url: data.signedUrl
+        };
+      } catch (err) {
+        logger.error('Exception generating signed URL', { err });
+        return screenshot;
+      }
+    })
+  );
+
+  return screenshotsWithUrls;
+}
+
+/**
  * @swagger
  * /api/analyses:
  *   post:
@@ -374,10 +414,18 @@ router.get('/recent', authenticateToken, async (req: AuthRequest, res, next) => 
       throw error;
     }
 
+    // Generate signed URLs for screenshots in each analysis
+    const analysesWithSignedUrls = await Promise.all(
+      (analyses || []).map(async (analysis) => ({
+        ...analysis,
+        screenshots: await addSignedUrlsToScreenshots(analysis.screenshots || [])
+      }))
+    );
+
     const response: ApiResponse = {
       success: true,
       message: 'Recent analyses retrieved successfully',
-      data: analyses || [],
+      data: analysesWithSignedUrls,
       timestamp: new Date().toISOString(),
     };
 
@@ -689,9 +737,13 @@ router.get('/:id', async (req, res, next) => {
       });
     };
 
+    // Generate signed URLs for screenshots
+    const screenshotsWithSignedUrls = await addSignedUrlsToScreenshots(analysis.screenshots);
+
     // Prepare response data
     const responseData = {
       ...analysis,
+      screenshots: screenshotsWithSignedUrls,
       scores: {
         overall: overallScore,
         accessibility: accessibilityScore,
