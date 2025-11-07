@@ -6,7 +6,6 @@ import { AppError } from '@/types';
 import { checkAndUpdateAnalysisCompletion } from '@/core/workers/master.worker';
 import { JSDOM } from 'jsdom';
 import { AiContentAnalysisService, type PageContentData } from '@/services/analysis/aiContentAnalysis';
-import { SeoExamplesService } from '@/services/seo/seoExamples';
 
 const logger = createLogger('seo-technical-worker');
 
