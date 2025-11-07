@@ -34,9 +34,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
-      args:
-        - DEV_SUPABASE_URL=${DEV_SUPABASE_URL}
-        - DEV_SUPABASE_ANON_KEY=${DEV_SUPABASE_ANON_KEY}
     ports:
       - "3000:3000"
     environment:
@@ -54,7 +51,15 @@ services:
       # Volume mounting disabled to prevent WSL2 EIO errors
     networks:
       - sitecraft-network
-    command: npm start
+    command: >
+      sh -c "
+      echo 'REACT_APP_SUPABASE_URL='$$DEV_SUPABASE_URL > /app/.env.local &&
+      echo 'REACT_APP_SUPABASE_ANON_KEY='$$DEV_SUPABASE_ANON_KEY >> /app/.env.local &&
+      echo 'REACT_APP_ENV=development' >> /app/.env.local &&
+      echo 'REACT_APP_API_URL=http://localhost:3005' >> /app/.env.local &&
+      echo '✅ Environment variables mapped from DEV_SUPABASE_* to REACT_APP_*' &&
+      npm start
+      "
     restart: unless-stopped
     deploy:
       resources:
