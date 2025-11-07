@@ -167,8 +167,14 @@ const ScreenshotCard = ({ screenshots, className }) => {
 
   const getScreenshotUrl = (screenshot) => {
     if (!screenshot) return null;
-    const baseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://iywlcimloohmgjhjptoj.supabase.co';
-    return `${baseUrl}/storage/v1/object/public/${screenshot.storage_bucket}/${screenshot.storage_path}`;
+
+    // Use signed URL from backend (generated for private bucket access)
+    if (!screenshot.signed_url) {
+      console.error('Screenshot missing signed_url from backend');
+      return null;
+    }
+
+    return screenshot.signed_url;
   };
 
   const openScreenshotModal = (screenshot) => {

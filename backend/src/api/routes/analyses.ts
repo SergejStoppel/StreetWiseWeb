@@ -10,6 +10,46 @@ const router = express.Router();
 const logger = createLogger('analyses-route');
 
 /**
+ * Helper function to generate signed URLs for screenshots
+ * @param screenshots - Array of screenshot objects with storage_bucket and storage_path
+ * @returns Array of screenshots with added signed_url field
+ */
+async function addSignedUrlsToScreenshots(screenshots: any[]) {
+  if (!screenshots || screenshots.length === 0) {
+    return screenshots;
+  }
+
+  const screenshotsWithUrls = await Promise.all(
+    screenshots.map(async (screenshot) => {
+      try {
+        const { data, error } = await supabase.storage
+          .from(screenshot.storage_bucket)
+          .createSignedUrl(screenshot.storage_path, 3600); // 1 hour expiry
+
+        if (error) {
+          logger.error('Failed to generate signed URL for screenshot', {
+            error,
+            bucket: screenshot.storage_bucket,
+            path: screenshot.storage_path
+          });
+          return screenshot;
+        }
+
+        return {
+          ...screenshot,
+          signed_url: data.signedUrl
+        };
+      } catch (err) {
+        logger.error('Exception generating signed URL', { err });
+        return screenshot;
+      }
+    })
+  );
+
+  return screenshotsWithUrls;
+}
+
+/**
  * @swagger
  * /api/analyses:
  *   post:
@@ -33,8 +73,8 @@ const logger = createLogger('analyses-route');
  */
 router.post('/', authenticateToken, async (req: AuthRequest, res, next) => {
   try {
-    const { websiteId, url } = req.body;
-    
+    const { websiteId, url, forceNew } = req.body;
+
     // Handle both websiteId (existing flow) and url (new flow from homepage)
     let targetWebsiteId = websiteId;
     const userId = req.user!.id;
@@ -73,7 +113,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res, next) => {
             .eq('url', url)
             .eq('workspace_id', userWorkspace.id)
             .single();
-          
+
           if (existingError) {
             throw existingError;
           }
@@ -94,11 +134,57 @@ router.post('/', authenticateToken, async (req: AuthRequest, res, next) => {
       });
     }
 
+    // Check for recent analysis within last 24 hours (unless forceNew is true)
+    if (!forceNew) {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+      const { data: recentAnalyses, error: recentAnalysisError } = await supabase
+        .from('analyses')
+        .select(`
+          id,
+          status,
+          created_at,
+          overall_score,
+          accessibility_score,
+          seo_score,
+          performance_score,
+          websites!inner(id, url)
+        `)
+        .eq('website_id', targetWebsiteId)
+        .eq('user_id', userId)
+        .gte('created_at', twentyFourHoursAgo)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (!recentAnalysisError && recentAnalyses && recentAnalyses.length > 0) {
+        const recentAnalysis = recentAnalyses[0];
+        logger.info('Found recent analysis within 24 hours for authenticated user', {
+          analysisId: recentAnalysis.id,
+          websiteId: targetWebsiteId,
+          userId,
+          createdAt: recentAnalysis.created_at
+        });
+
+        // Return the existing analysis with a flag
+        const response: ApiResponse = {
+          success: true,
+          message: 'A recent analysis exists for this website',
+          data: {
+            ...recentAnalysis,
+            hasRecentAnalysis: true,
+            originalCreatedAt: recentAnalysis.created_at
+          },
+          timestamp: new Date().toISOString(),
+        };
+        return res.status(200).json(response);
+      }
+    }
+
     const analysis = await createAnalysis(targetWebsiteId, userId);
-    logger.info('Analysis created', { 
-      analysisId: analysis.id, 
+    logger.info('Analysis created', {
+      analysisId: analysis.id,
       websiteId: targetWebsiteId,
-      userId 
+      userId
     });
 
     // Get user's workspace (if not already retrieved for URL flow)
@@ -122,10 +208,10 @@ router.post('/', authenticateToken, async (req: AuthRequest, res, next) => {
       workspaceId = website.workspace_id;
     }
 
-    await masterQueue.add('master-analysis-job', { 
+    await masterQueue.add('master-analysis-job', {
       analysisId: analysis.id,
       workspaceId,
-      websiteId: targetWebsiteId, 
+      websiteId: targetWebsiteId,
       userId,
       url // Pass URL for both authenticated and public analyses
     });
@@ -148,7 +234,7 @@ router.post('/public', async (req, res, next) => {
 
     // Get or create a system user and public workspace for unauthenticated analyses
     let publicWorkspace;
-    
+
     // First, get or create a system user for public analyses
     let systemUser;
     const { data: existingUsers } = await supabase
@@ -156,7 +242,7 @@ router.post('/public', async (req, res, next) => {
       .select('id')
       .eq('email', 'system@sitecraft.public')
       .limit(1);
-      
+
     const existingUser = existingUsers?.[0];
 
     if (existingUser) {
@@ -182,7 +268,7 @@ router.post('/public', async (req, res, next) => {
       .select('id')
       .eq('name', 'Public Analyses')
       .limit(1);
-      
+
     const existingWorkspace = existingWorkspaces?.[0];
 
     if (existingWorkspace) {
@@ -191,18 +277,56 @@ router.post('/public', async (req, res, next) => {
       // Create public workspace with system user as owner
       const { data: newWorkspaces, error: workspaceError } = await supabase
         .from('workspaces')
-        .insert({ 
+        .insert({
           name: 'Public Analyses',
           owner_id: systemUser.id
         })
         .select();
-        
+
       const newWorkspace = newWorkspaces?.[0];
 
       if (workspaceError) {
         throw workspaceError;
       }
       publicWorkspace = newWorkspace;
+    }
+
+    // Check for existing analysis within last 24 hours (rate limiting for public analyses)
+    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+    const { data: recentAnalyses, error: recentAnalysisError } = await supabase
+      .from('analyses')
+      .select(`
+        id,
+        status,
+        created_at,
+        websites!inner(url)
+      `)
+      .eq('websites.url', url)
+      .gte('created_at', twentyFourHoursAgo)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (!recentAnalysisError && recentAnalyses && recentAnalyses.length > 0) {
+      const recentAnalysis = recentAnalyses[0];
+      logger.info('Found recent analysis within 24 hours', {
+        analysisId: recentAnalysis.id,
+        url,
+        createdAt: recentAnalysis.created_at
+      });
+
+      // Return the existing analysis
+      const response: ApiResponse = {
+        success: true,
+        message: 'This website was recently analyzed. Returning existing analysis to prevent duplicate processing.',
+        data: {
+          ...recentAnalysis,
+          isReused: true,
+          originalCreatedAt: recentAnalysis.created_at
+        },
+        timestamp: new Date().toISOString(),
+      };
+      return res.status(200).json(response);
     }
 
     // Create website record with public workspace
@@ -336,10 +460,18 @@ router.get('/recent', authenticateToken, async (req: AuthRequest, res, next) => 
       throw error;
     }
 
+    // Generate signed URLs for screenshots in each analysis
+    const analysesWithSignedUrls = await Promise.all(
+      (analyses || []).map(async (analysis) => ({
+        ...analysis,
+        screenshots: await addSignedUrlsToScreenshots(analysis.screenshots || [])
+      }))
+    );
+
     const response: ApiResponse = {
       success: true,
       message: 'Recent analyses retrieved successfully',
-      data: analyses || [],
+      data: analysesWithSignedUrls,
       timestamp: new Date().toISOString(),
     };
 
@@ -651,9 +783,13 @@ router.get('/:id', async (req, res, next) => {
       });
     };
 
+    // Generate signed URLs for screenshots
+    const screenshotsWithSignedUrls = await addSignedUrlsToScreenshots(analysis.screenshots);
+
     // Prepare response data
     const responseData = {
       ...analysis,
+      screenshots: screenshotsWithSignedUrls,
       scores: {
         overall: overallScore,
         accessibility: accessibilityScore,

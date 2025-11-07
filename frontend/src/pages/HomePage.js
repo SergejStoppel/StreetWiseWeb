@@ -675,13 +675,13 @@ const CTAButton = styled.button`
   gap: var(--spacing-sm);
   box-shadow: var(--shadow-lg);
   min-height: 56px;
-  
+
   &:hover:not(:disabled) {
     background: var(--color-warning-hover);
     transform: translateY(-2px);
     box-shadow: var(--shadow-xl);
   }
-  
+
   &:disabled {
     background: var(--color-text-tertiary);
     cursor: not-allowed;
@@ -689,9 +689,90 @@ const CTAButton = styled.button`
   }
 `;
 
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--spacing-xl);
+`;
+
+const ModalContent = styled.div`
+  background: var(--color-surface-primary);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-2xl);
+  max-width: 500px;
+  width: 100%;
+  box-shadow: var(--shadow-xl);
+`;
+
+const ModalTitle = styled.h3`
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+`;
+
+const ModalText = styled.p`
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-lg);
+  line-height: var(--line-height-relaxed);
+`;
+
+const ModalActions = styled.div`
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: flex-end;
+  margin-top: var(--spacing-xl);
+`;
+
+const ModalButton = styled.button`
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  ${props => props.primary ? `
+    background: var(--color-interactive-primary);
+    color: var(--color-text-inverse);
+
+    &:hover {
+      background: var(--color-interactive-primary-hover);
+    }
+  ` : props.secondary ? `
+    background: var(--color-success);
+    color: var(--color-text-inverse);
+
+    &:hover {
+      background: var(--color-success-hover);
+    }
+  ` : `
+    background: var(--color-surface-secondary);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-primary);
+
+    &:hover {
+      background: var(--color-surface-tertiary);
+    }
+  `}
+`;
+
 const HomePage = () => {
   const [url, setUrl] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [showRecentAnalysisModal, setShowRecentAnalysisModal] = useState(false);
+  const [recentAnalysis, setRecentAnalysis] = useState(null);
+  const [pendingUrl, setPendingUrl] = useState('');
   const navigate = useNavigate();
   const { t, i18n, ready } = useTranslation(['homepage', 'forms']);
   const { initializing, user } = useAuth();
@@ -736,34 +817,45 @@ const HomePage = () => {
     
     try {
       toast.info('Starting analysis...', { autoClose: 2000 });
-      
+
       // Choose appropriate analysis endpoint based on authentication
-      const result = user 
+      const result = user
         ? await analysisAPI.startAnalysisWithUrl(fullUrl) // Authenticated user
         : await analysisAPI.startPublicAnalysis(fullUrl); // Guest user
-      
+
       console.log('🔍 Analysis result structure:', {
         result: !!result,
         resultKeys: result ? Object.keys(result) : null,
         hasSuccess: result?.success,
         hasData: result?.data,
+        hasRecentAnalysis: result?.data?.hasRecentAnalysis,
         resultType: typeof result
       });
-      
+
+      // Check if a recent analysis exists (authenticated users only)
+      if (result && result.success && result.data.hasRecentAnalysis) {
+        console.log('📊 Recent analysis found, showing modal');
+        setRecentAnalysis(result.data);
+        setPendingUrl(fullUrl);
+        setShowRecentAnalysisModal(true);
+        setIsAnalyzing(false); // Reset analyzing state
+        return; // Don't navigate yet
+      }
+
       if (result && result.success) {
         console.log('✅ Analysis successful, storing result and navigating');
         toast.success('Analysis complete!');
-        
+
         console.log('💾 Storing result in sessionStorage:', {
           dataKeys: Object.keys(result.data),
           dataSize: JSON.stringify(result.data).length
         });
         sessionStorage.setItem('analysisResult', JSON.stringify(result.data));
-        
+
         // Navigate to the simple results overview page
         console.log('🧭 Attempting navigation to /results');
         navigate('/results', { replace: true });
-        
+
         // Verify navigation after a short delay
         setTimeout(() => {
           console.log('🔍 Current location after navigation:', window.location.pathname);
@@ -786,6 +878,50 @@ const HomePage = () => {
       console.log('🔄 Analysis completed, setting isAnalyzing to false');
       setIsAnalyzing(false);
     }
+  };
+
+  const handleUseExistingAnalysis = () => {
+    console.log('✅ User chose to use existing analysis');
+    setShowRecentAnalysisModal(false);
+    toast.success('Using existing analysis');
+
+    // Navigate to the existing analysis results
+    navigate(`/results/${recentAnalysis.id}`);
+  };
+
+  const handleRunNewAnalysis = async () => {
+    console.log('🔄 User chose to run new analysis');
+    setShowRecentAnalysisModal(false);
+    setIsAnalyzing(true);
+
+    try {
+      toast.info('Starting new analysis...', { autoClose: 2000 });
+
+      // Call API with forceNew flag
+      const result = await analysisAPI.startAnalysisWithUrl(pendingUrl, true);
+
+      console.log('🔍 New analysis result:', result);
+
+      if (result && result.success) {
+        toast.success('Analysis complete!');
+        sessionStorage.setItem('analysisResult', JSON.stringify(result.data));
+        navigate('/results', { replace: true });
+      } else {
+        toast.error('Analysis failed');
+      }
+    } catch (error) {
+      console.error('💥 New analysis error:', error);
+      toast.error(error.message || 'Analysis failed with error');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleCancelModal = () => {
+    console.log('❌ User cancelled modal');
+    setShowRecentAnalysisModal(false);
+    setRecentAnalysis(null);
+    setPendingUrl('');
   };
 
   // Show loading only if translations are not ready (should be very fast)
@@ -1040,6 +1176,30 @@ const HomePage = () => {
           </CTAButton>
         </ContentContainer>
       </FinalCTASection>
+
+      {/* Recent Analysis Modal */}
+      {showRecentAnalysisModal && recentAnalysis && (
+        <ModalOverlay onClick={handleCancelModal}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <ModalTitle>Recent Analysis Found</ModalTitle>
+            <ModalText>
+              We found a recent analysis for this website from {new Date(recentAnalysis.originalCreatedAt).toLocaleString()}.
+              Would you like to view the existing analysis or run a new one?
+            </ModalText>
+            <ModalActions>
+              <ModalButton onClick={handleCancelModal}>
+                Cancel
+              </ModalButton>
+              <ModalButton secondary onClick={handleUseExistingAnalysis}>
+                View Existing
+              </ModalButton>
+              <ModalButton primary onClick={handleRunNewAnalysis}>
+                Run New Analysis
+              </ModalButton>
+            </ModalActions>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </>
   );
 };
