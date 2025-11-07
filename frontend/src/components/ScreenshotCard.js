@@ -168,18 +168,13 @@ const ScreenshotCard = ({ screenshots, className }) => {
   const getScreenshotUrl = (screenshot) => {
     if (!screenshot) return null;
 
-    // Use signed URL from backend if available (for private buckets)
-    if (screenshot.signed_url) {
-      return screenshot.signed_url;
-    }
-
-    // Fallback to public URL (for backwards compatibility)
-    const baseUrl = process.env.REACT_APP_SUPABASE_URL;
-    if (!baseUrl) {
-      console.error('REACT_APP_SUPABASE_URL is not configured');
+    // Use signed URL from backend (generated for private bucket access)
+    if (!screenshot.signed_url) {
+      console.error('Screenshot missing signed_url from backend');
       return null;
     }
-    return `${baseUrl}/storage/v1/object/public/${screenshot.storage_bucket}/${screenshot.storage_path}`;
+
+    return screenshot.signed_url;
   };
 
   const openScreenshotModal = (screenshot) => {
