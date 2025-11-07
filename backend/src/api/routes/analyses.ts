@@ -73,8 +73,8 @@ async function addSignedUrlsToScreenshots(screenshots: any[]) {
  */
 router.post('/', authenticateToken, async (req: AuthRequest, res, next) => {
   try {
-    const { websiteId, url } = req.body;
-    
+    const { websiteId, url, forceNew } = req.body;
+
     // Handle both websiteId (existing flow) and url (new flow from homepage)
     let targetWebsiteId = websiteId;
     const userId = req.user!.id;
@@ -113,7 +113,7 @@ router.post('/', authenticateToken, async (req: AuthRequest, res, next) => {
             .eq('url', url)
             .eq('workspace_id', userWorkspace.id)
             .single();
-          
+
           if (existingError) {
             throw existingError;
           }
@@ -134,11 +134,57 @@ router.post('/', authenticateToken, async (req: AuthRequest, res, next) => {
       });
     }
 
+    // Check for recent analysis within last 24 hours (unless forceNew is true)
+    if (!forceNew) {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+
+      const { data: recentAnalyses, error: recentAnalysisError } = await supabase
+        .from('analyses')
+        .select(`
+          id,
+          status,
+          created_at,
+          overall_score,
+          accessibility_score,
+          seo_score,
+          performance_score,
+          websites!inner(id, url)
+        `)
+        .eq('website_id', targetWebsiteId)
+        .eq('user_id', userId)
+        .gte('created_at', twentyFourHoursAgo)
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (!recentAnalysisError && recentAnalyses && recentAnalyses.length > 0) {
+        const recentAnalysis = recentAnalyses[0];
+        logger.info('Found recent analysis within 24 hours for authenticated user', {
+          analysisId: recentAnalysis.id,
+          websiteId: targetWebsiteId,
+          userId,
+          createdAt: recentAnalysis.created_at
+        });
+
+        // Return the existing analysis with a flag
+        const response: ApiResponse = {
+          success: true,
+          message: 'A recent analysis exists for this website',
+          data: {
+            ...recentAnalysis,
+            hasRecentAnalysis: true,
+            originalCreatedAt: recentAnalysis.created_at
+          },
+          timestamp: new Date().toISOString(),
+        };
+        return res.status(200).json(response);
+      }
+    }
+
     const analysis = await createAnalysis(targetWebsiteId, userId);
-    logger.info('Analysis created', { 
-      analysisId: analysis.id, 
+    logger.info('Analysis created', {
+      analysisId: analysis.id,
       websiteId: targetWebsiteId,
-      userId 
+      userId
     });
 
     // Get user's workspace (if not already retrieved for URL flow)
@@ -162,10 +208,10 @@ router.post('/', authenticateToken, async (req: AuthRequest, res, next) => {
       workspaceId = website.workspace_id;
     }
 
-    await masterQueue.add('master-analysis-job', { 
+    await masterQueue.add('master-analysis-job', {
       analysisId: analysis.id,
       workspaceId,
-      websiteId: targetWebsiteId, 
+      websiteId: targetWebsiteId,
       userId,
       url // Pass URL for both authenticated and public analyses
     });

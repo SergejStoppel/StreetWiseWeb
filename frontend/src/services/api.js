@@ -291,18 +291,18 @@ export const analysisAPI = {
       throw error;
     }
   },
-  startAnalysis: async (websiteId) => {
+  startAnalysis: async (websiteId, forceNew = false) => {
     try {
-      const response = await api.post('/api/analyses', { websiteId });
+      const response = await api.post('/api/analyses', { websiteId, forceNew });
       return response.data;
     } catch (error) {
       throw error;
     }
   },
 
-  startAnalysisWithUrl: async (url) => {
+  startAnalysisWithUrl: async (url, forceNew = false) => {
     try {
-      const response = await api.post('/api/analyses', { url });
+      const response = await api.post('/api/analyses', { url, forceNew });
       return response.data;
     } catch (error) {
       throw error;
