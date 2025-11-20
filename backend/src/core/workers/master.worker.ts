@@ -12,6 +12,7 @@ import { structureQueue } from '@/lib/queue/structure';
 import { tablesQueue } from '@/lib/queue/tables';
 import { AppError } from '@/types';
 import { technicalSeoQueue } from '@/lib/queue/technicalSeo';
+import { onPageSeoQueue } from '@/lib/queue/onPageSeo';
 
 const logger = createLogger('master-worker');
 
@@ -47,9 +48,8 @@ const analyzerQueues = {
   structure: structureQueue,      // NEW: Content structure analysis
   tables: tablesQueue,            // NEW: Tables accessibility analysis
   technicalSeo: technicalSeoQueue,
+  onPageSeo: onPageSeoQueue,      // On-Page SEO analysis
   // TODO: Add other analyzer queues as they are implemented
-  // altText: altTextQueue,
-  // onPageSeo: onPageSeoQueue,
   // metaTags: metaTagsQueue,
   // structuredData: structuredDataQueue,
   // imageOptimization: imageOptimizationQueue,
@@ -63,7 +63,7 @@ const analyzerQueues = {
 const moduleToWorkerMap = {
   'Fetcher': [], // Handled separately in the fetcher step
   'Accessibility': ['colorContrast', 'aria', 'keyboard', 'media', 'forms', 'structure', 'tables'], // Enhanced accessibility workers
-  'SEO': ['technicalSeo'],
+  'SEO': ['technicalSeo', 'onPageSeo'], // Technical SEO + On-Page SEO
   // TODO: Add these as workers are implemented
   // 'Performance': ['coreWebVitals', 'imageOptimization']
 };
