@@ -21,6 +21,9 @@ import billingRoutes from '@/api/routes/billing';
 import healthRoutes from '@/api/routes/health';
 import debugRoutes from '@/api/routes/debug';
 import testAnalysisRoutes from '@/api/routes/test-analysis';
+import onboardingRoutes from '@/api/routes/onboarding';
+import adminUsersRoutes from '@/api/routes/admin/users';
+import adminAnalyticsRoutes from '@/api/routes/admin/analytics';
 
 const logger = createLogger('server');
 
@@ -112,6 +115,9 @@ class Server {
     this.app.use('/api/health', healthRoutes);
     this.app.use('/api/debug', debugRoutes);
     this.app.use('/api/test-analysis', testAnalysisRoutes);
+    this.app.use('/api/onboarding', onboardingRoutes);
+    this.app.use('/api/admin/users', adminUsersRoutes);
+    this.app.use('/api/admin/analytics', adminAnalyticsRoutes);
 
     // API documentation (in development)
     if (isDevelopment) {
