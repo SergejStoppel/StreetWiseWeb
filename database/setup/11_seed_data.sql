@@ -212,7 +212,7 @@ BEGIN
     (seo_module_id, 'SEO_AI_05_SEMANTIC_OPPORTUNITIES', 'Semantic Keyword Opportunities', 'Related semantic keywords could improve content relevance', 'minor');
 
     -- ================================
-    -- PERFORMANCE RULES (20+ rules)
+    -- PERFORMANCE RULES (28+ rules)
     -- ================================
 
     -- Core Web Vitals (6 rules)
@@ -234,6 +234,17 @@ BEGIN
     (performance_module_id, 'PERF_RES_06_RENDER_BLOCKING', 'Render-Blocking Resources', 'Critical resources should not block initial page rendering', 'critical'),
     (performance_module_id, 'PERF_RES_07_FONT_LOADING', 'Inefficient Font Loading', 'Optimize font loading strategy to prevent layout shifts', 'moderate'),
     (performance_module_id, 'PERF_RES_08_THIRD_PARTY_IMPACT', 'High Third-Party Impact', 'Third-party scripts significantly impact performance', 'serious');
+
+    -- Image Optimization (8 rules)
+    INSERT INTO rules (module_id, rule_key, name, description, default_severity) VALUES
+    (performance_module_id, 'PERF_IMG_01_OVERSIZED', 'Oversized Images', 'Images are larger than needed for their display size, wasting bandwidth', 'serious'),
+    (performance_module_id, 'PERF_IMG_02_FORMAT_OUTDATED', 'Outdated Image Formats', 'Images use older formats (JPEG/PNG) instead of modern formats (WebP/AVIF)', 'moderate'),
+    (performance_module_id, 'PERF_IMG_03_DIMENSIONS_MISSING', 'Missing Image Dimensions', 'Images lack width/height attributes, causing Cumulative Layout Shift (CLS)', 'serious'),
+    (performance_module_id, 'PERF_IMG_04_LAZY_LOADING_MISSING', 'Lazy Loading Missing', 'Below-fold images load immediately instead of being lazy-loaded', 'moderate'),
+    (performance_module_id, 'PERF_IMG_05_LAZY_LOADING_INCORRECT', 'Incorrect Lazy Loading', 'Above-fold images are lazy-loaded, delaying Largest Contentful Paint (LCP)', 'serious'),
+    (performance_module_id, 'PERF_IMG_06_NO_SRCSET', 'Missing Responsive Images', 'Large images lack srcset attributes for responsive serving', 'moderate'),
+    (performance_module_id, 'PERF_IMG_07_PAGE_WEIGHT_HIGH', 'High Page Weight from Images', 'Total image weight exceeds recommended limits, slowing page load', 'moderate'),
+    (performance_module_id, 'PERF_IMG_08_CLS_RISK', 'CLS Risk from Images', 'Above-fold images without dimensions risk causing Cumulative Layout Shift', 'critical');
 
     -- Caching & Delivery (3 rules)
     INSERT INTO rules (module_id, rule_key, name, description, default_severity) VALUES
@@ -285,11 +296,12 @@ BEGIN
 
     -- Map performance rules to Core Web Vitals
     INSERT INTO standard_rules_mapping (standard_id, rule_id)
-    SELECT cwv_standard_id, id FROM rules 
-    WHERE module_id = performance_module_id 
+    SELECT cwv_standard_id, id FROM rules
+    WHERE module_id = performance_module_id
     AND rule_key IN (
         'PERF_CWV_01_LCP_SLOW', 'PERF_CWV_02_CLS_HIGH', 'PERF_CWV_03_FID_SLOW',
-        'PERF_CWV_04_INP_SLOW', 'PERF_CWV_05_TTFB_SLOW', 'PERF_CWV_06_FCP_SLOW'
+        'PERF_CWV_04_INP_SLOW', 'PERF_CWV_05_TTFB_SLOW', 'PERF_CWV_06_FCP_SLOW',
+        'PERF_IMG_03_DIMENSIONS_MISSING', 'PERF_IMG_05_LAZY_LOADING_INCORRECT', 'PERF_IMG_08_CLS_RISK'
     );
 
 END $$;
