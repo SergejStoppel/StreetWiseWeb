@@ -87,6 +87,7 @@ const PaymentSuccessPage = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [payment, setPayment] = useState(null);
+  const [error, setError] = useState(null);
 
   const paymentId = searchParams.get('payment_id');
   const analysisId = searchParams.get('analysis_id');
@@ -94,17 +95,21 @@ const PaymentSuccessPage = () => {
   useEffect(() => {
     const verifyPayment = async () => {
       if (!paymentId) {
+        setError('No payment ID provided');
         setLoading(false);
         return;
       }
 
       try {
         const response = await paymentApi.getPayment(paymentId);
-        if (response.success) {
+        if (response.success && response.data?.status === 'completed') {
           setPayment(response.data);
+        } else {
+          setError('Payment verification failed');
         }
-      } catch (error) {
-        console.error('Failed to verify payment:', error);
+      } catch (err) {
+        console.error('Failed to verify payment:', err);
+        setError('Could not verify payment status');
       } finally {
         setLoading(false);
       }
@@ -129,6 +134,22 @@ const PaymentSuccessPage = () => {
             <FaSpinner />
             <p>Verifying payment...</p>
           </LoadingState>
+        </Card>
+      </Container>
+    );
+  }
+
+  if (error || !payment) {
+    return (
+      <Container>
+        <Card>
+          <Title>Payment Verification Issue</Title>
+          <Description>
+            {error || 'Unable to confirm payment. Please contact support if you were charged.'}
+          </Description>
+          <Button onClick={() => navigate('/dashboard')}>
+            Go to Dashboard <FaArrowRight />
+          </Button>
         </Card>
       </Container>
     );
