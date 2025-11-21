@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { analysisAPI } from '../services/api';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ScreenshotDisplay from '../components/ScreenshotDisplay';
+import UpgradeCTA from '../components/UpgradeCTA';
 
 const ResultsContainer = styled.div`
   min-height: calc(100vh - 160px);
@@ -469,6 +470,12 @@ const ResultsPage = () => {
             </ActionButton>
           </ActionsSection>
         </ResultCard>
+
+        {/* Upgrade CTA for deep AI analysis */}
+        <UpgradeCTA
+          analysisId={analysisData.id}
+          totalIssues={analysisData.total_issues || 0}
+        />
       </ContentContainer>
 
 

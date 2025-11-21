@@ -30,6 +30,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import DetailedReportPage from './pages/DetailedReportPage';
 import ResultsPage from './pages/ResultsPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import './styles/globals.css';
 
 const AppContainer = styled.div`
@@ -75,6 +76,7 @@ function App() {
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="/results" element={<ResultsPage />} />
                 <Route path="/results/:id" element={<ProtectedRoute><DetailedReportPage /></ProtectedRoute>} />
+                <Route path="/payment/success" element={<PaymentSuccessPage />} />
               </Routes>
           </MainContent>
           <Footer />
