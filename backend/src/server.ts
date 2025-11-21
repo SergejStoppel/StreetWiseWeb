@@ -21,6 +21,8 @@ import billingRoutes from '@/api/routes/billing';
 import healthRoutes from '@/api/routes/health';
 import debugRoutes from '@/api/routes/debug';
 import testAnalysisRoutes from '@/api/routes/test-analysis';
+import quotaRoutes from '@/api/routes/quota';
+import paymentRoutes from '@/api/routes/payments';
 
 const logger = createLogger('server');
 
@@ -112,6 +114,8 @@ class Server {
     this.app.use('/api/health', healthRoutes);
     this.app.use('/api/debug', debugRoutes);
     this.app.use('/api/test-analysis', testAnalysisRoutes);
+    this.app.use('/api/quota', quotaRoutes);
+    this.app.use('/api/payments', paymentRoutes);
 
     // API documentation (in development)
     if (isDevelopment) {
