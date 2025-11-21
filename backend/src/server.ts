@@ -220,9 +220,11 @@ class Server {
       const { structureAnalysisWorker } = await import('@/core/workers/accessibility/structure.analysis.worker');
       const { tablesAnalysisWorker } = await import('@/core/workers/accessibility/tables.analysis.worker');
       const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
-      
+      const { onPageSeoWorker } = await import('@/core/workers/seo/onPageSeo.worker');
+      const { imageOptimizationWorker } = await import('@/core/workers/performance/imageOptimization.worker');
+
       logger.info('BullMQ workers initialized successfully', {
-        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'keyboard', 'media', 'forms', 'structure', 'tables', 'technicalSeo']
+        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'keyboard', 'media', 'forms', 'structure', 'tables', 'technicalSeo', 'onPageSeo', 'imageOptimization']
       });
     } catch (error) {
       logger.error('Failed to initialize workers', { error: error.message });
@@ -247,7 +249,9 @@ class Server {
       const { structureAnalysisWorker } = await import('@/core/workers/accessibility/structure.analysis.worker');
       const { tablesAnalysisWorker } = await import('@/core/workers/accessibility/tables.analysis.worker');
       const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
-      
+      const { onPageSeoWorker } = await import('@/core/workers/seo/onPageSeo.worker');
+      const { imageOptimizationWorker } = await import('@/core/workers/performance/imageOptimization.worker');
+
       await Promise.all([
         masterWorker.close(),
         fetcherWorker.close(),
@@ -258,9 +262,11 @@ class Server {
         formsAnalysisWorker.close(),
         structureAnalysisWorker.close(),
         tablesAnalysisWorker.close(),
-        technicalSeoWorker.close()
+        technicalSeoWorker.close(),
+        onPageSeoWorker.close(),
+        imageOptimizationWorker.close()
       ]);
-      
+
       logger.info('BullMQ workers closed successfully');
     } catch (error) {
       logger.warn('Error closing workers', { error: error.message });
