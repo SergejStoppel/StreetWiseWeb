@@ -17,6 +17,7 @@ import LoadingSpinner from '../components/LoadingSpinner';
 import ScreenshotCard from '../components/ScreenshotCard';
 import SeoResults from '../components/SeoResults';
 import AccessibilityResults from '../components/AccessibilityResults';
+import PerformanceResults from '../components/PerformanceResults';
 
 const ReportContainer = styled.div`
   min-height: calc(100vh - 160px);
@@ -303,24 +304,6 @@ const DetailedReportPage = () => {
   };
 
 
-  const renderPerformanceResults = (performanceData, score) => {
-    // TODO: Create PerformanceResults component later
-    if (!performanceData || performanceData.length === 0) {
-      return (
-        <EmptyState>
-          <FaCheckCircle size={48} style={{ color: 'var(--color-success)', marginBottom: 'var(--spacing-md)' }} />
-          <h3>No performance issues found!</h3>
-          <p>Great job! Your website meets all performance requirements we tested.</p>
-        </EmptyState>
-      );
-    }
-    
-    return (
-      <div>
-        <p>Performance analysis results will be displayed here.</p>
-      </div>
-    );
-  };
   if (loading) {
     return (
       <ReportContainer>
@@ -474,7 +457,12 @@ const DetailedReportPage = () => {
                 score={scores.seo}
               />
             )}
-            {activeTab === 'performance' && renderPerformanceResults(groupedIssues.performance, scores.performance)}
+            {activeTab === 'performance' && (
+              <PerformanceResults
+                performanceData={groupedIssues.performance}
+                score={scores.performance}
+              />
+            )}
           </TabContent>
         </TabContainer>
       </ContentContainer>

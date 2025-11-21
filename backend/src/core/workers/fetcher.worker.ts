@@ -162,6 +162,113 @@ async function tryClickByText(frame: Frame, keywords: string[]): Promise<boolean
   }
 }
 
+async function captureImageMetadata(page: Page, workspaceId: string, analysisId: string): Promise<void> {
+  try {
+    logger.info('Capturing image metadata for performance analysis');
+
+    // Set viewport to desktop for measurements
+    await page.setViewport({ width: 1920, height: 1080 });
+    await page.waitForTimeout(500);
+
+    const imageData = await page.evaluate(() => {
+      const images = Array.from(document.querySelectorAll('img'));
+      const viewportHeight = window.innerHeight;
+
+      return images.map((img, index) => {
+        const rect = img.getBoundingClientRect();
+        const computedStyle = window.getComputedStyle(img);
+
+        // Determine if image is above the fold
+        const isAboveFold = rect.top < viewportHeight;
+
+        // Get loading attribute
+        const loadingAttr = img.getAttribute('loading');
+
+        // Check for srcset
+        const srcset = img.getAttribute('srcset');
+        const sizes = img.getAttribute('sizes');
+
+        // Check for width/height attributes
+        const hasWidthAttr = img.hasAttribute('width');
+        const hasHeightAttr = img.hasAttribute('height');
+
+        return {
+          index,
+          src: img.src || img.getAttribute('src') || '',
+          alt: img.alt,
+          naturalWidth: img.naturalWidth,
+          naturalHeight: img.naturalHeight,
+          renderedWidth: rect.width,
+          renderedHeight: rect.height,
+          displayWidth: parseFloat(computedStyle.width) || rect.width,
+          displayHeight: parseFloat(computedStyle.height) || rect.height,
+          hasWidthAttr,
+          hasHeightAttr,
+          widthAttrValue: img.getAttribute('width'),
+          heightAttrValue: img.getAttribute('height'),
+          loading: loadingAttr,
+          isLazyLoaded: loadingAttr === 'lazy',
+          hasSrcset: !!srcset,
+          srcset: srcset || null,
+          hasSizes: !!sizes,
+          sizes: sizes || null,
+          position: isAboveFold ? 'above-fold' : 'below-fold',
+          topOffset: rect.top,
+          visible: rect.width > 0 && rect.height > 0 && computedStyle.display !== 'none' && computedStyle.visibility !== 'hidden',
+          format: (img.src || '').split('.').pop()?.split('?')[0]?.toLowerCase() || 'unknown'
+        };
+      }).filter(img => img.src && img.visible); // Only include images with src and visible
+    });
+
+    // Add file size estimation (we can't get actual size from client-side, but we can note it for the worker to check)
+    const enhancedImageData = imageData.map(img => ({
+      ...img,
+      // Calculate size ratio
+      sizeRatio: img.naturalWidth && img.renderedWidth
+        ? (img.naturalWidth * img.naturalHeight) / (img.renderedWidth * img.renderedHeight)
+        : null,
+      // Determine if oversized (more than 2x needed for retina)
+      isOversized: img.naturalWidth && img.renderedWidth
+        ? img.naturalWidth > (img.renderedWidth * 2) || img.naturalHeight > (img.renderedHeight * 2)
+        : null
+    }));
+
+    // Save to storage
+    const basePath = `${workspaceId}/${analysisId}`;
+    const imageMetadata = {
+      capturedAt: new Date().toISOString(),
+      totalImages: enhancedImageData.length,
+      aboveFoldImages: enhancedImageData.filter(img => img.position === 'above-fold').length,
+      belowFoldImages: enhancedImageData.filter(img => img.position === 'below-fold').length,
+      lazyLoadedImages: enhancedImageData.filter(img => img.isLazyLoaded).length,
+      imagesWithSrcset: enhancedImageData.filter(img => img.hasSrcset).length,
+      imagesWithDimensions: enhancedImageData.filter(img => img.hasWidthAttr && img.hasHeightAttr).length,
+      oversizedImages: enhancedImageData.filter(img => img.isOversized).length,
+      images: enhancedImageData
+    };
+
+    const { error: imageMetaError } = await supabase.storage
+      .from('analysis-assets')
+      .upload(`${basePath}/meta/images.json`, JSON.stringify(imageMetadata, null, 2), {
+        contentType: 'application/json',
+        upsert: true
+      });
+
+    if (imageMetaError) {
+      logger.warn('Failed to upload image metadata', { error: imageMetaError.message });
+    } else {
+      logger.info('Image metadata captured', {
+        totalImages: imageMetadata.totalImages,
+        oversized: imageMetadata.oversizedImages,
+        withoutDimensions: imageMetadata.totalImages - imageMetadata.imagesWithDimensions
+      });
+    }
+  } catch (error) {
+    logger.error('Failed to capture image metadata', { error: error.message });
+    // Non-fatal, continue with analysis
+  }
+}
+
 async function dismissCookieBanners(page: Page): Promise<boolean> {
   const selectors = [
     '#onetrust-accept-btn-handler',
@@ -405,6 +512,9 @@ export const fetcherWorker = new Worker('fetcher', async (job: Job<FetcherJobDat
     } catch (e: any) {
       logger.warn('Cookie banner dismissal failed', { error: e?.message || 'unknown' });
     }
+
+    // Capture image metadata for performance analysis
+    await captureImageMetadata(page, workspaceId, analysisId);
 
     // Capture screenshots (desktop and mobile only)
     logger.info('Capturing screenshots');

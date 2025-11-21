@@ -181,8 +181,14 @@ const ScreenshotDisplay = ({ screenshots, className }) => {
 
   const getScreenshotUrl = (screenshot) => {
     if (!screenshot) return null;
-    const baseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://iywlcimloohmgjhjptoj.supabase.co';
-    return `${baseUrl}/storage/v1/object/public/${screenshot.storage_bucket}/${screenshot.storage_path}`;
+
+    // Use signed URL from backend (required for private bucket access)
+    if (!screenshot.signed_url) {
+      console.error('Screenshot missing signed_url from backend');
+      return null;
+    }
+
+    return screenshot.signed_url;
   };
 
   const openScreenshotModal = (screenshot) => {
@@ -208,16 +214,27 @@ const ScreenshotDisplay = ({ screenshots, className }) => {
   const desktopScreenshot = screenshots.find(s => s.type === 'desktop');
   const mobileScreenshot = screenshots.find(s => s.type === 'mobile');
 
+  // Get URLs upfront - only show screenshots with valid signed URLs
+  const desktopUrl = desktopScreenshot ? getScreenshotUrl(desktopScreenshot) : null;
+  const mobileUrl = mobileScreenshot ? getScreenshotUrl(mobileScreenshot) : null;
+  const fallbackScreenshot = !desktopScreenshot && !mobileScreenshot && screenshots.length > 0 ? screenshots[0] : null;
+  const fallbackUrl = fallbackScreenshot ? getScreenshotUrl(fallbackScreenshot) : null;
+
+  // If no valid URLs available, don't render anything
+  if (!desktopUrl && !mobileUrl && !fallbackUrl) {
+    return null;
+  }
+
   return (
     <>
       <ScreenshotContainer className={className}>
-        {desktopScreenshot && (
-          <DesktopFrame 
-            label="Desktop" 
+        {desktopUrl && (
+          <DesktopFrame
+            label="Desktop"
             onClick={() => openScreenshotModal(desktopScreenshot)}
           >
             <ScreenshotImage
-              src={getScreenshotUrl(desktopScreenshot)}
+              src={desktopUrl}
               alt="Desktop screenshot"
               loading="lazy"
             />
@@ -226,14 +243,14 @@ const ScreenshotDisplay = ({ screenshots, className }) => {
             </ExpandIcon>
           </DesktopFrame>
         )}
-        
-        {mobileScreenshot && (
-          <MobileFrame 
-            label="Mobile" 
+
+        {mobileUrl && (
+          <MobileFrame
+            label="Mobile"
             onClick={() => openScreenshotModal(mobileScreenshot)}
           >
             <ScreenshotImage
-              src={getScreenshotUrl(mobileScreenshot)}
+              src={mobileUrl}
               alt="Mobile screenshot"
               loading="lazy"
             />
@@ -242,14 +259,14 @@ const ScreenshotDisplay = ({ screenshots, className }) => {
             </ExpandIcon>
           </MobileFrame>
         )}
-        
-        {!desktopScreenshot && !mobileScreenshot && screenshots.length > 0 && (
-          <DesktopFrame 
-            label="Screenshot" 
-            onClick={() => openScreenshotModal(screenshots[0])}
+
+        {fallbackUrl && (
+          <DesktopFrame
+            label="Screenshot"
+            onClick={() => openScreenshotModal(fallbackScreenshot)}
           >
             <ScreenshotImage
-              src={getScreenshotUrl(screenshots[0])}
+              src={fallbackUrl}
               alt="Website screenshot"
               loading="lazy"
             />

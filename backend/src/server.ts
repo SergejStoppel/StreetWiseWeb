@@ -21,6 +21,9 @@ import billingRoutes from '@/api/routes/billing';
 import healthRoutes from '@/api/routes/health';
 import debugRoutes from '@/api/routes/debug';
 import testAnalysisRoutes from '@/api/routes/test-analysis';
+import quotaRoutes from '@/api/routes/quota';
+import paymentRoutes from '@/api/routes/payments';
+import instantScanRoutes from '@/api/routes/instantScan';
 
 const logger = createLogger('server');
 
@@ -112,6 +115,9 @@ class Server {
     this.app.use('/api/health', healthRoutes);
     this.app.use('/api/debug', debugRoutes);
     this.app.use('/api/test-analysis', testAnalysisRoutes);
+    this.app.use('/api/quota', quotaRoutes);
+    this.app.use('/api/payments', paymentRoutes);
+    this.app.use('/api/instant-scan', instantScanRoutes);
 
     // API documentation (in development)
     if (isDevelopment) {
@@ -220,9 +226,13 @@ class Server {
       const { structureAnalysisWorker } = await import('@/core/workers/accessibility/structure.analysis.worker');
       const { tablesAnalysisWorker } = await import('@/core/workers/accessibility/tables.analysis.worker');
       const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
-      
+      const { onPageSeoWorker } = await import('@/core/workers/seo/onPageSeo.worker');
+      const { imageOptimizationWorker } = await import('@/core/workers/performance/imageOptimization.worker');
+      const { quickScanWorker } = await import('@/core/workers/quickScan.worker');
+      const { aiAnalysisWorker } = await import('@/core/workers/aiAnalysis.worker');
+
       logger.info('BullMQ workers initialized successfully', {
-        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'keyboard', 'media', 'forms', 'structure', 'tables', 'technicalSeo']
+        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'keyboard', 'media', 'forms', 'structure', 'tables', 'technicalSeo', 'onPageSeo', 'imageOptimization', 'quickScan', 'aiAnalysis']
       });
     } catch (error) {
       logger.error('Failed to initialize workers', { error: error.message });
@@ -247,7 +257,11 @@ class Server {
       const { structureAnalysisWorker } = await import('@/core/workers/accessibility/structure.analysis.worker');
       const { tablesAnalysisWorker } = await import('@/core/workers/accessibility/tables.analysis.worker');
       const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
-      
+      const { onPageSeoWorker } = await import('@/core/workers/seo/onPageSeo.worker');
+      const { imageOptimizationWorker } = await import('@/core/workers/performance/imageOptimization.worker');
+      const { quickScanWorker } = await import('@/core/workers/quickScan.worker');
+      const { aiAnalysisWorker } = await import('@/core/workers/aiAnalysis.worker');
+
       await Promise.all([
         masterWorker.close(),
         fetcherWorker.close(),
@@ -258,9 +272,13 @@ class Server {
         formsAnalysisWorker.close(),
         structureAnalysisWorker.close(),
         tablesAnalysisWorker.close(),
-        technicalSeoWorker.close()
+        technicalSeoWorker.close(),
+        onPageSeoWorker.close(),
+        imageOptimizationWorker.close(),
+        quickScanWorker.close(),
+        aiAnalysisWorker.close()
       ]);
-      
+
       logger.info('BullMQ workers closed successfully');
     } catch (error) {
       logger.warn('Error closing workers', { error: error.message });

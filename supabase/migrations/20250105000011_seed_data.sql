@@ -143,7 +143,7 @@ BEGIN
     (accessibility_module_id, 'focus-order-semantics', 'Focus Order Semantics', 'Elements in focus order must have appropriate roles', 'serious');
 
     -- ================================
-    -- SEO RULES (25+ rules)
+    -- SEO RULES (39 rules total)
     -- ================================
 
     -- Technical SEO Foundation (10 rules)
@@ -159,16 +159,36 @@ BEGIN
     (seo_module_id, 'SEO_TEC_09_STRUCTURED_DATA_VALIDATION', 'Invalid Structured Data', 'Structured data must be valid for rich snippets', 'serious'),
     (seo_module_id, 'SEO_TEC_10_HREFLANG_ERRORS', 'Hreflang Implementation Errors', 'International sites need proper hreflang implementation', 'moderate');
 
-    -- On-Page Content Optimization (8 rules)
+    -- On-Page Content Optimization (22 rules - expanded for onPageSeo worker)
     INSERT INTO rules (module_id, rule_key, name, description, default_severity) VALUES
+    -- Title & Meta Tags
     (seo_module_id, 'SEO_CON_01_TITLE_TAG_MISSING', 'Page Title Missing', 'Every page must have a unique, descriptive title', 'critical'),
     (seo_module_id, 'SEO_CON_02_TITLE_TAG_LENGTH', 'Title Tag Length Issues', 'Titles should be 50-60 characters for optimal SERP display', 'serious'),
     (seo_module_id, 'SEO_CON_03_TITLE_TAG_DUPLICATE', 'Duplicate Title Tags', 'Each page should have a unique title tag', 'serious'),
     (seo_module_id, 'SEO_CON_04_META_DESC_MISSING', 'Meta Description Missing', 'Meta descriptions improve click-through rates from search results', 'serious'),
     (seo_module_id, 'SEO_CON_05_META_DESC_LENGTH', 'Meta Description Length Issues', 'Meta descriptions should be 120-160 characters', 'moderate'),
     (seo_module_id, 'SEO_CON_06_META_DESC_DUPLICATE', 'Duplicate Meta Descriptions', 'Each page should have a unique meta description', 'moderate'),
+    (seo_module_id, 'SEO_CON_06_META_DESC_NO_CTA', 'Meta Description Lacks Call-to-Action', 'Meta descriptions should include action-oriented language to encourage clicks', 'minor'),
+    -- Heading Structure
     (seo_module_id, 'SEO_CON_07_H1_MISSING', 'H1 Tag Missing', 'Pages should have exactly one H1 tag for content structure', 'serious'),
-    (seo_module_id, 'SEO_CON_08_H1_DUPLICATE', 'Duplicate H1 Tags', 'Pages should have only one H1 tag', 'moderate');
+    (seo_module_id, 'SEO_CON_08_H1_DUPLICATE', 'Duplicate H1 Tags', 'Pages should have only one H1 tag', 'moderate'),
+    (seo_module_id, 'SEO_CON_09_H1_TITLE_MISMATCH', 'H1 and Title Tag Mismatch', 'H1 and title tag should communicate the same core message', 'minor'),
+    (seo_module_id, 'SEO_CON_10_HEADING_HIERARCHY', 'Improper Heading Hierarchy', 'Headings should follow sequential order without skipping levels', 'moderate'),
+    -- Content Quality
+    (seo_module_id, 'SEO_CON_11_CONTENT_TOO_LONG', 'Content Excessively Long', 'Very long content (2500+ words) may benefit from being split into multiple pages', 'minor'),
+    (seo_module_id, 'SEO_CON_12_PARAGRAPH_LENGTH', 'Paragraphs Too Long', 'Long paragraphs (150+ words) reduce readability and engagement', 'minor'),
+    -- Link Quality
+    (seo_module_id, 'SEO_CON_13_EMPTY_LINKS', 'Empty or Placeholder Links', 'Links with no meaningful destination (#, javascript:void) confuse users and search engines', 'minor'),
+    (seo_module_id, 'SEO_CON_14_GENERIC_LINK_TEXT', 'Generic Anchor Text', 'Descriptive anchor text improves SEO and user experience over generic phrases like "click here"', 'minor'),
+    -- Image SEO
+    (seo_module_id, 'SEO_CON_15_IMAGE_ALT_MISSING', 'Image Alt Text Missing (SEO)', 'Images without alt text miss SEO opportunities and accessibility requirements', 'serious'),
+    (seo_module_id, 'SEO_CON_16_IMAGE_ALT_EMPTY', 'Many Images Have Empty Alt Text', 'Only decorative images should have empty alt text; content images need descriptions', 'moderate'),
+    (seo_module_id, 'SEO_CON_17_IMAGE_ALT_SHORT', 'Image Alt Text Too Short', 'Alt text should be descriptive (typically 10-125 characters) for SEO and accessibility', 'minor'),
+    -- URL Structure
+    (seo_module_id, 'SEO_CON_18_URL_TOO_LONG', 'URL Excessively Long', 'URLs should be concise and under 100 characters for better usability and SEO', 'minor'),
+    (seo_module_id, 'SEO_CON_19_URL_SESSION_ID', 'Session ID in URL', 'Session IDs in URLs create duplicate content issues and security vulnerabilities', 'serious'),
+    (seo_module_id, 'SEO_CON_20_URL_UNDERSCORES', 'URL Contains Underscores', 'Google recommends using hyphens instead of underscores in URLs for better word separation', 'minor'),
+    (seo_module_id, 'SEO_CON_21_URL_UPPERCASE', 'URL Contains Uppercase Letters', 'Lowercase URLs prevent duplicate content issues and improve consistency', 'minor');
 
     -- Content Quality & Structure (4 rules)
     INSERT INTO rules (module_id, rule_key, name, description, default_severity) VALUES
@@ -192,7 +212,7 @@ BEGIN
     (seo_module_id, 'SEO_AI_05_SEMANTIC_OPPORTUNITIES', 'Semantic Keyword Opportunities', 'Related semantic keywords could improve content relevance', 'minor');
 
     -- ================================
-    -- PERFORMANCE RULES (20+ rules)
+    -- PERFORMANCE RULES (28+ rules)
     -- ================================
 
     -- Core Web Vitals (6 rules)
@@ -214,6 +234,17 @@ BEGIN
     (performance_module_id, 'PERF_RES_06_RENDER_BLOCKING', 'Render-Blocking Resources', 'Critical resources should not block initial page rendering', 'critical'),
     (performance_module_id, 'PERF_RES_07_FONT_LOADING', 'Inefficient Font Loading', 'Optimize font loading strategy to prevent layout shifts', 'moderate'),
     (performance_module_id, 'PERF_RES_08_THIRD_PARTY_IMPACT', 'High Third-Party Impact', 'Third-party scripts significantly impact performance', 'serious');
+
+    -- Image Optimization (8 rules)
+    INSERT INTO rules (module_id, rule_key, name, description, default_severity) VALUES
+    (performance_module_id, 'PERF_IMG_01_OVERSIZED', 'Oversized Images', 'Images are larger than needed for their display size, wasting bandwidth', 'serious'),
+    (performance_module_id, 'PERF_IMG_02_FORMAT_OUTDATED', 'Outdated Image Formats', 'Images use older formats (JPEG/PNG) instead of modern formats (WebP/AVIF)', 'moderate'),
+    (performance_module_id, 'PERF_IMG_03_DIMENSIONS_MISSING', 'Missing Image Dimensions', 'Images lack width/height attributes, causing Cumulative Layout Shift (CLS)', 'serious'),
+    (performance_module_id, 'PERF_IMG_04_LAZY_LOADING_MISSING', 'Lazy Loading Missing', 'Below-fold images load immediately instead of being lazy-loaded', 'moderate'),
+    (performance_module_id, 'PERF_IMG_05_LAZY_LOADING_INCORRECT', 'Incorrect Lazy Loading', 'Above-fold images are lazy-loaded, delaying Largest Contentful Paint (LCP)', 'serious'),
+    (performance_module_id, 'PERF_IMG_06_NO_SRCSET', 'Missing Responsive Images', 'Large images lack srcset attributes for responsive serving', 'moderate'),
+    (performance_module_id, 'PERF_IMG_07_PAGE_WEIGHT_HIGH', 'High Page Weight from Images', 'Total image weight exceeds recommended limits, slowing page load', 'moderate'),
+    (performance_module_id, 'PERF_IMG_08_CLS_RISK', 'CLS Risk from Images', 'Above-fold images without dimensions risk causing Cumulative Layout Shift', 'critical');
 
     -- Caching & Delivery (3 rules)
     INSERT INTO rules (module_id, rule_key, name, description, default_severity) VALUES
@@ -265,11 +296,12 @@ BEGIN
 
     -- Map performance rules to Core Web Vitals
     INSERT INTO standard_rules_mapping (standard_id, rule_id)
-    SELECT cwv_standard_id, id FROM rules 
-    WHERE module_id = performance_module_id 
+    SELECT cwv_standard_id, id FROM rules
+    WHERE module_id = performance_module_id
     AND rule_key IN (
         'PERF_CWV_01_LCP_SLOW', 'PERF_CWV_02_CLS_HIGH', 'PERF_CWV_03_FID_SLOW',
-        'PERF_CWV_04_INP_SLOW', 'PERF_CWV_05_TTFB_SLOW', 'PERF_CWV_06_FCP_SLOW'
+        'PERF_CWV_04_INP_SLOW', 'PERF_CWV_05_TTFB_SLOW', 'PERF_CWV_06_FCP_SLOW',
+        'PERF_IMG_03_DIMENSIONS_MISSING', 'PERF_IMG_05_LAZY_LOADING_INCORRECT', 'PERF_IMG_08_CLS_RISK'
     );
 
 END $$;
