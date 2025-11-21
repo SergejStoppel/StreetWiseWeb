@@ -416,8 +416,8 @@ const ResultsPage = () => {
               </div>
             </AnalysisInfo>
             
-            {/* Screenshots in Header */}
-            {analysisData.screenshots && analysisData.screenshots.length > 0 && (
+            {/* Screenshots in Header - only show after loading completes to ensure signed URLs are available */}
+            {!loading && analysisData.screenshots && analysisData.screenshots.length > 0 && (
               <ScreenshotDisplay screenshots={analysisData.screenshots} />
             )}
           </CardHeader>
