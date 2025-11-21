@@ -181,6 +181,13 @@ const ScreenshotDisplay = ({ screenshots, className }) => {
 
   const getScreenshotUrl = (screenshot) => {
     if (!screenshot) return null;
+
+    // Use signed URL from backend (generated for private bucket access)
+    if (screenshot.signed_url) {
+      return screenshot.signed_url;
+    }
+
+    // Fallback to public URL construction (for public buckets)
     const baseUrl = process.env.REACT_APP_SUPABASE_URL || 'https://iywlcimloohmgjhjptoj.supabase.co';
     return `${baseUrl}/storage/v1/object/public/${screenshot.storage_bucket}/${screenshot.storage_path}`;
   };
