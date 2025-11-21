@@ -23,6 +23,7 @@ import debugRoutes from '@/api/routes/debug';
 import testAnalysisRoutes from '@/api/routes/test-analysis';
 import quotaRoutes from '@/api/routes/quota';
 import paymentRoutes from '@/api/routes/payments';
+import instantScanRoutes from '@/api/routes/instantScan';
 
 const logger = createLogger('server');
 
@@ -116,6 +117,7 @@ class Server {
     this.app.use('/api/test-analysis', testAnalysisRoutes);
     this.app.use('/api/quota', quotaRoutes);
     this.app.use('/api/payments', paymentRoutes);
+    this.app.use('/api/instant-scan', instantScanRoutes);
 
     // API documentation (in development)
     if (isDevelopment) {
@@ -226,9 +228,10 @@ class Server {
       const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
       const { onPageSeoWorker } = await import('@/core/workers/seo/onPageSeo.worker');
       const { imageOptimizationWorker } = await import('@/core/workers/performance/imageOptimization.worker');
+      const { quickScanWorker } = await import('@/core/workers/quickScan.worker');
 
       logger.info('BullMQ workers initialized successfully', {
-        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'keyboard', 'media', 'forms', 'structure', 'tables', 'technicalSeo', 'onPageSeo', 'imageOptimization']
+        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'keyboard', 'media', 'forms', 'structure', 'tables', 'technicalSeo', 'onPageSeo', 'imageOptimization', 'quickScan']
       });
     } catch (error) {
       logger.error('Failed to initialize workers', { error: error.message });
@@ -255,6 +258,7 @@ class Server {
       const { technicalSeoWorker } = await import('@/core/workers/seo/technicalSeo.worker');
       const { onPageSeoWorker } = await import('@/core/workers/seo/onPageSeo.worker');
       const { imageOptimizationWorker } = await import('@/core/workers/performance/imageOptimization.worker');
+      const { quickScanWorker } = await import('@/core/workers/quickScan.worker');
 
       await Promise.all([
         masterWorker.close(),
@@ -268,7 +272,8 @@ class Server {
         tablesAnalysisWorker.close(),
         technicalSeoWorker.close(),
         onPageSeoWorker.close(),
-        imageOptimizationWorker.close()
+        imageOptimizationWorker.close(),
+        quickScanWorker.close()
       ]);
 
       logger.info('BullMQ workers closed successfully');
