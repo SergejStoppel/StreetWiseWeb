@@ -229,9 +229,10 @@ class Server {
       const { onPageSeoWorker } = await import('@/core/workers/seo/onPageSeo.worker');
       const { imageOptimizationWorker } = await import('@/core/workers/performance/imageOptimization.worker');
       const { quickScanWorker } = await import('@/core/workers/quickScan.worker');
+      const { aiAnalysisWorker } = await import('@/core/workers/aiAnalysis.worker');
 
       logger.info('BullMQ workers initialized successfully', {
-        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'keyboard', 'media', 'forms', 'structure', 'tables', 'technicalSeo', 'onPageSeo', 'imageOptimization', 'quickScan']
+        workers: ['master', 'fetcher', 'colorContrast', 'aria', 'keyboard', 'media', 'forms', 'structure', 'tables', 'technicalSeo', 'onPageSeo', 'imageOptimization', 'quickScan', 'aiAnalysis']
       });
     } catch (error) {
       logger.error('Failed to initialize workers', { error: error.message });
@@ -259,6 +260,7 @@ class Server {
       const { onPageSeoWorker } = await import('@/core/workers/seo/onPageSeo.worker');
       const { imageOptimizationWorker } = await import('@/core/workers/performance/imageOptimization.worker');
       const { quickScanWorker } = await import('@/core/workers/quickScan.worker');
+      const { aiAnalysisWorker } = await import('@/core/workers/aiAnalysis.worker');
 
       await Promise.all([
         masterWorker.close(),
@@ -273,7 +275,8 @@ class Server {
         technicalSeoWorker.close(),
         onPageSeoWorker.close(),
         imageOptimizationWorker.close(),
-        quickScanWorker.close()
+        quickScanWorker.close(),
+        aiAnalysisWorker.close()
       ]);
 
       logger.info('BullMQ workers closed successfully');
