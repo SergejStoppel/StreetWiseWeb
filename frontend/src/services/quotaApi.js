@@ -5,7 +5,7 @@
 
 import axios from 'axios';
 
-const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3005';
 
 // Create axios instance with auth
 const api = axios.create({
@@ -108,9 +108,9 @@ export const paymentApi = {
   /**
    * Create checkout session for deep analysis
    */
-  createCheckout: async (url) => {
+  createCheckout: async (analysisId) => {
     try {
-      const response = await api.post('/api/payments/checkout', { url });
+      const response = await api.post('/api/payments/checkout', { analysisId });
       return response.data;
     } catch (error) {
       console.error('Failed to create checkout:', error);
